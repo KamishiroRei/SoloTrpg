@@ -150,34 +150,53 @@ app.post('/api/ai/chat', async (req, res) => {
 
 async function callAI(endpoint, apiKey, model, messages) {
   const { default: fetch } = await import('node-fetch');
+  const startTime = Date.now();
+  const lastMsg = messages[messages.length - 1]?.content?.substring(0, 50) || '';
 
-  const resp = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.7,
-      max_tokens: 4096
-    }),
-    timeout: 120000
-  });
+  console.log(`[AI] → ${endpoint.substring(0, 60)} model=${model} msg="${lastMsg}"`);
 
-  const json = await resp.json();
-  if (json.error) {
-    throw new Error(json.error.message || JSON.stringify(json.error));
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 4096
+      }),
+      timeout: 120000
+    });
+
+    const elapsed = Date.now() - startTime;
+
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => '');
+      console.log(`[AI] ✗ ${resp.status} (${elapsed}ms): ${errText.substring(0, 200)}`);
+      throw new Error(`HTTP ${resp.status}: ${errText.substring(0, 200)}`);
+    }
+
+    const json = await resp.json();
+    if (json.error) {
+      console.log(`[AI] ✗ API错误 (${elapsed}ms): ${json.error.message || json.error}`);
+      throw new Error(json.error.message || JSON.stringify(json.error));
+    }
+    if (json.choices && json.choices[0]) {
+      const content = json.choices[0].message?.content || '';
+      console.log(`[AI] ✓ (${elapsed}ms) → ${content.length}字符`);
+      return { content, model: json.model, usage: json.usage };
+    }
+    console.log(`[AI] ✗ 未知响应格式 (${elapsed}ms)`);
+    throw new Error('AI返回了未知格式的响应');
+  } catch (err) {
+    if (!err.message.startsWith('HTTP') && !err.message.includes('AI返回') && !err.message.includes('API错误')) {
+      console.log(`[AI] ✗ 网络: ${err.message}`);
+    }
+    throw err;
   }
-  if (json.choices && json.choices[0]) {
-    return {
-      content: json.choices[0].message?.content || '',
-      model: json.model,
-      usage: json.usage
-    };
-  }
-  throw new Error('AI返回了未知格式的响应');
 }
 
 // ── API: 规则书管理 ──────────────────────────────────
@@ -956,42 +975,17 @@ app.get('/api/module/list', (req, res) => {
   res.json(listModules(MODULE_DIR));
 });
 
-// ── API: 获取模型列表（SillyTavern风格） ────────────
+// ── API: 获取模型列表（预设，不调/v1/models） ────────
 
-app.post('/api/ai/models', async (req, res) => {
+const MODEL_PRESETS = {
+  gpt: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
+  custom: []  // 自定义时手动输入
+};
+
+app.post('/api/ai/models', (req, res) => {
   const { provider: reqProvider } = req.body;
-  const providerKey = reqProvider || appConfig.ai.activeProvider;
-  const provider = appConfig.ai.providers[providerKey];
-
-  if (!provider || !provider.endpoint) {
-    return res.status(400).json({ error: '未配置端点' });
-  }
-  if (!provider.apiKey) {
-    return res.status(400).json({ error: '未设置API Key' });
-  }
-
-  // 从endpoint提取base URL
-  const endpointUrl = new URL(provider.endpoint);
-  const baseUrl = `${endpointUrl.protocol}//${endpointUrl.host}`;
-  const modelsUrl = `${baseUrl}/v1/models`;
-
-  try {
-    const { default: fetch } = await import('node-fetch');
-    const resp = await fetch(modelsUrl, {
-      headers: { 'Authorization': `Bearer ${provider.apiKey}` },
-      timeout: 15000
-    });
-    const json = await resp.json();
-    const models = (json.data || []).map(m => m.id).sort();
-    res.json({ models, provider: providerKey });
-  } catch (err) {
-    const fallbackModels = [
-      'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo',
-      'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku',
-      'gemini-pro', 'deepseek-chat', 'qwen-max'
-    ];
-    res.json({ models: fallbackModels, provider: providerKey, fallback: true });
-  }
+  const presets = MODEL_PRESETS[reqProvider] || MODEL_PRESETS.custom;
+  res.json({ models: presets, provider: reqProvider });
 });
 
 // ── WebSocket / 房间系统 ─────────────────────────────

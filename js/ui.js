@@ -637,7 +637,7 @@ const UIManager = (() => {
       _settings.gptModel = _el('setting-gpt-model').value;
       _settings.customEndpoint = _el('setting-custom-endpoint').value.trim();
       _settings.customKey = _el('setting-custom-key').value.trim();
-      _settings.customModel = _el('setting-custom-model-select').value.trim();
+      _settings.customModel = _el('setting-custom-model-select').value || _el('setting-custom-model-input').value.trim();
       _saveSettings();
 
       // 同步到AIClient和后端
@@ -719,7 +719,7 @@ const UIManager = (() => {
 
   function fetchModels(provider) {
     var statusEl = _el(provider + '-status');
-    if (statusEl) { statusEl.textContent = '获取模型中...'; statusEl.className = 'conn-status checking'; }
+    if (statusEl) { statusEl.textContent = '获取中...'; statusEl.className = 'conn-status checking'; }
 
     fetch(getServerUrl() + '/api/ai/models', {
       method: 'POST',
@@ -730,20 +730,19 @@ const UIManager = (() => {
     .then(function(d) {
       var selId = provider === 'gpt' ? 'setting-gpt-model' : 'setting-custom-model-select';
       var sel = _el(selId);
-      if (sel && d.models) {
+      if (sel && d.models && d.models.length > 0) {
         sel.innerHTML = d.models.map(function(m) {
           return '<option value="' + m + '">' + m + '</option>';
         }).join('');
-        // 恢复保存的模型选择
         var savedModel = provider === 'gpt' ? _settings.gptModel : _settings.customModel;
         if (savedModel) sel.value = savedModel;
-      }
-      if (statusEl) {
-        statusEl.textContent = d.fallback ? '使用预设列表' : '已获取' + (d.models ? d.models.length + '个模型' : '');
-        statusEl.className = 'conn-status connected';
+        if (statusEl) { statusEl.textContent = d.models.length + '个模型'; statusEl.className = 'conn-status connected'; }
+      } else {
+        // 自定义提供商无预设，保持手动输入
+        if (statusEl) { statusEl.textContent = '手动输入模型名'; statusEl.className = 'conn-status unchecked'; }
       }
     })
-    .catch(function(e) {
+    .catch(function() {
       if (statusEl) { statusEl.textContent = '获取失败'; statusEl.className = 'conn-status failed'; }
     });
   }
