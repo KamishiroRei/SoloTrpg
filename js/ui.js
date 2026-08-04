@@ -4,6 +4,7 @@
 
 const UIManager = (() => {
   'use strict';
+  console.log('[UI] 模块加载...');
 
   let _editingCharId = null;
   let _encounter = { active: false, initiatives: [], currentIndex: 0, round: 1 };
@@ -1044,9 +1045,7 @@ const UIManager = (() => {
     updateToolButtons: updateToolButtons,
     updateZoomLabel: updateZoomLabel,
     updateServerStatus: updateServerStatus,
-    setupAI: setupAI,
     sendToAI: sendToAI,
-    addAIMessage: addAIMessage,
     setupRules: setupRules,
     refreshRulesList: refreshRulesList,
     loadRuleContent: loadRuleContent,
