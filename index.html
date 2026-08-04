@@ -96,8 +96,7 @@
         <h3>AI 游戏主持</h3>
         <div class="panel-header-btns">
           <select id="ai-provider-select" class="grid-select" style="font-size:11px;">
-            <option value="openai">OpenAI</option>
-            <option value="gptpro">GPTPRO</option>
+            <option value="gpt">GPT</option>
             <option value="custom">自定义</option>
           </select>
           <button id="btn-ai-clear" class="btn-small" title="清除对话历史">清空</button>
@@ -142,31 +141,119 @@
     <div id="tab-settings" class="panel-content">
       <div class="panel-header"><h3>系统设置</h3></div>
       <div class="settings-form">
-        <div class="settings-section"><h4>地图设置</h4>
-          <label>网格颜色：<input type="color" id="setting-grid-color" value="#3a3a5c"></label>
-          <label>地图背景色：<input type="color" id="setting-bg-color" value="#1a1a2e"></label>
-          <label>范围显示颜色：<input type="color" id="setting-range-color" value="#ff6b6b"></label>
-          <label>网格尺寸(px)：<input type="number" id="setting-cell-size" value="50" min="20" max="200"></label>
-        </div>
-        <div class="settings-section"><h4>AI 配置</h4>
-          <label>服务器地址：<input type="text" id="setting-server-url" value="http://localhost:3000"></label>
-          <div id="ai-config-detail">
-            <label>OpenAI Key：<input type="password" id="setting-openai-key" placeholder="sk-..."></label>
-            <label>OpenAI 模型：<input type="text" id="setting-openai-model" value="gpt-4o"></label>
-            <label>GPTPRO Key：<input type="password" id="setting-gptpro-key" placeholder="gptpro-..."></label>
-            <label>GPTPRO 端点：<input type="text" id="setting-gptpro-endpoint" value="https://api.gptpro.io/v1/chat/completions"></label>
-            <label>自定义端点：<input type="text" id="setting-custom-endpoint" placeholder="https://..."></label>
-            <label>自定义Key：<input type="password" id="setting-custom-key" placeholder="..."></label>
+
+        <!-- 地图设置 -->
+        <div class="settings-section">
+          <h4>地图</h4>
+          <div class="setting-row">
+            <span class="setting-label">网格颜色</span>
+            <input type="color" id="setting-grid-color" value="#3a3a5c">
           </div>
-          <button id="btn-save-ai-config" class="btn-small accent">💾 保存AI配置</button>
+          <div class="setting-row">
+            <span class="setting-label">背景色</span>
+            <input type="color" id="setting-bg-color" value="#1a1a2e">
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">范围颜色</span>
+            <input type="color" id="setting-range-color" value="#ff6b6b">
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">网格尺寸</span>
+            <select id="setting-cell-size">
+              <option value="30">30px</option><option value="40">40px</option>
+              <option value="50" selected>50px</option><option value="60">60px</option>
+              <option value="70">70px</option><option value="100">100px</option>
+            </select>
+          </div>
         </div>
-        <div class="settings-section"><h4>数据管理</h4>
-          <button id="btn-export-data" class="btn-small">📤 导出数据</button>
-          <button id="btn-import-data" class="btn-small">📥 导入数据</button>
-          <input type="file" id="import-file-input" accept=".json" style="display:none;">
-          <button id="btn-reset-all" class="btn-small danger">⚠ 重置全部</button>
-          <label>聊天最大条数：<input type="number" id="setting-max-chat" value="200" min="50" max="1000"></label>
+
+        <!-- AI配置 -->
+        <div class="settings-section">
+          <h4>AI 配置</h4>
+          <div class="setting-row">
+            <span class="setting-label">服务器</span>
+            <input type="text" id="setting-server-url" value="http://localhost:3000" class="setting-input">
+          </div>
+
+          <!-- 提供商选择 -->
+          <div class="setting-row">
+            <span class="setting-label">提供商</span>
+            <select id="setting-provider" class="setting-select">
+              <option value="gpt">GPT</option>
+              <option value="custom">自定义API</option>
+            </select>
+          </div>
+
+          <!-- GPT 配置区 -->
+          <div id="provider-gpt" class="provider-config">
+            <div class="setting-row">
+              <span class="setting-label">API Key</span>
+              <div class="input-with-btn">
+                <input type="password" id="setting-gpt-key" placeholder="sk-..." class="setting-input">
+                <button class="btn-icon" id="btn-toggle-gpt-key" title="显示/隐藏">👁</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">模型</span>
+              <select id="setting-gpt-model" class="setting-select">
+                <option value="gpt-4o">gpt-4o</option>
+                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                <option value="gpt-4-turbo">gpt-4-turbo</option>
+                <option value="gpt-4">gpt-4</option>
+                <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">状态</span>
+              <span id="gpt-status" class="conn-status unchecked">未检测</span>
+              <button id="btn-test-gpt" class="btn-small">测试连接</button>
+            </div>
+          </div>
+
+          <!-- 自定义API配置区 -->
+          <div id="provider-custom" class="provider-config" style="display:none;">
+            <div class="setting-row">
+              <span class="setting-label">端点URL</span>
+              <input type="text" id="setting-custom-endpoint" placeholder="https://api.example.com/v1/chat/completions" class="setting-input">
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">API Key</span>
+              <div class="input-with-btn">
+                <input type="password" id="setting-custom-key" placeholder="输入Key..." class="setting-input">
+                <button class="btn-icon" id="btn-toggle-custom-key" title="显示/隐藏">👁</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">模型名</span>
+              <input type="text" id="setting-custom-model" placeholder="model-name" class="setting-input">
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">状态</span>
+              <span id="custom-status" class="conn-status unchecked">未检测</span>
+              <button id="btn-test-custom" class="btn-small">测试连接</button>
+            </div>
+          </div>
+
+          <button id="btn-save-ai-config" class="btn-small accent" style="margin-top:8px;width:100%;">保存配置</button>
         </div>
+
+        <!-- 数据管理 -->
+        <div class="settings-section">
+          <h4>数据</h4>
+          <div class="setting-row">
+            <button id="btn-export-data" class="btn-small">📤 导出</button>
+            <button id="btn-import-data" class="btn-small">📥 导入</button>
+            <input type="file" id="import-file-input" accept=".json" style="display:none;">
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">聊天上限</span>
+            <input type="number" id="setting-max-chat" value="200" min="50" max="1000" class="setting-input" style="width:80px;">
+          </div>
+          <div class="setting-row">
+            <button id="btn-reset-all" class="btn-small danger">⚠ 重置全部</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </aside>

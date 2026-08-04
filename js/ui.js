@@ -9,9 +9,10 @@ const UIManager = (() => {
   let _encounter = { active: false, initiatives: [], currentIndex: 0, round: 1 };
   let _chatHistory = [];
   const _settings = {
-    serverUrl: 'http://localhost:3000', openaiKey: '', openaiModel: 'gpt-4o',
-    gptproKey: '', gptproEndpoint: 'https://api.gptpro.io/v1/chat/completions',
-    customEndpoint: '', customKey: '',
+    serverUrl: 'http://localhost:3000',
+    provider: 'gpt',
+    gptKey: '', gptModel: 'gpt-4o',
+    customEndpoint: '', customKey: '', customModel: '',
     gridColor: '#3a3a5c', bgColor: '#1a1a2e', rangeColor: '#ff6b6b', cellSize: 50, maxChat: 200
   };
 
@@ -27,13 +28,20 @@ const UIManager = (() => {
     _applySetting('setting-range-color', 'rangeColor');
     _applySetting('setting-cell-size', 'cellSize');
     _applySetting('setting-server-url', 'serverUrl');
-    _applySetting('setting-openai-key', 'openaiKey');
-    _applySetting('setting-openai-model', 'openaiModel');
-    _applySetting('setting-gptpro-key', 'gptproKey');
-    _applySetting('setting-gptpro-endpoint', 'gptproEndpoint');
+    _applySetting('setting-provider', 'provider');
+    _applySetting('setting-gpt-key', 'gptKey');
+    _applySetting('setting-gpt-model', 'gptModel');
     _applySetting('setting-custom-endpoint', 'customEndpoint');
     _applySetting('setting-custom-key', 'customKey');
+    _applySetting('setting-custom-model', 'customModel');
     _applySetting('setting-max-chat', 'maxChat');
+    // 切换提供商面板显示
+    var prov = _settings.provider || 'gpt';
+    var gptPanel = _el('provider-gpt');
+    var customPanel = _el('provider-custom');
+    if (gptPanel) gptPanel.style.display = prov === 'gpt' ? 'block' : 'none';
+    if (customPanel) customPanel.style.display = prov === 'custom' ? 'block' : 'none';
+    _el('setting-provider').value = prov;
   }
 
   function init() {
@@ -582,66 +590,100 @@ const UIManager = (() => {
   }
 
   function setupSettings() {
-    var bindS = function(id, key, type) {
+    // 地图设置绑定
+    ['setting-grid-color','setting-bg-color','setting-range-color'].forEach(function(id) {
       var e = _el(id); if (!e) return;
-      e.addEventListener('change', function() {
-        _settings[key] = type === 'number' ? parseInt(this.value) || 0 : this.value;
-        _saveSettings();
-        if (key === 'gridColor') MapEngine.setGridColor(this.value);
-        if (key === 'bgColor') MapEngine.setBgColor(this.value);
-        if (key === 'rangeColor') MapEngine.setRangeColor(this.value);
-        if (key === 'cellSize') MapEngine.setCellSize(parseInt(this.value) || 50);
-      });
-    };
-    bindS('setting-grid-color', 'gridColor', 'color');
-    bindS('setting-bg-color', 'bgColor', 'color');
-    bindS('setting-range-color', 'rangeColor', 'color');
-    bindS('setting-cell-size', 'cellSize', 'number');
-    bindS('setting-server-url', 'serverUrl', 'text');
-    bindS('setting-max-chat', 'maxChat', 'number');
-    var saveAi = _el('btn-save-ai-config');
-    if (saveAi) saveAi.addEventListener('click', function() {
-      var k = function(id) { var e = _el(id); return e ? e.value.trim() : ''; };
-      _settings.serverUrl = k('setting-server-url');
-      _settings.openaiKey = k('setting-openai-key');
-      _settings.openaiModel = k('setting-openai-model');
-      _settings.gptproKey = k('setting-gptpro-key');
-      _settings.gptproEndpoint = k('setting-gptpro-endpoint');
-      _settings.customEndpoint = k('setting-custom-endpoint');
-      _settings.customKey = k('setting-custom-key');
+      e.addEventListener('change', function() { MapEngine.setGridColor(this.value); });
+    });
+    _el('setting-bg-color').addEventListener('change', function() { MapEngine.setBgColor(this.value); });
+    _el('setting-range-color').addEventListener('change', function() { MapEngine.setRangeColor(this.value); });
+    _el('setting-cell-size').addEventListener('change', function() { MapEngine.setCellSize(parseInt(this.value)||50); });
+
+    // 提供商切换
+    _el('setting-provider').addEventListener('change', function() {
+      var v = this.value;
+      _el('provider-gpt').style.display = v === 'gpt' ? 'block' : 'none';
+      _el('provider-custom').style.display = v === 'custom' ? 'block' : 'none';
+    });
+
+    // Key显示/隐藏
+    _el('btn-toggle-gpt-key').addEventListener('click', function() {
+      var inp = _el('setting-gpt-key');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+    _el('btn-toggle-custom-key').addEventListener('click', function() {
+      var inp = _el('setting-custom-key');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+
+    // 测试连接按钮
+    _el('btn-test-gpt').addEventListener('click', function() { testConnection('gpt'); });
+    _el('btn-test-custom').addEventListener('click', function() { testConnection('custom'); });
+
+    // 保存配置
+    _el('btn-save-ai-config').addEventListener('click', function() {
+      _settings.serverUrl = _el('setting-server-url').value.trim();
+      _settings.provider = _el('setting-provider').value;
+      _settings.gptKey = _el('setting-gpt-key').value.trim();
+      _settings.gptModel = _el('setting-gpt-model').value;
+      _settings.customEndpoint = _el('setting-custom-endpoint').value.trim();
+      _settings.customKey = _el('setting-custom-key').value.trim();
+      _settings.customModel = _el('setting-custom-model').value.trim();
       _saveSettings();
+
+      // 同步到AIClient和后端
       AIClient.setServerUrl(_settings.serverUrl);
-      AIClient.checkConnection().then(function(ok) {
-        if (ok) {
-          addChatMessage('system', '设置', 'AI配置已保存并成功连接服务器');
-          if (_settings.openaiKey) AIClient.setApiKey('openai', _settings.openaiKey);
-          if (_settings.gptproKey) AIClient.setApiKey('gptpro', _settings.gptproKey);
-        } else {
-          addChatMessage('system', '设置', 'AI配置已保存，但服务器连接失败。请检查地址是否正确。');
-        }
-      });
+      AIClient.setActiveProvider(_settings.provider === 'gpt' ? 'gpt' : 'custom');
+
+      var activeKey = _settings.provider === 'gpt' ? _settings.gptKey : _settings.customKey;
+      if (activeKey) AIClient.setApiKey(_settings.provider, activeKey);
+
+      // 更新AI面板提供商选择
+      var aiSel = _el('ai-provider-select');
+      if (aiSel) aiSel.value = _settings.provider;
+
+      addChatMessage('system', '设置', 'AI配置已保存');
     });
-    var exportBtn = _el('btn-export-data');
-    if (exportBtn) exportBtn.addEventListener('click', exportAllData);
-    var importBtn = _el('btn-import-data'); var importFile = _el('import-file-input');
-    if (importBtn && importFile) {
-      importBtn.addEventListener('click', function() { importFile.click(); });
-      importFile.addEventListener('change', function() { importAllData(); });
+
+    // 数据管理
+    _el('btn-export-data').addEventListener('click', exportAllData);
+    _el('btn-import-data').addEventListener('click', function() { _el('import-file-input').click(); });
+    _el('import-file-input').addEventListener('change', importAllData);
+    _el('btn-reset-all').addEventListener('click', function() {
+      if (!confirm('确定要重置全部数据吗？此操作不可撤销。')) return;
+      MapEngine.clearTokens();
+      _chatHistory = [];
+      var cm = _el('chat-messages'); if (cm) cm.innerHTML = '';
+      var am = _el('ai-messages'); if (am) am.innerHTML = '<div class="ai-welcome">对话历史已清空</div>';
+      refreshCharacterList();
+      var de = _el('character-detail'); if (de) de.style.display = 'none';
+      AIClient.clearHistory();
+      AIClient.clearRolls();
+      addChatMessage('system', '重置', '所有数据已重置。');
+    });
+  }
+
+  function testConnection(provider) {
+    var statusEl = _el(provider === 'gpt' ? 'gpt-status' : 'custom-status');
+    if (statusEl) { statusEl.textContent = '检测中...'; statusEl.className = 'conn-status checking'; }
+
+    // 构造测试请求
+    var url = _el('setting-server-url').value.trim();
+    var key = provider === 'gpt' ? _el('setting-gpt-key').value.trim() : _el('setting-custom-key').value.trim();
+
+    if (!key) {
+      if (statusEl) { statusEl.textContent = '未设置Key'; statusEl.className = 'conn-status failed'; }
+      return;
     }
-    var resetBtn = _el('btn-reset-all');
-    if (resetBtn) resetBtn.addEventListener('click', function() {
-      if (confirm('确定要重置全部数据吗？此操作不可撤销。')) {
-        MapEngine.clearTokens();
-        _chatHistory = [];
-        var cm = _el('chat-messages'); if (cm) cm.innerHTML = '';
-        var am = _el('ai-messages'); if (am) am.innerHTML = '<div class="ai-welcome">AI游戏主持已就绪。</div>';
-        refreshCharacterList();
-        var de = _el('character-detail'); if (de) de.style.display = 'none';
-        AIClient.clearHistory();
-        AIClient.clearRolls();
-        addChatMessage('system', '重置', '所有数据已重置。');
-      }
-    });
+
+    fetch(url + '/api/health')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (statusEl) { statusEl.textContent = '已连接'; statusEl.className = 'conn-status connected'; }
+      })
+      .catch(function() {
+        if (statusEl) { statusEl.textContent = '连接失败'; statusEl.className = 'conn-status failed'; }
+      });
   }
 
   function exportAllData() {

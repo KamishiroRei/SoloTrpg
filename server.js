@@ -42,30 +42,23 @@ function loadConfig() {
   return {
     ai: {
       providers: {
-        openai: {
-          name: 'OpenAI',
+        gpt: {
+          name: 'GPT',
           endpoint: 'https://api.openai.com/v1/chat/completions',
           apiKey: '',
           model: 'gpt-4o',
           enabled: false
         },
-        gptpro: {
-          name: 'GPTPRO',
-          endpoint: 'https://api.gptpro.io/v1/chat/completions',
-          apiKey: '',
-          model: 'gptpro',
-          enabled: false
-        },
         custom: {
-          name: '自定义',
+          name: '自定义API',
           endpoint: '',
           apiKey: '',
           model: '',
           enabled: false
         }
       },
-      activeProvider: 'openai',
-      systemPrompt: '你是一个专业的TRPG游戏主持人（GM），精通DND 5版及其他桌面角色扮演游戏规则。你需要根据当前游戏状态、角色数据和玩家输入来主持游戏。回答应直接、具体，引用规则时给出准确信息。'
+      activeProvider: 'gpt',
+      systemPrompt: ''
     },
     server: {
       port: PORT

@@ -1069,18 +1069,110 @@ html, body {
 .rule-file-item:hover { color: var(--text-primary); }
 .rule-file-item.active { color: var(--accent-light); }
 
-/* --- 设置增强 --- */
+/* --- 设置面板重设计 --- */
+.settings-form {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
 .settings-section {
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  padding: 8px 10px;
+  background: var(--bg-main);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 }
 .settings-section h4 {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--accent-light);
   margin-bottom: 6px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 12px;
+}
+.setting-label {
+  color: var(--text-secondary);
+  min-width: 60px;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.setting-input {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: var(--font-main);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+.setting-input:focus { border-color: var(--accent-dark); }
+.setting-select {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: var(--font-main);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+}
+
+.input-with-btn {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+}
+.input-with-btn .setting-input {
+  flex: 1;
+}
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.provider-config {
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent-dark);
+}
+
+.conn-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.conn-status.connected { color: var(--success); background: rgba(85,192,122,0.15); }
+.conn-status.failed { color: var(--danger); background: rgba(224,85,85,0.15); }
+.conn-status.checking { color: var(--accent-light); background: rgba(201,168,76,0.15); }
+.conn-status.unchecked { color: var(--text-muted); }
 
 /* --- 模板渲染样式 --- */
 .field-grid {
