@@ -22,8 +22,16 @@ const ARCHIVE_DIR = path.join(PROJECT_ROOT, 'Archive');
 const MODULE_DIR = path.join(PROJECT_ROOT, 'Module');
 const CONFIG_PATH = path.join(PROJECT_ROOT, 'config.json');
 
-// 确保必要目录存在
-[RULER_DIR, ARCHIVE_DIR, MODULE_DIR].forEach(dir => {
+// AI文件操作安全白名单
+const AI_ALLOWED_DIRS = [RULER_DIR, MODULE_DIR, ARCHIVE_DIR];
+
+function isPathAllowed(targetPath) {
+  const resolved = path.resolve(targetPath);
+  return AI_ALLOWED_DIRS.some(dir => resolved.startsWith(path.resolve(dir)));
+}
+
+// 启动时确保允许目录存在
+AI_ALLOWED_DIRS.forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -265,6 +273,38 @@ app.post('/api/rules/save', (req, res) => {
 
   fs.writeFileSync(filePath, content, 'utf8');
   res.json({ success: true, path: filePath });
+});
+
+// ── AI文件写入（限定在Ruler/Module/Archive内） ──────
+
+app.post('/api/ai/write', (req, res) => {
+  const { dir, subpath, content } = req.body;
+  // dir: 'ruler' | 'module' | 'archive'
+  const dirMap = { ruler: RULER_DIR, module: MODULE_DIR, archive: ARCHIVE_DIR };
+  const baseDir = dirMap[dir];
+  if (!baseDir) return res.status(400).json({ error: '无效目录，可选: ruler, module, archive' });
+
+  const targetPath = path.resolve(baseDir, subpath || '');
+  if (!isPathAllowed(targetPath)) return res.status(403).json({ error: '路径不在允许范围内' });
+
+  const targetDir = path.dirname(targetPath);
+  if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+  fs.writeFileSync(targetPath, content, 'utf8');
+  console.log('[AI写入]', targetPath);
+  res.json({ success: true, path: targetPath });
+});
+
+app.post('/api/ai/mkdir', (req, res) => {
+  const { dir, subpath } = req.body;
+  const dirMap = { ruler: RULER_DIR, module: MODULE_DIR, archive: ARCHIVE_DIR };
+  const baseDir = dirMap[dir];
+  if (!baseDir) return res.status(400).json({ error: '无效目录' });
+
+  const targetPath = path.resolve(baseDir, subpath || '');
+  if (!isPathAllowed(targetPath)) return res.status(403).json({ error: '路径不在允许范围内' });
+
+  if (!fs.existsSync(targetPath)) fs.mkdirSync(targetPath, { recursive: true });
+  res.json({ success: true, path: targetPath });
 });
 
 /**

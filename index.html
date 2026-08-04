@@ -17,7 +17,6 @@
     <span id="room-display" class="room-info">未加入房间</span>
     <button id="btn-create-room" class="tool-btn accent">＋ 创建房间</button>
     <button id="btn-join-room" class="tool-btn">→ 加入</button>
-    <button id="btn-check-tool" class="tool-btn accent">✓ 检定</button>
     <button id="btn-add-token" class="tool-btn accent">＋ 角色</button>
     <span id="server-status" class="status-indicator offline" title="AI状态">⚫</span>
   </div>
@@ -97,11 +96,12 @@
       <div class="panel-header">
         <h3>GM 工具</h3>
         <div class="panel-header-btns">
+          <button id="btn-check-tool" class="btn-small accent">📋 检定工具</button>
           <button id="btn-gm-ai-gen" class="btn-small" title="让AI根据规则书生成GM工具">🤖 AI生成</button>
         </div>
       </div>
       <div id="gm-tools" class="scroll-list">
-        <div class="gm-placeholder">GM工具模块。让AI读取规则书后自动生成。<br>也可以在聊天中告诉AI你的需求，动态创建工具。<br><br>示例：<br>/ai 我需要一个快速查询DND5e状态效果的GM工具<br>/ai 帮我生成一个随机遭遇表</div>
+        <div class="gm-placeholder">GM工具模块。<br>使用上方"检定工具"发起检定。<br>让AI读取规则书后自动生成更多工具。<br><br>/ai 帮我生成一个快速查询状态效果的GM工具</div>
       </div>
     </div>
 
