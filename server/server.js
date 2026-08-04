@@ -21,22 +21,15 @@ const PROJECT_ROOT = path.join(__dirname, '..');
 const isPkg = typeof process.pkg !== 'undefined';
 const APP_DIR = isPkg ? path.join(path.dirname(process.execPath), 'app') : path.join(PROJECT_ROOT, 'app');
 const RULER_DIR = path.join(PROJECT_ROOT, 'Ruler');
-const ARCHIVE_DIR = path.join(PROJECT_ROOT, 'Archive');
-const MODULE_DIR = path.join(PROJECT_ROOT, 'Module');
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 
-// AI文件操作安全白名单
-const AI_ALLOWED_DIRS = [RULER_DIR, MODULE_DIR, ARCHIVE_DIR];
+// AI文件操作安全白名单：仅限Ruler目录
+const AI_ALLOWED_DIRS = [RULER_DIR];
 
 function isPathAllowed(targetPath) {
   const resolved = path.resolve(targetPath);
   return AI_ALLOWED_DIRS.some(dir => resolved.startsWith(path.resolve(dir)));
 }
-
-// 启动时确保允许目录存在
-AI_ALLOWED_DIRS.forEach(dir => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-});
 
 // 加载或创建配置
 function loadConfig() {
@@ -279,35 +272,15 @@ app.post('/api/rules/save', (req, res) => {
   res.json({ success: true, path: filePath });
 });
 
-// ── AI文件写入（限定在Ruler/Module/Archive内） ──────
+// ── AI文件写入（限定在Ruler内） ──────
 
 app.post('/api/ai/write', (req, res) => {
-  const { dir, subpath, content } = req.body;
-  // dir: 'ruler' | 'module' | 'archive'
-  const dirMap = { ruler: RULER_DIR, module: MODULE_DIR, archive: ARCHIVE_DIR };
-  const baseDir = dirMap[dir];
-  if (!baseDir) return res.status(400).json({ error: '无效目录，可选: ruler, module, archive' });
-
-  const targetPath = path.resolve(baseDir, subpath || '');
+  const { system, subpath, content } = req.body;
+  const targetPath = path.resolve(RULER_DIR, system || 'DND', subpath || '');
   if (!isPathAllowed(targetPath)) return res.status(403).json({ error: '路径不在允许范围内' });
-
   const targetDir = path.dirname(targetPath);
   if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
   fs.writeFileSync(targetPath, content, 'utf8');
-  console.log('[AI写入]', targetPath);
-  res.json({ success: true, path: targetPath });
-});
-
-app.post('/api/ai/mkdir', (req, res) => {
-  const { dir, subpath } = req.body;
-  const dirMap = { ruler: RULER_DIR, module: MODULE_DIR, archive: ARCHIVE_DIR };
-  const baseDir = dirMap[dir];
-  if (!baseDir) return res.status(400).json({ error: '无效目录' });
-
-  const targetPath = path.resolve(baseDir, subpath || '');
-  if (!isPathAllowed(targetPath)) return res.status(403).json({ error: '路径不在允许范围内' });
-
-  if (!fs.existsSync(targetPath)) fs.mkdirSync(targetPath, { recursive: true });
   res.json({ success: true, path: targetPath });
 });
 
@@ -875,148 +848,91 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ── API: 自动存档（系统记录，不耗AI token） ─────────
+// ── API: 自动存档 ──────────────────────────────────
 
-/**
- * 记录对话到存档（追加模式）
- */
 app.post('/api/archive/log', (req, res) => {
-  const { user, ai, time, adventure } = req.body;
-
-  const advName = adventure || 'default';
-  const advDir = path.join(ARCHIVE_DIR, advName);
+  const { user, ai, time, system, adventure } = req.body;
+  const sys = system || 'DND'; const adv = adventure || '默认';
+  const advDir = path.join(RULER_DIR, sys, '存档', adv);
   if (!fs.existsSync(advDir)) fs.mkdirSync(advDir, { recursive: true });
-
   const logFile = path.join(advDir, 'conversation.txt');
   const entry = `[${time || new Date().toISOString()}]\n玩家: ${user}\nGM: ${ai}\n\n`;
-
-  try {
-    fs.appendFileSync(logFile, entry, 'utf8');
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { fs.appendFileSync(logFile, entry, 'utf8'); res.json({ success: true }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-/**
- * 获取存档列表
- */
 app.get('/api/archive/list', (req, res) => {
-  if (!fs.existsSync(ARCHIVE_DIR)) return res.json([]);
-
-  const adventures = fs.readdirSync(ARCHIVE_DIR, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => {
-      const dir = path.join(ARCHIVE_DIR, d.name);
-      const files = fs.readdirSync(dir).filter(f => f.endsWith('.txt') || f.endsWith('.md'));
-      return { name: d.name, files };
+  const system = req.query.system || '';
+  const base = system ? path.join(RULER_DIR, system, '存档') : RULER_DIR;
+  if (!fs.existsSync(base)) return res.json([]);
+  const results = [];
+  if (system) {
+    fs.readdirSync(base, { withFileTypes: true }).filter(d => d.isDirectory()).forEach(d => {
+      const files = fs.readdirSync(path.join(base, d.name)).filter(f => f.endsWith('.txt') || f.endsWith('.md'));
+      results.push({ system, name: d.name, files });
     });
-
-  res.json(adventures);
+  } else {
+    fs.readdirSync(base, { withFileTypes: true }).filter(d => d.isDirectory()).forEach(sysDir => {
+      const adir = path.join(base, sysDir.name, '存档');
+      if (fs.existsSync(adir)) {
+        fs.readdirSync(adir, { withFileTypes: true }).filter(d => d.isDirectory()).forEach(d => {
+          results.push({ system: sysDir.name, name: d.name, files: [] });
+        });
+      }
+    });
+  }
+  res.json(results);
 });
 
-/**
- * 读取存档内容
- */
 app.get('/api/archive/read', (req, res) => {
-  const { adventure, file } = req.query;
-  const filePath = path.join(ARCHIVE_DIR, adventure || 'default', file || 'conversation.txt');
-
+  const { system, adventure, file } = req.query;
+  const filePath = path.join(RULER_DIR, system || 'DND', '存档', adventure || '默认', file || 'conversation.txt');
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: '存档不存在' });
-
-  try {
-    const text = fs.readFileSync(filePath, 'utf8');
-    res.json({ content: text, file });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { const text = fs.readFileSync(filePath, 'utf8'); res.json({ content: text, file }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── API: 模组搜索 ──────────────────────────────────
 
-/**
- * 搜索模组/剧本内容
- */
 app.get('/api/module/search', (req, res) => {
-  const { q } = req.query;
+  const { q, system } = req.query;
   if (!q) return res.json({ results: [] });
-
   const results = [];
-
-  function scanModules(dir, basePath = '') {
-    if (!fs.existsSync(dir)) return;
-
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      const relPath = basePath ? `${basePath}/${entry.name}` : entry.name;
-
-      if (entry.isDirectory()) {
-        scanModules(fullPath, relPath);
-      } else if (entry.name.endsWith('.md') || entry.name.endsWith('.txt')) {
+  function scan(base) {
+    if (!fs.existsSync(base)) return;
+    fs.readdirSync(base, { withFileTypes: true }).forEach(entry => {
+      const full = path.join(base, entry.name);
+      if (entry.isDirectory()) scan(full);
+      else if (entry.name.endsWith('.md') || entry.name.endsWith('.txt')) {
         try {
-          const text = fs.readFileSync(fullPath, 'utf8');
-          // 简单搜索：匹配标题和段落
-          const lines = text.split('\n');
-          let currentTitle = entry.name;
-
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (line.startsWith('#')) currentTitle = line.replace(/^#+\s*/, '');
-
-            if (line.toLowerCase().includes(q.toLowerCase())) {
-              const context = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 3)).join(' ');
-              results.push({
-                title: currentTitle.substring(0, 60),
-                type: entry.name.endsWith('.md') ? '剧本' : '文本',
-                summary: context.substring(0, 200),
-                file: relPath
-              });
-              if (results.length >= 10) return; // 限制结果数
-            }
+          const text = fs.readFileSync(full, 'utf8');
+          if (text.toLowerCase().includes(q.toLowerCase())) {
+            results.push({ title: entry.name.substring(0, 60), type: '剧本', summary: text.substring(0, 200), file: entry.name });
+            if (results.length >= 10) return;
           }
-        } catch (e) { /* skip */ }
+        } catch(e) {}
       }
-    }
+    });
   }
-
-  scanModules(MODULE_DIR);
+  const searchBase = system ? path.join(RULER_DIR, system, '模组') : RULER_DIR;
+  scan(searchBase);
   res.json({ results: results.slice(0, 10), query: q });
 });
 
-/**
- * 获取模组列表
- */
 app.get('/api/module/list', (req, res) => {
-  if (!fs.existsSync(MODULE_DIR)) return res.json([]);
-
-  function listModules(dir, basePath = '') {
+  const system = req.query.system || '';
+  const base = system ? path.join(RULER_DIR, system, '模组') : RULER_DIR;
+  if (!fs.existsSync(base)) return res.json([]);
+  function list(dir, depth = 0) {
     const result = [];
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      const relPath = basePath ? `${basePath}/${entry.name}` : entry.name;
-
-      if (entry.isDirectory()) {
-        result.push({
-          name: entry.name,
-          type: 'dir',
-          path: relPath,
-          children: listModules(fullPath, relPath)
-        });
-      } else {
-        result.push({
-          name: entry.name,
-          type: 'file',
-          path: relPath,
-          size: fs.statSync(fullPath).size
-        });
-      }
-    }
+    fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+      if (depth === 0 && (e.name === 'compressed' || e.name === 'source' || e.name === '存档')) return;
+      const full = path.join(dir, e.name);
+      result.push({ name: e.name, type: e.isDirectory() ? 'dir' : 'file', size: e.isFile() ? fs.statSync(full).size : 0 });
+    });
     return result;
   }
-
-  res.json(listModules(MODULE_DIR));
+  res.json(list(base));
 });
 
 // ── API: 获取模型列表（预设，不调/v1/models） ────────

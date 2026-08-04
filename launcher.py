@@ -91,76 +91,102 @@ def rules_list():
     systems = []
     for d in ruler_dir.iterdir():
         if d.is_dir():
-            files = [f.name for f in d.iterdir() if f.suffix == '.md']
-            systems.append({"name": d.name, "files": files})
+            mdir = d / '模组'; adir = d / '存档'
+            files = [f.name for f in d.iterdir() if f.suffix == '.md' and f.name != 'SKILL.md']
+            modules = [m.name for m in mdir.iterdir()] if mdir.exists() else []
+            archives = [a.name for a in adir.iterdir()] if adir.exists() else []
+            systems.append({
+                "name": d.name,
+                "files": files,
+                "modules": modules,
+                "archives": archives
+            })
     return jsonify(systems)
 
 @app_flask.route('/api/rules/read')
 def rules_read():
     system = request.args.get('system', '')
     file = request.args.get('file', '')
-    path = (EXE_DIR / 'Ruler' / system / file).resolve()
+    sub = request.args.get('sub', '')  # 'module' or 'archive'
+    subname = request.args.get('subname', '')
+    
+    base = EXE_DIR / 'Ruler' / system
+    if sub == 'module': base = base / '模组' / subname
+    elif sub == 'archive': base = base / '存档' / subname
+    
+    path = (base / file).resolve() if file else base
     if not str(path).startswith(str(EXE_DIR / 'Ruler')): return jsonify({"error": "禁止"}), 403
     if not path.exists(): return jsonify({"error": "不存在"}), 404
+    if path.is_dir():
+        files = [{"name": f.name, "type": "file"} for f in path.iterdir() if f.is_file()]
+        return jsonify({"files": files, "system": system, "path": str(path.relative_to(EXE_DIR / 'Ruler'))})
     return jsonify({"content": path.read_text(encoding='utf-8'), "system": system, "file": file})
 
 @app_flask.route('/api/archive/log', methods=['POST'])
 def archive_log():
     data = request.json
-    adv = data.get('adventure', 'default')
-    adv_dir = EXE_DIR / 'Archive' / adv
+    system = data.get('system', 'DND')
+    adv = data.get('adventure', '默认')
+    adv_dir = EXE_DIR / 'Ruler' / system / '存档' / adv
     adv_dir.mkdir(parents=True, exist_ok=True)
     log_file = adv_dir / 'conversation.txt'
     entry = f"[{data.get('time', '')}]\n玩家: {data.get('user', '')}\nGM: {data.get('ai', '')}\n\n"
-    with open(log_file, 'a', encoding='utf-8') as f:
-        f.write(entry)
+    log_file.write_text(entry, encoding='utf-8')
     return jsonify({"success": True})
 
 @app_flask.route('/api/archive/list')
 def archive_list():
-    archive_dir = EXE_DIR / 'Archive'
-    if not archive_dir.exists(): return jsonify([])
+    ruler_dir = EXE_DIR / 'Ruler'
+    if not ruler_dir.exists(): return jsonify([])
     advs = []
-    for d in archive_dir.iterdir():
+    for d in ruler_dir.iterdir():
         if d.is_dir():
-            files = [f.name for f in d.iterdir() if f.suffix in ('.txt', '.md')]
-            advs.append({"name": d.name, "files": files})
+            adir = d / '存档'
+            if adir.exists():
+                for a in adir.iterdir():
+                    if a.is_dir():
+                        files = [f.name for f in a.iterdir() if f.suffix in ('.txt', '.md')]
+                        advs.append({"system": d.name, "name": a.name, "files": files})
     return jsonify(advs)
 
 @app_flask.route('/api/module/search')
 def module_search():
     q = request.args.get('q', '')
-    module_dir = EXE_DIR / 'Module'
-    if not module_dir.exists(): return jsonify({"results": []})
+    system = request.args.get('system', '')
+    ruler_dir = EXE_DIR / 'Ruler'
     results = []
-    for f in module_dir.rglob('*'):
-        if f.suffix in ('.md', '.txt') and f.is_file():
-            try:
-                text = f.read_text(encoding='utf-8')
-                if q.lower() in text.lower():
-                    results.append({
-                        "title": f.stem[:60],
-                        "type": "文本",
-                        "summary": text[:200],
-                        "file": str(f.relative_to(module_dir))
-                    })
-                    if len(results) >= 10: break
-            except: pass
+    search_dirs = [ruler_dir / system / '模组'] if system else [ruler_dir / d / '模组' for d in ruler_dir.iterdir() if d.is_dir()]
+    for mdir in search_dirs:
+        if not mdir.exists(): continue
+        for f in mdir.rglob('*'):
+            if f.suffix in ('.md', '.txt') and f.is_file():
+                try:
+                    text = f.read_text(encoding='utf-8')
+                    if q.lower() in text.lower():
+                        results.append({
+                            "title": f.stem[:60],
+                            "type": "剧本",
+                            "summary": text[:200],
+                            "file": str(f.relative_to(mdir.parent))
+                        })
+                        if len(results) >= 10: break
+                except: pass
     return jsonify({"results": results, "query": q})
 
 @app_flask.route('/api/module/list')
 def module_list():
-    module_dir = EXE_DIR / 'Module'
-    if not module_dir.exists(): return jsonify([])
-    def scan(d):
-        r = []
-        for p in d.iterdir():
-            if p.is_dir():
-                r.append({"name": p.name, "type": "dir", "path": str(p.relative_to(module_dir)), "children": scan(p)})
-            else:
-                r.append({"name": p.name, "type": "file", "size": p.stat().st_size})
-        return r
-    return jsonify(scan(module_dir))
+    ruler_dir = EXE_DIR / 'Ruler'
+    if not ruler_dir.exists(): return jsonify([])
+    all_modules = []
+    for d in ruler_dir.iterdir():
+        if d.is_dir():
+            mdir = d / '模组'
+            if mdir.exists():
+                for m in mdir.iterdir():
+                    if m.is_dir():
+                        files = [f.name for f in m.rglob('*') if f.is_file()]
+                        all_modules.append({"system": d.name, "name": m.name, "files": len(files)})
+    return jsonify(all_modules)
 
 # ── 配置 ──
 def config_path():
@@ -205,11 +231,10 @@ def config_apikey():
 
 # ── 启动 ──
 def start_server():
-    # 确保必要目录存在
-    for d in ['Ruler', 'Module', 'Archive']:
-        (EXE_DIR / d).mkdir(exist_ok=True)
-    (EXE_DIR / 'Ruler' / 'DND' / 'compressed').mkdir(parents=True, exist_ok=True)
-    (EXE_DIR / 'Ruler' / 'DND' / 'source').mkdir(parents=True, exist_ok=True)
+    # 确保规则书目录结构存在
+    ruler = EXE_DIR / 'Ruler' / 'DND'
+    for d in [ruler / 'compressed', ruler / 'source', ruler / '模组' / '默认' / '资源', ruler / '模组' / '默认' / '自定义', ruler / '存档' / '默认']:
+        d.mkdir(parents=True, exist_ok=True)
     
     port = 3000
     print(f"[SoloTrpg] 启动服务 http://localhost:{port}")
