@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrpgRecode - AI驱动的通用TRPG单人跑团平台</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 顶部工具栏 -->
+<header id="toolbar">
+  <div class="toolbar-left">
+    <span class="app-title">TrpgRecode</span>
+  </div>
+  <div class="toolbar-right">
+    <span id="room-display" class="room-info">未加入房间</span>
+    <button id="btn-create-room" class="tool-btn accent">＋ 创建房间</button>
+    <button id="btn-join-room" class="tool-btn">→ 加入</button>
+    <button id="btn-add-token" class="tool-btn accent">＋ 角色</button>
+    <span id="server-status" class="status-indicator offline" title="AI状态">⚫</span>
+  </div>
+</header>
+
+<!-- 主体区域 -->
+<main id="main-area">
+  <!-- 左侧地图区 -->
+  <section id="map-container">
+    <div id="map-wrapper"><canvas id="map-canvas"></canvas></div>
+    <!-- 悬浮地图工具栏 -->
+    <div id="map-toolbar">
+      <button id="btn-select" class="map-tool active" title="选择/移动 (V)">🖱</button>
+      <button id="btn-pan" class="map-tool" title="平移 (H)">✋</button>
+      <button id="btn-range" class="map-tool" title="范围 (R)">◎</button>
+      <button id="btn-measure" class="map-tool" title="测量 (M)">📏</button>
+      <span class="map-tool-sep"></span>
+      <button id="btn-zoomin" class="map-tool" title="放大">＋</button>
+      <span id="zoom-level" class="zoom-label">100%</span>
+      <button id="btn-zoomout" class="map-tool" title="缩小">－</button>
+      <button id="btn-zoomfit" class="map-tool" title="适应">⊞</button>
+      <span class="map-tool-sep"></span>
+      <label class="map-toggle"><input type="checkbox" id="toggle-grid" checked> 网格</label>
+      <label class="map-toggle"><input type="checkbox" id="toggle-snap" checked> 吸附</label>
+      <select id="grid-size-select" class="grid-select">
+        <option value="30">30</option><option value="40">40</option><option value="50" selected>50</option><option value="60">60</option><option value="70">70</option><option value="100">100</option>
+      </select>
+      <span class="map-tool-sep"></span>
+      <button id="btn-clear-range" class="map-tool" title="清除范围">✕</button>
+      <button id="btn-map-bg" class="map-tool" title="背景">🖼</button>
+    </div>
+    <div id="coord-display">X: 0 &nbsp; Y: 0</div>
+  </section>
+
+  <!-- 右侧面板 -->
+  <aside id="side-panel">
+    <nav class="panel-tabs">
+      <button class="panel-tab active" data-tab="characters">👥 角色</button>
+      <button class="panel-tab" data-tab="encounter">⚔ 遭遇</button>
+      <button class="panel-tab" data-tab="gm">🎭 GM</button>
+      <button class="panel-tab" data-tab="rules">📚 规则</button>
+      <button class="panel-tab" data-tab="notes">📝 笔记</button>
+      <button class="panel-tab" data-tab="settings">⚙ 设置</button>
+    </nav>
+
+    <!-- 角色面板 -->
+    <div id="tab-characters" class="panel-content active">
+      <div class="panel-header">
+        <h3>角色列表</h3>
+        <div class="panel-header-btns">
+          <button id="btn-import-xlsx" class="btn-small" title="从XLSX角色卡导入">📥 导入卡</button>
+          <button id="btn-new-character" class="btn-small">＋ 新建</button>
+        </div>
+      </div>
+      <div id="character-list" class="scroll-list"></div>
+      <div id="character-detail" class="character-sheet" style="display:none;"></div>
+      <input type="file" id="xlsx-file-input" accept=".xlsx,.xls" style="display:none;">
+    </div>
+
+    <!-- 遭遇面板 -->
+    <div id="tab-encounter" class="panel-content">
+      <div class="panel-header">
+        <h3>战斗遭遇</h3>
+        <button id="btn-new-encounter" class="btn-small">＋ 新遭遇</button>
+      </div>
+      <div class="encounter-tracker">
+        <div id="initiative-list" class="scroll-list"></div>
+        <div class="encounter-controls">
+          <button id="btn-roll-initiative" class="btn-small">🎲 全体先攻</button>
+          <button id="btn-next-turn" class="btn-small accent">▶ 下一回合</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GM面板 -->
+    <div id="tab-gm" class="panel-content">
+      <div class="panel-header">
+        <h3>GM 工具</h3>
+        <div class="panel-header-btns">
+          <button id="btn-check-tool" class="btn-small accent">📋 检定工具</button>
+          <button id="btn-gm-ai-gen" class="btn-small" title="让AI根据规则书生成GM工具">🤖 AI生成</button>
+        </div>
+      </div>
+      <div id="gm-tools" class="scroll-list">
+        <div class="gm-placeholder">GM工具模块。<br>使用上方"检定工具"发起检定。<br>让AI读取规则书后自动生成更多工具。<br><br>/ai 帮我生成一个快速查询状态效果的GM工具</div>
+      </div>
+    </div>
+
+    <!-- 规则书面板 -->
+    <div id="tab-rules" class="panel-content">
+      <div class="panel-header">
+        <h3>规则书管理</h3>
+        <button id="btn-upload-rulebook" class="btn-small">📤 上传规则书</button>
+      </div>
+      <div class="rules-layout">
+        <div class="rules-system-list" id="rules-system-list">
+          <div class="rules-empty">尚未加载规则书。<br>上传PDF/CHM文件后，AI会自动整理为可查询的Markdown表格。</div>
+        </div>
+        <div class="rules-content" id="rules-content-view">
+          <div class="rules-placeholder">← 选择左侧规则系统查看缓存内容</div>
+        </div>
+      </div>
+      <input type="file" id="rulebook-file-input" accept=".pdf,.chm,.txt,.md" style="display:none;">
+    </div>
+
+    <!-- 笔记面板 -->
+    <div id="tab-notes" class="panel-content">
+      <div class="panel-header"><h3>会话笔记</h3></div>
+      <textarea id="session-notes" class="notes-area" placeholder="在这里记录会话笔记...&#10;GM可以用这个区域记录剧情进展、NPC状态、关键决策等。"></textarea>
+    </div>
+
+    <!-- 设置面板 -->
+    <div id="tab-settings" class="panel-content">
+      <div class="panel-header"><h3>系统设置</h3></div>
+      <!-- 二级页签 -->
+      <nav class="sub-tabs">
+        <button class="sub-tab active" data-sub="general">常规</button>
+        <button class="sub-tab" data-sub="gm">GM</button>
+        <button class="sub-tab" data-sub="ai">AI</button>
+      </nav>
+      <div class="settings-form">
+
+        <!-- 常规 -->
+        <div id="sub-general" class="sub-panel active">
+          <div class="settings-section">
+            <h4>地图</h4>
+            <div class="setting-row"><span class="setting-label">网格颜色</span><input type="color" id="setting-grid-color" value="#3a3a5c"></div>
+            <div class="setting-row"><span class="setting-label">背景色</span><input type="color" id="setting-bg-color" value="#1a1a2e"></div>
+            <div class="setting-row"><span class="setting-label">范围颜色</span><input type="color" id="setting-range-color" value="#ff6b6b"></div>
+            <div class="setting-row"><span class="setting-label">网格尺寸</span>
+              <select id="setting-cell-size"><option value="30">30px</option><option value="40">40px</option><option value="50" selected>50px</option><option value="60">60px</option><option value="70">70px</option><option value="100">100px</option></select>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h4>数据</h4>
+            <div class="setting-row"><button id="btn-export-data" class="btn-small">📤 导出</button><button id="btn-import-data" class="btn-small">📥 导入</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div>
+            <div class="setting-row"><span class="setting-label">聊天上限</span><input type="number" id="setting-max-chat" value="200" min="50" max="1000" class="setting-input" style="width:80px;"></div>
+            <div class="setting-row"><button id="btn-reset-all" class="btn-small danger">⚠ 重置全部</button></div>
+          </div>
+        </div>
+
+        <!-- GM -->
+        <div id="sub-gm" class="sub-panel">
+          <div class="settings-section">
+            <h4>检定工具</h4>
+            <div class="setting-row"><span class="setting-label">工具栏显示</span><label class="toggle-label"><input type="checkbox" id="setting-check-tool" checked> 顶部工具栏显示"检定"按钮</label></div>
+          </div>
+        </div>
+
+        <!-- AI -->
+        <div id="sub-ai" class="sub-panel">
+          <div class="settings-section">
+            <h4>AI</h4>
+            <div class="setting-row"><span class="setting-label">启用</span><label class="toggle-label"><input type="checkbox" id="setting-ai-enabled"> 聊天 /ai 或自动发送给AI</label></div>
+            <div class="setting-row"><span class="setting-label">模式</span>
+              <select id="setting-ai-mode" class="setting-select">
+                <option value="full">完整主持 — AI管理规则、战斗、剧情</option>
+                <option value="scene">场景描写 — AI仅描写场景，不干预扮演</option>
+                <option value="rules">规则助手 — AI只回答规则问题</option>
+              </select>
+            </div>
+            <div class="setting-row"><span class="setting-label">提供商</span>
+              <select id="setting-provider" class="setting-select"><option value="gpt">GPT</option><option value="custom">自定义API</option></select>
+            </div>
+          </div>
+          <div id="provider-gpt" class="provider-config">
+            <div class="setting-row"><span class="setting-label">API Key</span><div class="input-with-btn"><input type="password" id="setting-gpt-key" placeholder="sk-..." class="setting-input"><button class="btn-icon" id="btn-toggle-gpt-key">👁</button></div></div>
+            <div class="setting-row"><span class="setting-label">模型</span><div class="input-with-btn"><select id="setting-gpt-model" class="setting-select"><option value="gpt-4o">gpt-4o</option><option value="gpt-4o-mini">gpt-4o-mini</option></select><button class="btn-icon" id="btn-refresh-gpt-models">🔄</button></div></div>
+            <div class="setting-row"><span class="setting-label">状态</span><span id="gpt-status" class="conn-status unchecked">未检测</span><button id="btn-test-gpt" class="btn-small">测试</button></div>
+          </div>
+          <div id="provider-custom" class="provider-config" style="display:none;">
+            <div class="setting-row"><span class="setting-label">端点URL</span><input type="text" id="setting-custom-endpoint" placeholder="https://api.example.com/v1/chat/completions" class="setting-input"></div>
+            <div class="setting-row"><span class="setting-label">API Key</span><div class="input-with-btn"><input type="password" id="setting-custom-key" placeholder="输入Key..." class="setting-input"><button class="btn-icon" id="btn-toggle-custom-key">👁</button></div></div>
+            <div class="setting-row"><span class="setting-label">模型</span><div class="input-with-btn"><select id="setting-custom-model-select" class="setting-select"><option value="">— 手动输入 —</option></select><button class="btn-icon" id="btn-refresh-custom-models">🔄</button></div></div>
+            <div class="setting-row"><span class="setting-label"></span><input type="text" id="setting-custom-model-input" placeholder="或直接输入模型名" class="setting-input"></div>
+            <div class="setting-row"><span class="setting-label">状态</span><span id="custom-status" class="conn-status unchecked">未检测</span><button id="btn-test-custom" class="btn-small">测试</button></div>
+          </div>
+          <button id="btn-save-ai-config" class="btn-small accent" style="margin-top:8px;width:100%;">保存配置</button>
+        </div>
+
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- 底部聊天/骰子区 -->
+<footer id="bottom-panel">
+  <div id="chat-area">
+    <div id="chat-messages" class="scroll-list"></div>
+    <div id="chat-input-row">
+      <input type="text" id="chat-input" placeholder="输入消息或掷骰表达式（如 2d6+3）。以 /ai 开头与AI对话" autocomplete="off">
+      <button id="btn-send" class="btn-small accent">发送</button>
+    </div>
+  </div>
+  <div id="dice-bar">
+    <span class="dice-label">快捷掷骰：</span>
+    <button class="dice-btn" data-dice="1d4">d4</button>
+    <button class="dice-btn" data-dice="1d6">d6</button>
+    <button class="dice-btn" data-dice="1d8">d8</button>
+    <button class="dice-btn" data-dice="1d10">d10</button>
+    <button class="dice-btn" data-dice="1d12">d12</button>
+    <button class="dice-btn" data-dice="1d20">d20</button>
+    <button class="dice-btn" data-dice="1d100">d100</button>
+    <span class="dice-sep">|</span>
+    <button class="dice-btn adv" data-dice="2d20k1">优势</button>
+    <button class="dice-btn dis" data-dice="2d20kl1">劣势</button>
+    <button class="dice-btn" data-dice="4d6k3">4d6k3</button>
+    <span class="dice-sep">|</span>
+    <button class="dice-btn custom" id="btn-custom-dice">自定义...</button>
+  </div>
+</footer>
+
+<!-- 弹窗：范围配置 -->
+<div id="range-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>范围显示设置</h3>
+    <div class="form-row"><label>范围类型：</label>
+      <select id="range-type">
+        <option value="circle">圆形 / 球体</option>
+        <option value="cone">锥形</option>
+        <option value="line">线形</option>
+        <option value="cube">方形 / 立方体</option>
+      </select>
+    </div>
+    <div class="form-row"><label>范围大小（格）：</label><input type="number" id="range-size" value="20" min="1" max="200"></div>
+    <div class="form-row" id="range-width-row" style="display:none;"><label>宽度（格）：</label><input type="number" id="range-width" value="5" min="1" max="50"></div>
+    <div class="form-row" id="range-angle-row" style="display:none;"><label>角度：</label>
+      <select id="range-angle">
+        <option value="15">15°</option><option value="30">30°</option><option value="45">45°</option>
+        <option value="60" selected>60°</option><option value="90">90°</option><option value="120">120°</option>
+      </select>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-range-confirm" class="btn-small accent">确认显示</button>
+      <button id="btn-range-cancel" class="btn-small">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：角色编辑 -->
+<div id="character-modal" class="modal" style="display:none;">
+  <div class="modal-content wide">
+    <h3 id="char-modal-title">角色编辑</h3>
+    <div class="char-form">
+      <div class="form-row"><label>名称：</label><input type="text" id="char-name" placeholder="角色名称"></div>
+      <div class="form-row"><label>显示名：</label><input type="text" id="char-display" placeholder="地图标签"></div>
+      <div class="form-row"><label>颜色：</label><input type="color" id="char-color" value="#4ecdc4"></div>
+      <div class="form-row">
+        <label>角色数据（JSON）：</label>
+        <textarea id="char-data" rows="14" placeholder='由AI根据规则书自动生成或手动填写&#10;AI生成时遵循当前模板配置'></textarea>
+      </div>
+      <div class="form-row" style="font-size:11px;color:var(--text-muted);">
+        <span>提示：可先用AI读取规则书生成模板，再由AI自动填充角色数据</span>
+      </div>
+      <div class="modal-buttons">
+        <button id="btn-char-save" class="btn-small accent">保存</button>
+        <button id="btn-char-cancel" class="btn-small">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：自定义骰子 -->
+<div id="dice-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>自定义掷骰</h3>
+    <div class="form-row"><label>表达式：</label><input type="text" id="custom-dice-expr" placeholder="如: 2d6+3, 4d6k3, 1d20+5"></div>
+    <div class="form-row"><label>说明：</label><input type="text" id="custom-dice-label" placeholder="如: 火球术伤害"></div>
+    <div class="modal-buttons">
+      <button id="btn-dice-roll" class="btn-small accent">🎲 掷骰</button>
+      <button id="btn-dice-cancel" class="btn-small">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：地图背景 -->
+<div id="bg-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>设置地图背景</h3>
+    <div class="form-row"><label>选择图片：</label><input type="file" id="bg-file-input" accept="image/*"></div>
+    <div class="form-row"><label>或URL：</label><input type="text" id="bg-url-input" placeholder="https://..."></div>
+    <div class="form-row">
+      <label>偏移X：<input type="number" id="bg-offset-x" value="0" style="width:60px;"></label>
+      <label>偏移Y：<input type="number" id="bg-offset-y" value="0" style="width:60px;"></label>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-bg-apply" class="btn-small accent">应用</button>
+      <button id="btn-bg-remove" class="btn-small danger">移除背景</button>
+      <button id="btn-bg-cancel" class="btn-small">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：AI生成角色 -->
+<div id="ai-char-modal" class="modal" style="display:none;">
+  <div class="modal-content wide">
+    <h3>AI 自动生成角色</h3>
+    <div class="form-row"><label>描述：</label>
+      <textarea id="ai-char-prompt" rows="3" placeholder="描述你想创建的角色，如：一个5级人类圣武士，擅长长剑和盾牌..."></textarea>
+    </div>
+    <div class="form-row" style="font-size:11px;color:var(--text-muted);">
+      <span>AI会根据当前规则书模板自动生成角色数据JSON</span>
+    </div>
+    <div id="ai-char-result" style="display:none;margin-top:8px;">
+      <textarea id="ai-char-output" rows="10" readonly style="width:100%;font-family:var(--font-mono);font-size:11px;"></textarea>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-ai-char-generate" class="btn-small accent">🤖 生成</button>
+      <button id="btn-ai-char-apply" class="btn-small accent" style="display:none;">✅ 应用此数据</button>
+      <button id="btn-ai-char-cancel" class="btn-small">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：加入房间 -->
+<div id="join-room-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>加入房间</h3>
+    <div class="form-row"><label>房间码：</label><input type="text" id="join-room-code" placeholder="输入4位房间码" maxlength="4" style="text-transform:uppercase;font-size:18px;text-align:center;letter-spacing:4px;"></div>
+    <div class="form-row"><label>你的名字：</label><input type="text" id="join-room-name" placeholder="给自己起个名字"></div>
+    <div class="modal-buttons">
+      <button id="btn-join-confirm" class="btn-small accent">加入房间</button>
+      <button id="btn-join-cancel" class="btn-small">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：检定工具 -->
+<div id="check-modal" class="modal" style="display:none;">
+  <div class="modal-content wide">
+    <h3>📋 检定工具</h3>
+    <div style="margin-bottom:8px;">
+      <div class="setting-row"><label>检定名称：</label><input type="text" id="check-name" placeholder="如: 力量检定、火球术豁免"></div>
+      <div class="setting-row"><label>骰子表达式：</label><input type="text" id="check-dice" placeholder="如: 1d20+5"></div>
+      <div class="setting-row"><label>难度/DC：</label><input type="number" id="check-dc" placeholder="留空则不设DC"></div>
+      <div class="setting-row"><label>敌人/对抗信息：</label><input type="text" id="check-info" placeholder="如: 力量比较强 / 意志豁免+7 / 完全未知"></div>
+      <button id="btn-add-check" class="btn-small accent">＋ 添加到检定列表</button>
+    </div>
+    <hr style="border-color:var(--border);margin:8px 0;">
+    <div id="check-list" class="scroll-list" style="max-height:250px;min-height:60px;">
+      <div style="color:var(--text-muted);text-align:center;padding:16px;">暂无检定项，上方添加</div>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-check-send-ai" class="btn-small accent" style="display:none;">📤 全部完成，发送给AI</button>
+      <button id="btn-check-close" class="btn-small">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- socket.io -->
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<!-- 脚本加载 -->
+<script src="js/dice.js"></script>
+<script src="js/map.js"></script>
+<script src="js/compressor.js"></script>
+<script src="js/rulesearch.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/network.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

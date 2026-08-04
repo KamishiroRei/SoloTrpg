@@ -17,6 +17,9 @@ const { execSync } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const PROJECT_ROOT = path.join(__dirname, '..');
+// pkg打包时，静态文件从快照或exe同级目录读取
+const isPkg = typeof process.pkg !== 'undefined';
+const APP_DIR = isPkg ? path.join(path.dirname(process.execPath), 'app') : path.join(PROJECT_ROOT, 'app');
 const RULER_DIR = path.join(PROJECT_ROOT, 'Ruler');
 const ARCHIVE_DIR = path.join(PROJECT_ROOT, 'Archive');
 const MODULE_DIR = path.join(PROJECT_ROOT, 'Module');
@@ -83,8 +86,8 @@ let appConfig = loadConfig();
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static(PROJECT_ROOT));
-app.get('/', (req, res) => res.redirect('/start.html'));
+app.use(express.static(APP_DIR));
+app.get('/', (req, res) => res.redirect('/index.html'));
 
 // 文件上传目录
 const uploadDir = path.join(PROJECT_ROOT, 'data', 'uploads');
