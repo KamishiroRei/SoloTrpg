@@ -1,0 +1,22 @@
+{
+  "name": "solotrpg",
+  "version": "1.0.0",
+  "description": "AI驱动的通用TRPG跑团平台",
+  "main": "server.js",
+  "bin": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "pkg . --targets win-x64 --output ../SoloTrpg.exe"
+  },
+  "pkg": {
+    "assets": ["../start.html", "../css/**/*", "../js/**/*", "../Ruler/**/*"]
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "socket.io": "^4.7.4",
+    "multer": "^1.4.5-lts.1",
+    "xlsx": "^0.18.5",
+    "node-fetch": "^2.7.0"
+  }
+}

@@ -211,6 +211,10 @@ const UIManager = (() => {
       addChatMessage('system', 'AI', 'AI未启用。请在设置中开启。');
       return;
     }
+    if (!AIClient.isConnected()) {
+      addChatMessage('system', 'AI', 'AI服务器未启动。双击 start.bat 启动后端即可使用AI功能。');
+      return;
+    }
     addChatMessage('user', '你', msg);
     addChatMessage('system', 'AI', '⏳ 思考中...');
     AIClient.sendMessage(msg, { customSystemPrompt: AI_MODE_PROMPTS[_settings.aiMode] || AI_MODE_PROMPTS.full }).then(function() {

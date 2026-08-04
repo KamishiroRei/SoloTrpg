@@ -16,11 +16,11 @@ const { execSync } = require('child_process');
 // ── 配置 ──────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-const PROJECT_ROOT = __dirname;
+const PROJECT_ROOT = path.join(__dirname, '..');
 const RULER_DIR = path.join(PROJECT_ROOT, 'Ruler');
 const ARCHIVE_DIR = path.join(PROJECT_ROOT, 'Archive');
 const MODULE_DIR = path.join(PROJECT_ROOT, 'Module');
-const CONFIG_PATH = path.join(PROJECT_ROOT, 'config.json');
+const CONFIG_PATH = path.join(__dirname, 'config.json');
 
 // AI文件操作安全白名单
 const AI_ALLOWED_DIRS = [RULER_DIR, MODULE_DIR, ARCHIVE_DIR];
@@ -83,7 +83,8 @@ let appConfig = loadConfig();
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static(PROJECT_ROOT)); // 托管静态文件
+app.use(express.static(PROJECT_ROOT));
+app.get('/', (req, res) => res.redirect('/start.html'));
 
 // 文件上传目录
 const uploadDir = path.join(PROJECT_ROOT, 'data', 'uploads');
@@ -1215,13 +1216,17 @@ server.listen(PORT, '0.0.0.0', () => {
   }
 
   console.log('═══════════════════════════════════════════');
-  console.log('  TrpgRecode 已启动');
-  console.log(`  本机: http://localhost:${PORT}`);
-  console.log(`  局域网: http://${localIP}:${PORT}`);
-  console.log(`  规则书: ${RULER_DIR}`);
+  console.log('  SoloTrpg 已启动');
+  console.log(`  游戏地址: http://localhost:${PORT}`);
   console.log('═══════════════════════════════════════════');
-  console.log('  联机方式：其他人浏览器打开局域网地址即可加入');
-  console.log('═══════════════════════════════════════════');
+
+  // 自动打开浏览器
+  const { exec } = require('child_process');
+  const url = `http://localhost:${PORT}`;
+  const platform = process.platform;
+  if (platform === 'win32') exec(`start ${url}`);
+  else if (platform === 'darwin') exec(`open ${url}`);
+  else exec(`xdg-open ${url}`);
 
   // 自动扫描规则书任务区
   autoScanRulesOnStartup();
