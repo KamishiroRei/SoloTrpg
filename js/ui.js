@@ -24,7 +24,6 @@ const UIManager = (() => {
   function _applySetting(id, key, type) { var e = _el(id); if (!e) return; if (type === 'checkbox') e.checked = _settings[key]; else e.value = _settings[key]; }
   function _populateSettingsForm() {
     _applySetting('setting-grid-color', 'gridColor');
-    _applySetting('setting-bg-color', 'bgColor');
     _applySetting('setting-range-color', 'rangeColor');
     _applySetting('setting-cell-size', 'cellSize');
     _applySetting('setting-provider', 'provider');
@@ -60,6 +59,7 @@ const UIManager = (() => {
     setupModals();
     setupSettings();
     setupNetwork();
+    setupCheckTool();
     refreshCharacterList();
     window._chatHistory = _chatHistory;
     window._onMeasureComplete = function(sx, sy, ex, ey, dist) {
@@ -123,6 +123,16 @@ const UIManager = (() => {
         if (target === 'rules') refreshRulesList();
         if (target === 'encounter') renderInitiativeList();
         if (target === 'settings') _populateSettingsForm();
+      });
+    });
+    // 设置面板二级页签
+    document.querySelectorAll('.sub-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.sub-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.sub-panel').forEach(function(p) { p.classList.remove('active'); });
+        this.classList.add('active');
+        var p = _el('sub-' + this.getAttribute('data-sub'));
+        if (p) p.classList.add('active');
       });
     });
   }
@@ -908,6 +918,110 @@ const UIManager = (() => {
     };
     reader.readAsText(fileInput.files[0]);
     fileInput.value = '';
+  }
+
+  // ── 检定工具 ──────────────────────────────────
+
+  var checkItems = [];
+
+  function setupCheckTool() {
+    _el('btn-check-tool').addEventListener('click', function() {
+      openModal('check-modal');
+      if (checkItems.length === 0) addCheckItem(); // 默认加一个空项
+    });
+    _el('btn-add-check').addEventListener('click', addCheckItem);
+    _el('btn-check-close').addEventListener('click', function() { closeModal('check-modal'); });
+    _el('btn-check-send-ai').addEventListener('click', sendChecksToAI);
+  }
+
+  function addCheckItem() {
+    var name = _el('check-name').value.trim() || '检定 ' + (checkItems.length + 1);
+    var dice = _el('check-dice').value.trim() || '1d20';
+    var dc = parseInt(_el('check-dc').value) || null;
+    var info = _el('check-info').value.trim();
+
+    checkItems.push({ name: name, dice: dice, dc: dc, info: info, result: null, done: false });
+
+    _el('check-name').value = '';
+    _el('check-dice').value = '';
+    _el('check-dc').value = '';
+    _el('check-info').value = '';
+    _el('check-name').focus();
+    renderCheckList();
+  }
+
+  function renderCheckList() {
+    var list = _el('check-list');
+    if (!list) return;
+    if (checkItems.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:16px;">暂无检定项</div>';
+      _el('btn-check-send-ai').style.display = 'none';
+      return;
+    }
+    var html = '';
+    var allDone = true;
+    checkItems.forEach(function(item, i) {
+      var doneClass = item.done ? ' done' : '';
+      var resultHtml = '';
+      if (item.done && item.result) {
+        var failClass = item.dc && item.result.total < item.dc ? ' fail' : '';
+        resultHtml = '<span class="check-result' + failClass + '">' + item.result.total;
+        if (item.dc) resultHtml += ' / DC ' + item.dc + (item.result.total >= item.dc ? ' ✓' : ' ✗');
+        resultHtml += '</span>';
+      } else {
+        allDone = false;
+      }
+      html += '<div class="check-item' + doneClass + '">';
+      html += '<span class="check-label">' + _esc(item.name) + '</span>';
+      html += '<span class="check-info">' + _esc(item.dice) + '</span>';
+      if (item.info) html += '<span class="check-enemy-info">' + _esc(item.info) + '</span>';
+      if (!item.done) {
+        html += '<button class="btn-small" onclick="window._doCheckRoll(' + i + ')">🎲 掷骰</button>';
+      }
+      html += resultHtml;
+      html += '<button class="check-remove" onclick="window._removeCheck(' + i + ')">✕</button>';
+      html += '</div>';
+    });
+    list.innerHTML = html;
+    _el('btn-check-send-ai').style.display = allDone ? 'inline-block' : 'none';
+  }
+
+  // 暴露到全局（因为onclick需要）
+  window._doCheckRoll = function(i) {
+    var item = checkItems[i];
+    if (!item || item.done) return;
+    var result = DiceSystem.smartRoll(item.dice);
+    if (result) {
+      item.result = result;
+      item.done = true;
+      renderCheckList();
+    }
+  };
+  window._removeCheck = function(i) {
+    checkItems.splice(i, 1);
+    renderCheckList();
+  };
+
+  function sendChecksToAI() {
+    var allDone = checkItems.every(function(c) { return c.done; });
+    if (!allDone) { addChatMessage('system', '检定', '还有检定未完成'); return; }
+
+    var summary = '检定结果汇总：\n';
+    checkItems.forEach(function(c) {
+      summary += c.name + ': ' + c.dice + ' → ' + c.result.total;
+      if (c.dc) summary += ' (DC' + c.dc + (c.result.total >= c.dc ? ' 成功' : ' 失败') + ')';
+      if (c.info) summary += ' [信息: ' + c.info + ']';
+      summary += '\n';
+    });
+
+    addChatMessage('system', '检定', summary);
+    if (_settings.aiEnabled) {
+      sendToAI(summary);
+    }
+
+    checkItems = [];
+    renderCheckList();
+    closeModal('check-modal');
   }
 
   function onMapTokenSelected(token) {

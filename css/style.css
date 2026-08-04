@@ -1234,6 +1234,49 @@ html, body {
 .conn-status.checking { color: var(--accent-light); background: rgba(201,168,76,0.15); }
 .conn-status.unchecked { color: var(--text-muted); }
 
+/* --- 二级页签 --- */
+.sub-tabs {
+  display: flex;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-main);
+}
+.sub-tab {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: var(--font-main);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.sub-tab:hover { color: var(--text-primary); }
+.sub-tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+.sub-panel { display: none; }
+.sub-panel.active { display: block; }
+
+/* --- 检定工具 --- */
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin: 4px 0;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.check-item.done { opacity: 0.6; }
+.check-item .check-label { font-weight: 600; min-width: 80px; }
+.check-item .check-info { color: var(--text-muted); font-size: 10px; }
+.check-item .check-result { color: var(--accent-light); font-weight: 700; margin-left: auto; }
+.check-item .check-result.fail { color: var(--danger); }
+.check-item .check-remove { cursor: pointer; color: var(--text-muted); background: none; border: none; font-size: 14px; padding: 0 4px; }
+.check-item .check-remove:hover { color: var(--danger); }
+.check-enemy-info { color: var(--info); font-size: 10px; margin-top: 2px; display: block; }
+
 /* --- 模板渲染样式 --- */
 .field-grid {
   display: grid;

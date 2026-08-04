@@ -38,7 +38,7 @@
     <span id="room-display" class="room-info">未加入房间</span>
     <button id="btn-create-room" class="tool-btn accent">＋ 创建房间</button>
     <button id="btn-join-room" class="tool-btn">→ 加入</button>
-    <span id="server-status" class="status-indicator offline" title="AI服务器状态">⚫ 离线</span>
+    <button id="btn-check-tool" class="tool-btn accent" title="检定工具">✓ 检定</button>
     <button id="btn-add-token" class="tool-btn accent">＋ 角色</button>
     <button id="btn-clear-range" class="tool-btn">✕ 清除范围</button>
     <button id="btn-map-bg" class="tool-btn">🖼 背景</button>
@@ -118,135 +118,70 @@
     <!-- 设置面板 -->
     <div id="tab-settings" class="panel-content">
       <div class="panel-header"><h3>系统设置</h3></div>
+      <!-- 二级页签 -->
+      <nav class="sub-tabs">
+        <button class="sub-tab active" data-sub="general">常规</button>
+        <button class="sub-tab" data-sub="gm">GM</button>
+        <button class="sub-tab" data-sub="ai">AI</button>
+      </nav>
       <div class="settings-form">
 
-        <!-- 地图设置 -->
-        <div class="settings-section">
-          <h4>地图</h4>
-          <div class="setting-row">
-            <span class="setting-label">网格颜色</span>
-            <input type="color" id="setting-grid-color" value="#3a3a5c">
+        <!-- 常规 -->
+        <div id="sub-general" class="sub-panel active">
+          <div class="settings-section">
+            <h4>地图</h4>
+            <div class="setting-row"><span class="setting-label">网格颜色</span><input type="color" id="setting-grid-color" value="#3a3a5c"></div>
+            <div class="setting-row"><span class="setting-label">背景色</span><input type="color" id="setting-bg-color" value="#1a1a2e"></div>
+            <div class="setting-row"><span class="setting-label">范围颜色</span><input type="color" id="setting-range-color" value="#ff6b6b"></div>
+            <div class="setting-row"><span class="setting-label">网格尺寸</span>
+              <select id="setting-cell-size"><option value="30">30px</option><option value="40">40px</option><option value="50" selected>50px</option><option value="60">60px</option><option value="70">70px</option><option value="100">100px</option></select>
+            </div>
           </div>
-          <div class="setting-row">
-            <span class="setting-label">背景色</span>
-            <input type="color" id="setting-bg-color" value="#1a1a2e">
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">范围颜色</span>
-            <input type="color" id="setting-range-color" value="#ff6b6b">
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">网格尺寸</span>
-            <select id="setting-cell-size">
-              <option value="30">30px</option><option value="40">40px</option>
-              <option value="50" selected>50px</option><option value="60">60px</option>
-              <option value="70">70px</option><option value="100">100px</option>
-            </select>
+          <div class="settings-section">
+            <h4>数据</h4>
+            <div class="setting-row"><button id="btn-export-data" class="btn-small">📤 导出</button><button id="btn-import-data" class="btn-small">📥 导入</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div>
+            <div class="setting-row"><span class="setting-label">聊天上限</span><input type="number" id="setting-max-chat" value="200" min="50" max="1000" class="setting-input" style="width:80px;"></div>
+            <div class="setting-row"><button id="btn-reset-all" class="btn-small danger">⚠ 重置全部</button></div>
           </div>
         </div>
 
-        <!-- AI配置 -->
-        <div class="settings-section">
-          <h4>AI 配置</h4>
-          <div class="setting-row">
-            <span class="setting-label">启用AI</span>
-            <label class="toggle-label"><input type="checkbox" id="setting-ai-enabled"> 底部聊天 /ai 与AI对话</label>
+        <!-- GM -->
+        <div id="sub-gm" class="sub-panel">
+          <div class="settings-section">
+            <h4>检定工具</h4>
+            <div class="setting-row"><span class="setting-label">工具栏显示</span><label class="toggle-label"><input type="checkbox" id="setting-check-tool" checked> 顶部工具栏显示"检定"按钮</label></div>
           </div>
-          <div class="setting-row">
-            <span class="setting-label">AI模式</span>
-            <select id="setting-ai-mode" class="setting-select">
-              <option value="full">完整主持 — AI管理规则、战斗、剧情</option>
-              <option value="scene">场景描写 — AI仅描写场景，不干预扮演</option>
-              <option value="rules">规则助手 — AI只回答规则问题</option>
-            </select>
-          </div>
+        </div>
 
-          <!-- 提供商选择 -->
-          <div class="setting-row">
-            <span class="setting-label">提供商</span>
-            <select id="setting-provider" class="setting-select">
-              <option value="gpt">GPT</option>
-              <option value="custom">自定义API</option>
-            </select>
+        <!-- AI -->
+        <div id="sub-ai" class="sub-panel">
+          <div class="settings-section">
+            <h4>AI</h4>
+            <div class="setting-row"><span class="setting-label">启用</span><label class="toggle-label"><input type="checkbox" id="setting-ai-enabled"> 聊天 /ai 或自动发送给AI</label></div>
+            <div class="setting-row"><span class="setting-label">模式</span>
+              <select id="setting-ai-mode" class="setting-select">
+                <option value="full">完整主持 — AI管理规则、战斗、剧情</option>
+                <option value="scene">场景描写 — AI仅描写场景，不干预扮演</option>
+                <option value="rules">规则助手 — AI只回答规则问题</option>
+              </select>
+            </div>
+            <div class="setting-row"><span class="setting-label">提供商</span>
+              <select id="setting-provider" class="setting-select"><option value="gpt">GPT</option><option value="custom">自定义API</option></select>
+            </div>
           </div>
-
-          <!-- GPT 配置区 -->
           <div id="provider-gpt" class="provider-config">
-            <div class="setting-row">
-              <span class="setting-label">API Key</span>
-              <div class="input-with-btn">
-                <input type="password" id="setting-gpt-key" placeholder="sk-..." class="setting-input">
-                <button class="btn-icon" id="btn-toggle-gpt-key" title="显示/隐藏">👁</button>
-              </div>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">模型</span>
-              <div class="input-with-btn">
-                <select id="setting-gpt-model" class="setting-select">
-                  <option value="gpt-4o">gpt-4o</option>
-                  <option value="gpt-4o-mini">gpt-4o-mini</option>
-                </select>
-                <button class="btn-icon" id="btn-refresh-gpt-models" title="从API获取模型列表">🔄</button>
-              </div>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">状态</span>
-              <span id="gpt-status" class="conn-status unchecked">未检测</span>
-              <button id="btn-test-gpt" class="btn-small">测试连接</button>
-            </div>
+            <div class="setting-row"><span class="setting-label">API Key</span><div class="input-with-btn"><input type="password" id="setting-gpt-key" placeholder="sk-..." class="setting-input"><button class="btn-icon" id="btn-toggle-gpt-key">👁</button></div></div>
+            <div class="setting-row"><span class="setting-label">模型</span><div class="input-with-btn"><select id="setting-gpt-model" class="setting-select"><option value="gpt-4o">gpt-4o</option><option value="gpt-4o-mini">gpt-4o-mini</option></select><button class="btn-icon" id="btn-refresh-gpt-models">🔄</button></div></div>
+            <div class="setting-row"><span class="setting-label">状态</span><span id="gpt-status" class="conn-status unchecked">未检测</span><button id="btn-test-gpt" class="btn-small">测试</button></div>
           </div>
-
-          <!-- 自定义API配置区 -->
           <div id="provider-custom" class="provider-config" style="display:none;">
-            <div class="setting-row">
-              <span class="setting-label">端点URL</span>
-              <input type="text" id="setting-custom-endpoint" placeholder="https://api.example.com/v1/chat/completions" class="setting-input">
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">API Key</span>
-              <div class="input-with-btn">
-                <input type="password" id="setting-custom-key" placeholder="输入Key..." class="setting-input">
-                <button class="btn-icon" id="btn-toggle-custom-key" title="显示/隐藏">👁</button>
-              </div>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">模型</span>
-              <div class="input-with-btn">
-                <select id="setting-custom-model-select" class="setting-select">
-                  <option value="">— 手动输入下方 —</option>
-                </select>
-                <button class="btn-icon" id="btn-refresh-custom-models" title="刷新预设列表">🔄</button>
-              </div>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label"></span>
-              <input type="text" id="setting-custom-model-input" placeholder="或直接输入模型名" class="setting-input" style="font-size:11px;">
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">状态</span>
-              <span id="custom-status" class="conn-status unchecked">未检测</span>
-              <button id="btn-test-custom" class="btn-small">测试连接</button>
-            </div>
+            <div class="setting-row"><span class="setting-label">端点URL</span><input type="text" id="setting-custom-endpoint" placeholder="https://api.example.com/v1/chat/completions" class="setting-input"></div>
+            <div class="setting-row"><span class="setting-label">API Key</span><div class="input-with-btn"><input type="password" id="setting-custom-key" placeholder="输入Key..." class="setting-input"><button class="btn-icon" id="btn-toggle-custom-key">👁</button></div></div>
+            <div class="setting-row"><span class="setting-label">模型</span><div class="input-with-btn"><select id="setting-custom-model-select" class="setting-select"><option value="">— 手动输入 —</option></select><button class="btn-icon" id="btn-refresh-custom-models">🔄</button></div></div>
+            <div class="setting-row"><span class="setting-label"></span><input type="text" id="setting-custom-model-input" placeholder="或直接输入模型名" class="setting-input"></div>
+            <div class="setting-row"><span class="setting-label">状态</span><span id="custom-status" class="conn-status unchecked">未检测</span><button id="btn-test-custom" class="btn-small">测试</button></div>
           </div>
-
           <button id="btn-save-ai-config" class="btn-small accent" style="margin-top:8px;width:100%;">保存配置</button>
-        </div>
-
-        <!-- 数据管理 -->
-        <div class="settings-section">
-          <h4>数据</h4>
-          <div class="setting-row">
-            <button id="btn-export-data" class="btn-small">📤 导出</button>
-            <button id="btn-import-data" class="btn-small">📥 导入</button>
-            <input type="file" id="import-file-input" accept=".json" style="display:none;">
-          </div>
-          <div class="setting-row">
-            <span class="setting-label">聊天上限</span>
-            <input type="number" id="setting-max-chat" value="200" min="50" max="1000" class="setting-input" style="width:80px;">
-          </div>
-          <div class="setting-row">
-            <button id="btn-reset-all" class="btn-small danger">⚠ 重置全部</button>
-          </div>
         </div>
 
       </div>
@@ -392,6 +327,28 @@
     <div class="modal-buttons">
       <button id="btn-join-confirm" class="btn-small accent">加入房间</button>
       <button id="btn-join-cancel" class="btn-small">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：检定工具 -->
+<div id="check-modal" class="modal" style="display:none;">
+  <div class="modal-content wide">
+    <h3>📋 检定工具</h3>
+    <div style="margin-bottom:8px;">
+      <div class="setting-row"><label>检定名称：</label><input type="text" id="check-name" placeholder="如: 力量检定、火球术豁免"></div>
+      <div class="setting-row"><label>骰子表达式：</label><input type="text" id="check-dice" placeholder="如: 1d20+5"></div>
+      <div class="setting-row"><label>难度/DC：</label><input type="number" id="check-dc" placeholder="留空则不设DC"></div>
+      <div class="setting-row"><label>敌人/对抗信息：</label><input type="text" id="check-info" placeholder="如: 力量比较强 / 意志豁免+7 / 完全未知"></div>
+      <button id="btn-add-check" class="btn-small accent">＋ 添加到检定列表</button>
+    </div>
+    <hr style="border-color:var(--border);margin:8px 0;">
+    <div id="check-list" class="scroll-list" style="max-height:250px;min-height:60px;">
+      <div style="color:var(--text-muted);text-align:center;padding:16px;">暂无检定项，上方添加</div>
+    </div>
+    <div class="modal-buttons">
+      <button id="btn-check-send-ai" class="btn-small accent" style="display:none;">📤 全部完成，发送给AI</button>
+      <button id="btn-check-close" class="btn-small">关闭</button>
     </div>
   </div>
 </div>
