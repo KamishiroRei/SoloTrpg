@@ -57,6 +57,7 @@ const UIManager = (() => {
     setupCharacterImport();
     setupModals();
     setupSettings();
+    setupNetwork();
     refreshCharacterList();
     window._chatHistory = _chatHistory;
     window._onMeasureComplete = function(sx, sy, ex, ey, dist) {
@@ -143,6 +144,7 @@ const UIManager = (() => {
       if (result) {
         addChatMessage('dice', '骰子', DiceSystem.formatResult(result));
         if (AIClient && typeof AIClient.recordRoll === 'function') AIClient.recordRoll(text, result, '');
+        if (Network.isConnected()) Network.sendDiceRoll(text, result);
       } else {
         addChatMessage('user', '你', text);
       }
@@ -176,6 +178,7 @@ const UIManager = (() => {
         if (result) {
           addChatMessage('dice', '骰子', DiceSystem.formatResult(result));
           if (AIClient && typeof AIClient.recordRoll === 'function') AIClient.recordRoll(expr, result, '');
+          if (Network.isConnected()) Network.sendDiceRoll(expr, result);
         }
       });
     });
@@ -539,6 +542,7 @@ const UIManager = (() => {
       var formatted = DiceSystem.formatResult(result);
       addChatMessage('dice', label || '自定义掷骰', formatted);
       if (AIClient && typeof AIClient.recordRoll === 'function') AIClient.recordRoll(expr, result, label);
+      if (Network.isConnected()) Network.sendDiceRoll(expr, result);
     } else {
       addChatMessage('system', '错误', '无效的掷骰表达式: ' + expr);
     }
@@ -743,6 +747,122 @@ const UIManager = (() => {
       if (statusEl) { statusEl.textContent = '获取失败'; statusEl.className = 'conn-status failed'; }
     });
   }
+
+  // ── 网络/房间 ────────────────────────────────────
+
+  function setupNetwork() {
+    Network.connect();
+
+    Network.onRoomCreated = function(data) {
+      var disp = _el('room-display');
+      if (disp) {
+        disp.innerHTML = '<span class="room-code">' + data.code + '</span>';
+        disp.className = 'room-info active';
+        disp.title = '点击复制房间链接';
+      }
+      addChatMessage('system', '房间', '房间已创建！码: ' + data.code + '。点击顶部房间码复制链接发给朋友。');
+    };
+
+    Network.onRoomJoined = function(data) {
+      var disp = _el('room-display');
+      if (disp) {
+        disp.innerHTML = '<span class="room-code">' + data.code + '</span>';
+        disp.className = 'room-info active';
+      }
+      addChatMessage('system', '房间', '已加入房间: ' + data.code);
+    };
+
+    Network.onRoomError = function(msg) {
+      alert(msg);
+    };
+
+    Network.onPlayersUpdate = function(players, host) {
+      var disp = _el('room-display');
+      var code = Network.getRoomCode();
+      if (disp && code) {
+        var count = Object.keys(players).length;
+        disp.innerHTML = '<span class="room-code">' + code + '</span><span class="room-url-hint">' + count + '人在线</span>';
+        disp.className = 'room-info active';
+      }
+    };
+
+    Network.onChat = function(data) {
+      addChatMessage('user', data.sender || '玩家', data.text);
+    };
+
+    Network.onDiceRoll = function(data) {
+      var who = data.player || '玩家';
+      addChatMessage('dice', '🎲 ' + who, data.expression + ' → **' + data.result.total + '**');
+    };
+
+    // 房间按钮
+    _el('btn-create-room').addEventListener('click', function() {
+      Network.createRoom();
+    });
+
+    _el('btn-join-room').addEventListener('click', function() {
+      openModal('join-room-modal');
+    });
+
+    _el('btn-join-confirm').addEventListener('click', function() {
+      var code = _el('join-room-code').value.trim().toUpperCase();
+      var name = _el('join-room-name').value.trim() || '玩家';
+      if (!code) return;
+      Network.joinRoom(code, name);
+      closeModal('join-room-modal');
+    });
+
+    _el('btn-join-cancel').addEventListener('click', function() {
+      closeModal('join-room-modal');
+    });
+
+    // 点击房间码复制链接
+    _el('room-display').addEventListener('click', function() {
+      var url = Network.getRoomUrl();
+      if (!url) return;
+      navigator.clipboard.writeText(url).then(function() {
+        var orig = _el('room-display').innerHTML;
+        _el('room-display').innerHTML = '已复制！';
+        setTimeout(function() { _el('room-display').innerHTML = orig; }, 1500);
+      }).catch(function() {
+        prompt('复制此链接发给朋友：', url);
+      });
+    });
+
+    // 钩子：标记操作时同步到网络
+    var origAddToken = MapEngine.addToken;
+    MapEngine.addToken = function(opts) {
+      var token = origAddToken(opts);
+      if (Network.isConnected()) Network.sendTokenAdd(token);
+      return token;
+    };
+    var origRemoveToken = MapEngine.removeToken;
+    MapEngine.removeToken = function(id) {
+      origRemoveToken(id);
+      if (Network.isConnected()) Network.sendTokenRemove(id);
+    };
+    var origUpdateToken = MapEngine.updateToken;
+    MapEngine.updateToken = function(id, updates) {
+      var result = origUpdateToken(id, updates);
+      if (Network.isConnected()) {
+        if (updates.gridX !== undefined || updates.gridY !== undefined) {
+          Network.sendTokenMove(id, updates.gridX, updates.gridY);
+        } else {
+          Network.sendTokenUpdate(id, updates);
+        }
+      }
+      return result;
+    };
+  }
+
+  // 覆写addChatMessage以同步到网络
+  var _origAddChat = addChatMessage;
+  addChatMessage = function(type, sender, text) {
+    _origAddChat(type, sender, text);
+    if (Network.isConnected() && type !== 'system' && type !== 'ai') {
+      Network.sendChat(text);
+    }
+  };
 
   function exportAllData() {
     var mapState = MapEngine.exportState();

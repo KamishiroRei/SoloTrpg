@@ -994,15 +994,199 @@ app.post('/api/ai/models', async (req, res) => {
   }
 });
 
+// ── WebSocket / 房间系统 ─────────────────────────────
+
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] }
+});
+
+// 房间管理
+const rooms = {}; // { roomCode: { tokens:[], players:{}, hostId:null, createdAt:Date } }
+
+function generateRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 去掉容易混淆的 0O1I
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return rooms[code] ? generateRoomCode() : code; // 防重复
+}
+
+function getOrCreateRoom(code) {
+  if (!rooms[code]) {
+    rooms[code] = {
+      code,
+      tokens: [],
+      players: {},
+      hostId: null,
+      createdAt: Date.now()
+    };
+  }
+  return rooms[code];
+}
+
+io.on('connection', (socket) => {
+  let currentRoom = null;
+  let playerName = '';
+
+  // ── 创建房间 ──
+  socket.on('create_room', () => {
+    const code = generateRoomCode();
+    const room = getOrCreateRoom(code);
+    room.hostId = socket.id;
+
+    playerName = '房主';
+    room.players[socket.id] = { name: playerName, isHost: true };
+
+    socket.join(code);
+    currentRoom = code;
+
+    socket.emit('room_created', { code, players: room.players, tokens: room.tokens });
+    io.to(code).emit('players_update', room.players);
+    console.log(`[房间] ${code} 创建`);
+  });
+
+  // ── 加入房间 ──
+  socket.on('join_room', (data) => {
+    const code = (data.code || '').toUpperCase();
+    if (!rooms[code]) {
+      socket.emit('room_error', '房间不存在');
+      return;
+    }
+    const room = rooms[code];
+    playerName = data.name || `访客${Object.keys(room.players).length + 1}`;
+    room.players[socket.id] = { name: playerName, isHost: false };
+
+    socket.join(code);
+    currentRoom = code;
+
+    socket.emit('room_joined', { code, players: room.players, tokens: room.tokens, isHost: false });
+    socket.broadcast.to(code).emit('players_update', room.players);
+    io.to(code).emit('chat', { sender: '系统', text: `${playerName} 加入了房间`, time: new Date().toLocaleTimeString('zh-CN') });
+    console.log(`[房间] ${code} ← ${playerName} 加入 (${Object.keys(room.players).length}人)`);
+  });
+
+  // ── 游戏事件（仅转发到同房间其他人） ──
+
+  const relay = (event, data) => {
+    if (currentRoom) socket.broadcast.to(currentRoom).emit(event, data);
+  };
+
+  const relayAll = (event, data) => {
+    if (currentRoom) io.to(currentRoom).emit(event, data);
+  };
+
+  socket.on('token_add', (data) => {
+    if (currentRoom && rooms[currentRoom]) rooms[currentRoom].tokens.push(data);
+    relay('token_add', data);
+  });
+
+  socket.on('token_move', (data) => {
+    if (currentRoom && rooms[currentRoom]) {
+      const t = rooms[currentRoom].tokens.find(tk => tk.id === data.id);
+      if (t) { t.gridX = data.gridX; t.gridY = data.gridY; }
+    }
+    relay('token_move', data);
+  });
+
+  socket.on('token_update', (data) => {
+    if (currentRoom && rooms[currentRoom]) {
+      const t = rooms[currentRoom].tokens.find(tk => tk.id === data.id);
+      if (t) Object.assign(t, data);
+    }
+    relay('token_update', data);
+  });
+
+  socket.on('token_remove', (data) => {
+    if (currentRoom && rooms[currentRoom]) {
+      rooms[currentRoom].tokens = rooms[currentRoom].tokens.filter(tk => tk.id !== data.id);
+    }
+    relay('token_remove', data);
+  });
+
+  socket.on('token_sync_all', (data) => {
+    if (currentRoom && rooms[currentRoom]) {
+      rooms[currentRoom].tokens = data.tokens || [];
+    }
+    relay('token_sync_all', data);
+  });
+
+  socket.on('dice_roll', (data) => {
+    relay('dice_roll', { ...data, player: playerName });
+  });
+
+  socket.on('chat_msg', (data) => {
+    relayAll('chat', { ...data, sender: `${playerName}: ${data.text}` });
+  });
+
+  socket.on('set_name', (name) => {
+    playerName = name;
+    if (currentRoom && rooms[currentRoom] && rooms[currentRoom].players[socket.id]) {
+      rooms[currentRoom].players[socket.id].name = name;
+      relayAll('players_update', rooms[currentRoom].players);
+    }
+  });
+
+  // ── 断开 ──
+  socket.on('disconnect', () => {
+    if (!currentRoom || !rooms[currentRoom]) return;
+    const room = rooms[currentRoom];
+    const p = room.players[socket.id];
+    delete room.players[socket.id];
+
+    if (Object.keys(room.players).length === 0) {
+      // 空房间清理（延迟10分钟）
+      setTimeout(() => {
+        if (rooms[currentRoom] && Object.keys(rooms[currentRoom].players).length === 0) {
+          delete rooms[currentRoom];
+          console.log(`[房间] ${currentRoom} 已清理`);
+        }
+      }, 600000);
+    } else {
+      // 主机转移
+      if (socket.id === room.hostId) {
+        const nextHost = Object.keys(room.players)[0];
+        room.hostId = nextHost;
+        if (room.players[nextHost]) room.players[nextHost].isHost = true;
+      }
+      io.to(currentRoom).emit('players_update', room.players);
+    }
+
+    io.to(currentRoom).emit('chat', {
+      sender: '系统',
+      text: `${p?.name || '某人'} 离开了房间`,
+      time: new Date().toLocaleTimeString('zh-CN')
+    });
+    console.log(`[房间] ${currentRoom} ← ${p?.name || '?'} 离开`);
+  });
+});
+
 // ── 启动服务器 ────────────────────────────────────────
 
-app.listen(PORT, '127.0.0.1', () => {
+server.listen(PORT, '0.0.0.0', () => {
+  const os = require('os');
+  const nets = os.networkInterfaces();
+  let localIP = 'localhost';
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        localIP = net.address;
+        break;
+      }
+    }
+    if (localIP !== 'localhost') break;
+  }
+
   console.log('═══════════════════════════════════════════');
-  console.log('  TrpgRecode 后端服务已启动');
-  console.log(`  地址: http://localhost:${PORT}`);
+  console.log('  TrpgRecode 已启动');
+  console.log(`  本机: http://localhost:${PORT}`);
+  console.log(`  局域网: http://${localIP}:${PORT}`);
   console.log(`  规则书: ${RULER_DIR}`);
-  console.log(`  模组:   ${MODULE_DIR}`);
-  console.log(`  存档:   ${ARCHIVE_DIR}`);
+  console.log('═══════════════════════════════════════════');
+  console.log('  联机方式：其他人浏览器打开局域网地址即可加入');
   console.log('═══════════════════════════════════════════');
 
   // 自动扫描规则书任务区

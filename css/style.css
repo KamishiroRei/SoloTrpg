@@ -883,6 +883,66 @@ html, body {
   cursor: crosshair;
 }
 
+/* --- 房间信息 --- */
+.room-info {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.room-info.active {
+  color: var(--accent-light);
+  border-color: var(--accent);
+  background: rgba(201,168,76,0.1);
+}
+.room-info .room-code {
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+.room-info .room-url-hint {
+  font-size: 9px;
+  color: var(--text-muted);
+  display: block;
+}
+
+/* --- 玩家列表浮窗 --- */
+.players-popup {
+  position: fixed;
+  top: 50px; right: 350px;
+  background: var(--bg-panel);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  min-width: 140px;
+  z-index: 50;
+  box-shadow: var(--shadow-md);
+}
+.players-popup .player-item {
+  padding: 3px 6px;
+  font-size: 11px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.players-popup .player-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.players-popup .host-badge {
+  font-size: 9px;
+  color: var(--accent-light);
+  margin-left: auto;
+}
+
 /* --- 服务器状态 --- */
 .status-indicator {
   font-size: 11px;
