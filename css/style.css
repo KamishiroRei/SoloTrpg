@@ -220,6 +220,24 @@ html, body {
 }
 .map-toggle input { accent-color: var(--accent); }
 
+/* --- 地图容器 --- */
+#map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-deep);
+}
+#map-wrapper {
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+#map-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 #coord-display {
   position: absolute;
   bottom: 6px;

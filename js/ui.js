@@ -65,12 +65,8 @@ const UIManager = (() => {
     window._onMeasureComplete = function(sx, sy, ex, ey, dist) {
       addChatMessage('system', '测量', '距离: ' + dist.toFixed(1) + ' 格');
     };
-    AIClient.init({
-      serverUrl: _settings.serverUrl,
-      onMessage: function(content, role) { addAIMessage(role, content); },
-      onStatusChange: function(status) { updateServerStatus(status); }
-    });
-    AIClient.setActiveProvider('openai');
+    // AIClient 回调已在外部设置
+    AIClient.setActiveProvider('gpt');
     updateZoomLabel();
   }
 
