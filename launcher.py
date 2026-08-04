@@ -327,22 +327,34 @@ def config_apikey():
 
 # ── 启动 ──
 def start_server():
-    # 确保规则书目录结构存在
-    ruler = EXE_DIR / 'Ruler' / 'DND'
-    for d in [ruler / 'compressed', ruler / 'source', ruler / '模组' / '默认' / '资源', ruler / '模组' / '默认' / '自定义', ruler / '存档' / '默认']:
-        d.mkdir(parents=True, exist_ok=True)
+    # 确保规则书目录存在
+    (EXE_DIR / 'Ruler').mkdir(exist_ok=True)
+    
+    # 隐藏Flask启动信息
+    import logging
+    logging.getLogger('werkzeug').setLevel(logging.ERROR)
     
     port = 3000
-    print(f"[SoloTrpg] 启动服务 http://localhost:{port}")
     app_flask.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
 
 def start_gui():
-    import webview
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
-    import time; time.sleep(0.5)
-    webview.create_window('SoloTrpg', 'http://localhost:3000', width=1400, height=900, min_size=(900, 600))
-    webview.start()
+    import time; time.sleep(1)
+    
+    try:
+        import webview
+        webview.create_window('SoloTrpg', 'http://localhost:3000', width=1400, height=900, min_size=(900, 600))
+        webview.start()
+    except Exception as e:
+        print(f"[SoloTrpg] 窗口模式启动失败({e})，使用浏览器打开 http://localhost:3000")
+        import webbrowser
+        webbrowser.open('http://localhost:3000')
+        # 保持服务器运行
+        try:
+            while True: time.sleep(1)
+        except KeyboardInterrupt:
+            pass
 
 if __name__ == '__main__':
     start_gui()
