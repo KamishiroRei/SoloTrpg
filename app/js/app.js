@@ -83,7 +83,7 @@
         aiHistory: aiHistory.slice(-50), // 只保留最近50条
         chatHistory: window._chatHistory || [],
         timestamp: Date.now(),
-        version: 2
+        version: 3
       };
 
       localStorage.setItem('trpg_recode_save', JSON.stringify(data));
@@ -97,11 +97,29 @@
     try {
       const raw = localStorage.getItem('trpg_recode_save');
       if (!raw) return;
+
       const data = JSON.parse(raw);
-      // 不自动恢复地图标记（每次启动空白画布）
-      // 仅恢复对话历史
-      if (data.chatHistory) { window._chatHistory = data.chatHistory; }
-    } catch (e) {}
+      // 版本不匹配则丢弃旧数据
+      if (data.version !== 3) { localStorage.removeItem('trpg_recode_save'); return; }
+
+      if (data.mapState) {
+        window.MapEngine.importState(data.mapState);
+      }
+
+      if (data.chatHistory) {
+        window._chatHistory = data.chatHistory;
+      }
+
+      if (data.aiHistory && data.aiHistory.length > 0 && window.AIClient) {
+        setTimeout(() => {
+          for (const msg of data.aiHistory) {
+            window.AIClient._addHistoryItem(msg);
+          }
+        }, 1500);
+      }
+    } catch (e) {
+      console.warn('[App] 数据加载失败:', e.message);
+    }
   }
 
   // ── 示例数据 ──────────────────────────────────────
