@@ -6,5 +6,8 @@ if not exist "node_modules" (
     call npm install
 )
 echo 启动中...
+start "" /B node server.js
+timeout /t 2 /nobreak >nul
 start http://localhost:3000
-node server.js
+echo 游戏已启动！浏览器打开 http://localhost:3000
+pause
