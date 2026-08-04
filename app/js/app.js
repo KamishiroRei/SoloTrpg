@@ -97,28 +97,11 @@
     try {
       const raw = localStorage.getItem('trpg_recode_save');
       if (!raw) return;
-
       const data = JSON.parse(raw);
-      if (data.mapState) {
-        window.MapEngine.importState(data.mapState);
-      }
-
-      // 恢复聊天历史
-      if (data.chatHistory) {
-        window._chatHistory = data.chatHistory;
-      }
-
-      // AI历史由AIClient管理，延迟注入
-      if (data.aiHistory && data.aiHistory.length > 0 && window.AIClient) {
-        setTimeout(() => {
-          for (const msg of data.aiHistory) {
-            window.AIClient._addHistoryItem(msg);
-          }
-        }, 1500);
-      }
-    } catch (e) {
-      console.warn('[App] 数据加载失败:', e.message);
-    }
+      // 不自动恢复地图标记（每次启动空白画布）
+      // 仅恢复对话历史
+      if (data.chatHistory) { window._chatHistory = data.chatHistory; }
+    } catch (e) {}
   }
 
   // ── 示例数据 ──────────────────────────────────────

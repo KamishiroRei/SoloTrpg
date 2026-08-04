@@ -7,7 +7,11 @@ if not exist "node_modules" (
 )
 echo 启动中...
 start "" /B node server.js
-timeout /t 2 /nobreak >nul
+echo 等待服务就绪...
+:wait
+timeout /t 1 /nobreak >nul
+curl -s http://localhost:3000/api/health >nul 2>&1
+if errorlevel 1 goto wait
 start http://localhost:3000
-echo 游戏已启动！浏览器打开 http://localhost:3000
+echo 游戏已启动！
 pause
