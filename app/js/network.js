@@ -32,7 +32,15 @@ const Network = (() => {
 
     socket = window.io(url, { transports: ['websocket', 'polling'], timeout: 3000 });
 
+    var connectTimer = setTimeout(function() {
+      if (!socket.connected) {
+        console.log('[网络] 连接超时（Flask模式不支持联机）');
+        socket.close();
+      }
+    }, 4000);
+
     socket.on('connect', () => {
+      clearTimeout(connectTimer);
       console.log('[网络] 已连接');
       const params = new URLSearchParams(window.location.search);
       const params = new URLSearchParams(window.location.search);
