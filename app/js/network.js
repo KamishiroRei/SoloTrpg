@@ -43,7 +43,6 @@ const Network = (() => {
       clearTimeout(connectTimer);
       console.log('[网络] 已连接');
       const params = new URLSearchParams(window.location.search);
-      const params = new URLSearchParams(window.location.search);
       const autoRoom = params.get('room');
       if (autoRoom) {
         socket.emit('join_room', { code: autoRoom, name: localStorage.getItem('trpg_player_name') || '' });

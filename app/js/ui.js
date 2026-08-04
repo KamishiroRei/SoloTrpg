@@ -236,13 +236,15 @@ const UIManager = (() => {
       ub.addEventListener('click', function() { fi.click(); });
       fi.addEventListener('change', function() {
         var f = this.files[0]; if (!f) return;
-        var ext = f.name.split('.').pop().toLowerCase(); var type = 'text';
-        if (ext === 'pdf') type = 'pdf'; else if (ext === 'chm') type = 'chm'; else if (ext === 'xlsx' || ext === 'xls') type = 'xlsx';
-        AIClient.readFile(f, type).then(function(data) {
-          if (data) {
-            addChatMessage('system', '规则书', '已上传: ' + f.name);
-            AIClient.processRuleText('通用', f.name, data.content || data.text || '').then(function() { refreshRulesList(); });
-          } else { addChatMessage('system', '错误', '上传失败，请确保AI服务器已连接。'); }
+        addChatMessage('system', '规则书', '正在上传并拆解: ' + f.name + '...');
+        AIClient.readFile(f).then(function(data) {
+          if (data && !data.error) {
+            var pages = data.pages || data.chapters || data.sections || 0;
+            addChatMessage('system', '规则书', '已拆解: ' + f.name + ' → ' + (data.total_md || pages) + '个MD文件 → Ruler/' + data.system + '/source/');
+            refreshRulesList();
+          } else {
+            addChatMessage('system', '错误', '拆解失败: ' + (data ? data.error : '连接失败'));
+          }
         });
         this.value = '';
       });

@@ -138,6 +138,86 @@ def rules_read():
         return jsonify({"files": files, "system": system, "path": str(path.relative_to(EXE_DIR / 'Ruler'))})
     return jsonify({"content": path.read_text(encoding='utf-8'), "system": system, "file": file})
 
+# ── 文件上传与规则书拆解 ──────────────────────────
+
+@app_flask.route('/api/files/upload', methods=['POST'])
+def file_upload():
+    f = request.files.get('file')
+    if not f: return jsonify({"error": "无文件"}), 400
+    system_name = request.form.get('system', '').strip() or os.path.splitext(f.filename)[0]
+    safe_name = system_name.replace('/', '_').replace('\\', '_')
+    ruler_dir = EXE_DIR / 'Ruler' / safe_name
+    source_dir = ruler_dir / 'source'
+    source_dir.mkdir(parents=True, exist_ok=True)
+    ext = os.path.splitext(f.filename)[1].lower()
+    upload_path = source_dir / f.filename
+    f.save(str(upload_path))
+    result = {"system": safe_name, "file": f.filename, "type": ext}
+    
+    if ext == '.chm':
+        try:
+            import subprocess, shutil, re
+            extract_dir = source_dir / '_extract'
+            if extract_dir.exists(): shutil.rmtree(extract_dir)
+            extract_dir.mkdir()
+            subprocess.run(['hh.exe', '-decompile', str(extract_dir), str(upload_path)], timeout=60, capture_output=True, check=False)
+            all_text = []
+            for hf in sorted(extract_dir.rglob('*.htm*')):
+                try:
+                    html = hf.read_text(encoding='utf-8', errors='ignore')
+                    html = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL|re.I)
+                    html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL|re.I)
+                    html = re.sub(r'<[^>]+>', '\n', html)
+                    html = html.replace('&nbsp;',' ').replace('&lt;','<').replace('&gt;','>').replace('&amp;','&')
+                    html = re.sub(r'\n{3,}', '\n\n', html)
+                    rel = str(hf.relative_to(extract_dir))
+                    all_text.append(f"=== {rel} ===\n{html.strip()}")
+                except: pass
+            merged = '\n\n'.join(all_text)
+            pages = [p.strip() for p in re.split(r'={3,}\s*\S+\.htm[l]?\s*={3,}', merged) if p.strip()]
+            for i, page in enumerate(pages[:100]):
+                m = re.search(r'^={3,}\s*(.+?)\s*={3,}', page)
+                title = m.group(1) if m else f'page_{i+1}'
+                (source_dir / f'{safe_title(title)}.md').write_text(f'# {title}\n\n{page}', encoding='utf-8')
+            shutil.rmtree(extract_dir, ignore_errors=True)
+            result['pages'] = len(pages)
+        except Exception as e: result['error'] = str(e)
+    
+    elif ext == '.pdf':
+        try:
+            import re
+            text = ''
+            try:
+                import fitz
+                doc = fitz.open(str(upload_path))
+                for page in doc: text += page.get_text() + '\n\n---\n\n'
+                doc.close()
+            except:
+                text = upload_path.read_bytes().decode('utf-8', errors='ignore')
+                text = ''.join(c if c.isprintable() or c in '\n\r\t' else ' ' for c in text)
+            chapters = [c.strip() for c in text.split('\n---\n') if len(c.strip()) > 200]
+            for i, ch in enumerate(chapters[:50]):
+                lines = ch.strip().split('\n')
+                title = lines[0][:80] if lines else f'章节{i+1}'
+                (source_dir / f'{safe_title(title)}.md').write_text(f'# {title}\n\n{ch}', encoding='utf-8')
+            result['chapters'] = len(chapters)
+        except Exception as e: result['error'] = str(e)
+    
+    elif ext in ('.txt', '.md'):
+        import re
+        text = upload_path.read_text(encoding='utf-8', errors='ignore')
+        sections = [s.strip() for s in re.split(r'\n#{1,3}\s+', text) if s.strip()] if len(text) > 30000 else [text]
+        for i, sec in enumerate(sections[:30]):
+            title = sec.split('\n')[0][:60] if '\n' in sec else f'section_{i+1}'
+            (source_dir / f'{safe_title(title)}.md').write_text(f'# {title}\n\n{sec}', encoding='utf-8')
+        result['sections'] = len(sections)
+    
+    result['total_md'] = len(list(source_dir.glob('*.md')))
+    return jsonify(result)
+
+def safe_title(s):
+    return s.strip()[:40].replace('/','_').replace('\\','_').replace(':','_').replace('*','_').replace('?','_') or 'untitled'
+
 @app_flask.route('/api/archive/log', methods=['POST'])
 def archive_log():
     data = request.json

@@ -366,14 +366,15 @@ GM准则：
     } catch (e) { return null; }
   }
 
-  async function readFile(file, type) {
+  async function readFile(file) {
     if (!isConnected) return null;
     const formData = new FormData();
     formData.append('file', file);
-    const endpoints = { pdf: '/api/files/read-pdf', chm: '/api/files/read-chm', xlsx: '/api/files/read-xlsx', text: '/api/files/read-text' };
-    const endpoint = endpoints[type] || endpoints.text;
+    // 用文件名（去扩展名）作为规则系统名
+    const sysName = file.name.replace(/\.[^.]+$/, '');
+    formData.append('system', sysName);
     try {
-      const resp = await fetch(`${serverUrl}${endpoint}`, { method: 'POST', body: formData });
+      const resp = await fetch(`${serverUrl}/api/files/upload`, { method: 'POST', body: formData });
       return await resp.json();
     } catch (e) { return null; }
   }
