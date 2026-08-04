@@ -58,7 +58,6 @@
     <nav class="panel-tabs">
       <button class="panel-tab active" data-tab="characters">👥 角色</button>
       <button class="panel-tab" data-tab="encounter">⚔ 遭遇</button>
-      <button class="panel-tab" data-tab="ai">🤖 AI</button>
       <button class="panel-tab" data-tab="rules">📚 规则</button>
       <button class="panel-tab" data-tab="notes">📝 笔记</button>
       <button class="panel-tab" data-tab="settings">⚙ 设置</button>
@@ -90,30 +89,6 @@
           <button id="btn-roll-initiative" class="btn-small">🎲 全体先攻</button>
           <button id="btn-next-turn" class="btn-small accent">▶ 下一回合</button>
         </div>
-      </div>
-    </div>
-
-    <!-- AI面板 -->
-    <div id="tab-ai" class="panel-content">
-      <div class="panel-header">
-        <h3>AI 游戏主持</h3>
-        <div class="panel-header-btns">
-          <select id="ai-provider-select" class="grid-select" style="font-size:11px;">
-            <option value="gpt">GPT</option>
-            <option value="custom">自定义</option>
-          </select>
-          <button id="btn-ai-clear" class="btn-small" title="清除对话历史">清空</button>
-        </div>
-      </div>
-      <div id="ai-status-bar" class="ai-status">
-        <span class="ai-model-label">模型: 未配置</span>
-      </div>
-      <div id="ai-messages" class="scroll-list ai-chat-list">
-        <div class="ai-welcome">AI游戏主持已就绪。配置API后即可开始AI辅助跑团。<br>AI会自动读取地图上的角色状态和骰点记录。</div>
-      </div>
-      <div class="ai-input-row">
-        <textarea id="ai-input" placeholder="向AI GM描述你的行动，或询问规则...&#10;AI会自动看到地图状态和最近的骰点结果" rows="2"></textarea>
-        <button id="btn-ai-send" class="btn-small accent">▶ 发送</button>
       </div>
     </div>
 
@@ -173,6 +148,18 @@
         <!-- AI配置 -->
         <div class="settings-section">
           <h4>AI 配置</h4>
+          <div class="setting-row">
+            <span class="setting-label">启用AI</span>
+            <label class="toggle-label"><input type="checkbox" id="setting-ai-enabled"> 底部聊天 /ai 与AI对话</label>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">AI模式</span>
+            <select id="setting-ai-mode" class="setting-select">
+              <option value="full">完整主持 — AI管理规则、战斗、剧情</option>
+              <option value="scene">场景描写 — AI仅描写场景，不干预扮演</option>
+              <option value="rules">规则助手 — AI只回答规则问题</option>
+            </select>
+          </div>
 
           <!-- 提供商选择 -->
           <div class="setting-row">
@@ -272,7 +259,7 @@
   <div id="chat-area">
     <div id="chat-messages" class="scroll-list"></div>
     <div id="chat-input-row">
-      <input type="text" id="chat-input" placeholder="输入消息或掷骰表达式（如 2d6+3）... 以 /ai 开头可发送给AI" autocomplete="off">
+      <input type="text" id="chat-input" placeholder="输入消息或掷骰表达式（如 2d6+3）。以 /ai 开头与AI对话" autocomplete="off">
       <button id="btn-send" class="btn-small accent">发送</button>
     </div>
   </div>

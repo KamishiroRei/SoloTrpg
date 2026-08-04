@@ -10,6 +10,7 @@ const UIManager = (() => {
   let _chatHistory = [];
   const _settings = {
     provider: 'gpt',
+    aiEnabled: false, aiMode: 'full',
     gptKey: '', gptModel: 'gpt-4o',
     customEndpoint: '', customKey: '', customModel: '',
     gridColor: '#3a3a5c', bgColor: '#1a1a2e', rangeColor: '#ff6b6b', cellSize: 50, maxChat: 200
@@ -20,13 +21,15 @@ const UIManager = (() => {
   function _loadSettings() { try { var s = JSON.parse(localStorage.getItem('trpg_settings')); if (s) Object.assign(_settings, s); } catch(e){} }
   function _saveSettings() { try { localStorage.setItem('trpg_settings', JSON.stringify(_settings)); } catch(e){} }
 
-  function _applySetting(id, key) { var e = _el(id); if (e) e.value = _settings[key]; }
+  function _applySetting(id, key, type) { var e = _el(id); if (!e) return; if (type === 'checkbox') e.checked = _settings[key]; else e.value = _settings[key]; }
   function _populateSettingsForm() {
     _applySetting('setting-grid-color', 'gridColor');
     _applySetting('setting-bg-color', 'bgColor');
     _applySetting('setting-range-color', 'rangeColor');
     _applySetting('setting-cell-size', 'cellSize');
     _applySetting('setting-provider', 'provider');
+    _applySetting('setting-ai-enabled', 'aiEnabled', 'checkbox');
+    _applySetting('setting-ai-mode', 'aiMode');
     _applySetting('setting-gpt-key', 'gptKey');
     _applySetting('setting-gpt-model', 'gptModel');
     _applySetting('setting-custom-endpoint', 'customEndpoint');
@@ -52,7 +55,6 @@ const UIManager = (() => {
     _setupTabs();
     setupChat();
     setupDice();
-    setupAI();
     setupRules();
     setupCharacterImport();
     setupModals();
@@ -185,40 +187,44 @@ const UIManager = (() => {
     var bc = _el('btn-custom-dice'); if (bc) bc.addEventListener('click', function() { openDiceModal(); });
   }
 
-  function setupAI() {
-    var prov = _el('ai-provider-select'); var bc = _el('btn-ai-clear');
-    var bs = _el('btn-ai-send'); var aiIn = _el('ai-input');
-    if (prov) { prov.value = 'openai'; prov.addEventListener('change', function() { AIClient.setActiveProvider(this.value); }); }
-    if (bc) bc.addEventListener('click', function() {
-      AIClient.clearHistory();
-      var md = _el('ai-messages'); if (md) md.innerHTML = '<div class="ai-welcome">对话历史已清除。AI游戏主持已就绪。</div>';
-    });
-    function _doSend() {
-      if (!aiIn) return; var msg = aiIn.value.trim(); if (!msg) return;
-      aiIn.value = ''; addAIMessage('user', msg);
-      AIClient.sendMessage(msg, { provider: AIClient.getActiveProvider() });
+  // ── AI对话（通过聊天集成） ─────────────────────
+
+  // 初始化AIClient回调
+  AIClient.onMessage = function(content, role) {
+    if (role === 'ai') {
+      addChatMessage('ai', 'AI', content);
+    } else if (role === 'system') {
+      addChatMessage('system', 'AI', content);
     }
-    if (bs) bs.addEventListener('click', _doSend);
-    if (aiIn) aiIn.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _doSend(); }
+  };
+  AIClient.onStatusChange = function(status) {
+    updateServerStatus(status);
+  };
+
+  var AI_MODE_PROMPTS = {
+    full: '你是TRPG的GM。严格遵守当前游戏规则，满足用户需求。融合角色设定与世界观，不盲目吹捧玩家角色。记忆不可靠，不确定时翻查规则书和模组。需要规则时回复[[search:关键词]]。',
+    scene: '你是TRPG的场景描写助手。只负责描写环境、氛围、NPC外观和行为。不干预玩家之间的扮演对话，不替玩家做决定，不判定行动结果。玩家要求场景变化或地图更新时照做。需要模组设定时回复[[module:关键词]]。',
+    rules: '你是TRPG规则助手。只回答规则问题，引用规则书原文。不做剧情推进，不描写场景，不替玩家决策。需要查规则时回复[[search:关键词]]。'
+  };
+
+  function sendToAI(msg) {
+    if (!_settings.aiEnabled) {
+      addChatMessage('system', 'AI', 'AI未启用。请在设置中开启。');
+      return;
+    }
+    addChatMessage('user', '你', msg);
+    addChatMessage('system', 'AI', '⏳ 思考中...');
+    AIClient.sendMessage(msg, { customSystemPrompt: AI_MODE_PROMPTS[_settings.aiMode] || AI_MODE_PROMPTS.full }).then(function() {
+      var msgs = _el('chat-messages');
+      if (msgs) {
+        var thinking = msgs.querySelectorAll('.chat-message.system');
+        for (var i = 0; i < thinking.length; i++) {
+          if (thinking[i].textContent.includes('思考中')) { thinking[i].remove(); break; }
+        }
+      }
+    }).catch(function(e) {
+      addChatMessage('system', 'AI', '错误: ' + (e.message || '连接失败'));
     });
-  }
-
-  function sendToAI() {
-    var aiIn = _el('ai-input'); if (!aiIn) return;
-    var msg = aiIn.value.trim(); if (!msg) return;
-    aiIn.value = ''; addAIMessage('user', msg);
-    AIClient.sendMessage(msg, { provider: AIClient.getActiveProvider() });
-  }
-
-  function addAIMessage(role, content) {
-    var cont = _el('ai-messages'); if (!cont) return;
-    if (cont.querySelector('.ai-welcome')) cont.innerHTML = '';
-    var div = document.createElement('div'); div.className = 'ai-message ' + role;
-    var labels = { user: '你', ai: 'AI GM', system: '系统' };
-    var label = labels[role] || role;
-    div.innerHTML = '<div class="ai-role">' + _esc(label) + '</div><div class="ai-content">' + simpleMarkdown(content) + '</div>';
-    cont.appendChild(div); cont.scrollTop = cont.scrollHeight;
   }
 
   function setupRules() {
@@ -633,6 +639,8 @@ const UIManager = (() => {
     // 保存配置
     _el('btn-save-ai-config').addEventListener('click', function() {
       _settings.provider = _el('setting-provider').value;
+      _settings.aiEnabled = _el('setting-ai-enabled').checked;
+      _settings.aiMode = _el('setting-ai-mode').value;
       _settings.gptKey = _el('setting-gpt-key').value.trim();
       _settings.gptModel = _el('setting-gpt-model').value;
       _settings.customEndpoint = _el('setting-custom-endpoint').value.trim();
