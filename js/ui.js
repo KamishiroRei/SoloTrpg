@@ -9,7 +9,6 @@ const UIManager = (() => {
   let _encounter = { active: false, initiatives: [], currentIndex: 0, round: 1 };
   let _chatHistory = [];
   const _settings = {
-    serverUrl: 'http://localhost:3000',
     provider: 'gpt',
     gptKey: '', gptModel: 'gpt-4o',
     customEndpoint: '', customKey: '', customModel: '',
@@ -27,7 +26,6 @@ const UIManager = (() => {
     _applySetting('setting-bg-color', 'bgColor');
     _applySetting('setting-range-color', 'rangeColor');
     _applySetting('setting-cell-size', 'cellSize');
-    _applySetting('setting-server-url', 'serverUrl');
     _applySetting('setting-provider', 'provider');
     _applySetting('setting-gpt-key', 'gptKey');
     _applySetting('setting-gpt-model', 'gptModel');
@@ -630,7 +628,6 @@ const UIManager = (() => {
 
     // 保存配置
     _el('btn-save-ai-config').addEventListener('click', function() {
-      _settings.serverUrl = _el('setting-server-url').value.trim();
       _settings.provider = _el('setting-provider').value;
       _settings.gptKey = _el('setting-gpt-key').value.trim();
       _settings.gptModel = _el('setting-gpt-model').value;
@@ -671,11 +668,19 @@ const UIManager = (() => {
     });
   }
 
+  function getServerUrl() {
+    // 自动检测：如果通过服务器访问则用当前origin，否则用默认
+    if (window.location.port && window.location.port !== '5500' && window.location.port !== '8080') {
+      return window.location.origin;
+    }
+    return 'http://localhost:3000';
+  }
+
   function testConnection(provider) {
     var statusEl = _el(provider + '-status');
     if (statusEl) { statusEl.textContent = '检测中...'; statusEl.className = 'conn-status checking'; }
 
-    var url = _el('setting-server-url').value.trim();
+    var url = getServerUrl();
     var key = provider === 'gpt' ? _el('setting-gpt-key').value.trim() : _el('setting-custom-key').value.trim();
 
     if (!key) {
@@ -683,11 +688,9 @@ const UIManager = (() => {
       return;
     }
 
-    // 先测试服务器连通
     fetch(url + '/api/health')
       .then(function(r) { return r.json(); })
       .then(function() {
-        // 服务器通，再测试AI API
         return fetch(url + '/api/ai/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -714,9 +717,7 @@ const UIManager = (() => {
     var statusEl = _el(provider + '-status');
     if (statusEl) { statusEl.textContent = '获取模型中...'; statusEl.className = 'conn-status checking'; }
 
-    var url = _el('setting-server-url').value.trim();
-
-    fetch(url + '/api/ai/models', {
+    fetch(getServerUrl() + '/api/ai/models', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ provider: provider })

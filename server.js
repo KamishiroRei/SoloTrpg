@@ -11,9 +11,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { execSync, spawn } = require('child_process');
-const http = require('http');
-const https = require('https');
+const { execSync } = require('child_process');
 
 // ── 配置 ──────────────────────────────────────────────
 
@@ -151,63 +149,35 @@ app.post('/api/ai/chat', async (req, res) => {
 });
 
 async function callAI(endpoint, apiKey, model, messages) {
-  return new Promise((resolve, reject) => {
-    const url = new URL(endpoint);
-    const isHttps = url.protocol === 'https:';
-    const transport = isHttps ? https : http;
+  const { default: fetch } = await import('node-fetch');
 
-    const body = JSON.stringify({
-      model: model,
-      messages: messages,
+  const resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages,
       temperature: 0.7,
       max_tokens: 4096
-    });
-
-    const options = {
-      hostname: url.hostname,
-      port: url.port || (isHttps ? 443 : 80),
-      path: url.pathname + url.search,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Length': Buffer.byteLength(body)
-      },
-      timeout: 120000
-    };
-
-    const req = transport.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          if (json.error) {
-            reject(new Error(json.error.message || JSON.stringify(json.error)));
-          } else if (json.choices && json.choices[0]) {
-            resolve({
-              content: json.choices[0].message?.content || '',
-              model: json.model,
-              usage: json.usage
-            });
-          } else {
-            reject(new Error('AI返回了未知格式的响应'));
-          }
-        } catch (e) {
-          reject(new Error('解析AI响应失败: ' + e.message));
-        }
-      });
-    });
-
-    req.on('error', reject);
-    req.on('timeout', () => {
-      req.destroy();
-      reject(new Error('请求超时'));
-    });
-
-    req.write(body);
-    req.end();
+    }),
+    timeout: 120000
   });
+
+  const json = await resp.json();
+  if (json.error) {
+    throw new Error(json.error.message || JSON.stringify(json.error));
+  }
+  if (json.choices && json.choices[0]) {
+    return {
+      content: json.choices[0].message?.content || '',
+      model: json.model,
+      usage: json.usage
+    };
+  }
+  throw new Error('AI返回了未知格式的响应');
 }
 
 // ── API: 规则书管理 ──────────────────────────────────
@@ -1006,12 +976,15 @@ app.post('/api/ai/models', async (req, res) => {
   const modelsUrl = `${baseUrl}/v1/models`;
 
   try {
-    const result = await httpGet(modelsUrl, provider.apiKey);
-    const json = JSON.parse(result);
+    const { default: fetch } = await import('node-fetch');
+    const resp = await fetch(modelsUrl, {
+      headers: { 'Authorization': `Bearer ${provider.apiKey}` },
+      timeout: 15000
+    });
+    const json = await resp.json();
     const models = (json.data || []).map(m => m.id).sort();
     res.json({ models, provider: providerKey });
   } catch (err) {
-    // 如果/v1/models不可用，返回常用模型列表
     const fallbackModels = [
       'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo',
       'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku',
@@ -1020,39 +993,6 @@ app.post('/api/ai/models', async (req, res) => {
     res.json({ models: fallbackModels, provider: providerKey, fallback: true });
   }
 });
-
-function httpGet(url, apiKey) {
-  return new Promise((resolve, reject) => {
-    const parsed = new URL(url);
-    const transport = parsed.protocol === 'https:' ? https : http;
-    const options = {
-      hostname: parsed.hostname,
-      port: parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
-      path: parsed.pathname + parsed.search,
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: 15000
-    };
-
-    const req = transport.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(data);
-        } else {
-          reject(new Error(`HTTP ${res.statusCode}: ${data.substring(0, 200)}`));
-        }
-      });
-    });
-    req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('请求超时')); });
-    req.end();
-  });
-}
 
 // ── 启动服务器 ────────────────────────────────────────
 

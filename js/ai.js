@@ -8,9 +8,14 @@
 const AIClient = (() => {
   'use strict';
 
-  let serverUrl = 'http://localhost:3000';
+  let serverUrl = (function() {
+    if (typeof window !== 'undefined' && window.location.port && window.location.port !== '5500' && window.location.port !== '8080') {
+      return window.location.origin;
+    }
+    return 'http://localhost:3000';
+  })();
   let isConnected = false;
-  let activeProvider = 'openai';
+  let activeProvider = 'gpt';
   let conversationHistory = [];   // 完整对话历史（系统自动存档用）
   let contextWindow = [];         // 注入AI的极简上下文（仅最近2-3轮）
   let verifiedRolls = [];
