@@ -986,9 +986,77 @@ app.get('/api/module/list', (req, res) => {
   res.json(listModules(MODULE_DIR));
 });
 
+// ── API: 获取模型列表（SillyTavern风格） ────────────
+
+app.post('/api/ai/models', async (req, res) => {
+  const { provider: reqProvider } = req.body;
+  const providerKey = reqProvider || appConfig.ai.activeProvider;
+  const provider = appConfig.ai.providers[providerKey];
+
+  if (!provider || !provider.endpoint) {
+    return res.status(400).json({ error: '未配置端点' });
+  }
+  if (!provider.apiKey) {
+    return res.status(400).json({ error: '未设置API Key' });
+  }
+
+  // 从endpoint提取base URL
+  const endpointUrl = new URL(provider.endpoint);
+  const baseUrl = `${endpointUrl.protocol}//${endpointUrl.host}`;
+  const modelsUrl = `${baseUrl}/v1/models`;
+
+  try {
+    const result = await httpGet(modelsUrl, provider.apiKey);
+    const json = JSON.parse(result);
+    const models = (json.data || []).map(m => m.id).sort();
+    res.json({ models, provider: providerKey });
+  } catch (err) {
+    // 如果/v1/models不可用，返回常用模型列表
+    const fallbackModels = [
+      'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo',
+      'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku',
+      'gemini-pro', 'deepseek-chat', 'qwen-max'
+    ];
+    res.json({ models: fallbackModels, provider: providerKey, fallback: true });
+  }
+});
+
+function httpGet(url, apiKey) {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const transport = parsed.protocol === 'https:' ? https : http;
+    const options = {
+      hostname: parsed.hostname,
+      port: parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
+      path: parsed.pathname + parsed.search,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 15000
+    };
+
+    const req = transport.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(data);
+        } else {
+          reject(new Error(`HTTP ${res.statusCode}: ${data.substring(0, 200)}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('请求超时')); });
+    req.end();
+  });
+}
+
 // ── 启动服务器 ────────────────────────────────────────
 
-app.listen(PORT, () => {
+app.listen(PORT, '127.0.0.1', () => {
   console.log('═══════════════════════════════════════════');
   console.log('  TrpgRecode 后端服务已启动');
   console.log(`  地址: http://localhost:${PORT}`);

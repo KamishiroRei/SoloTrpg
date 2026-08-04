@@ -33,9 +33,13 @@ const UIManager = (() => {
     _applySetting('setting-gpt-model', 'gptModel');
     _applySetting('setting-custom-endpoint', 'customEndpoint');
     _applySetting('setting-custom-key', 'customKey');
-    _applySetting('setting-custom-model', 'customModel');
     _applySetting('setting-max-chat', 'maxChat');
-    // 切换提供商面板显示
+    // 自定义模型下拉
+    var cmSel = _el('setting-custom-model-select');
+    if (cmSel && _settings.customModel) {
+      cmSel.innerHTML = '<option value="' + _settings.customModel + '">' + _settings.customModel + '</option>';
+      cmSel.value = _settings.customModel;
+    }
     var prov = _settings.provider || 'gpt';
     var gptPanel = _el('provider-gpt');
     var customPanel = _el('provider-custom');
@@ -620,6 +624,10 @@ const UIManager = (() => {
     _el('btn-test-gpt').addEventListener('click', function() { testConnection('gpt'); });
     _el('btn-test-custom').addEventListener('click', function() { testConnection('custom'); });
 
+    // 刷新模型列表按钮
+    _el('btn-refresh-gpt-models').addEventListener('click', function() { fetchModels('gpt'); });
+    _el('btn-refresh-custom-models').addEventListener('click', function() { fetchModels('custom'); });
+
     // 保存配置
     _el('btn-save-ai-config').addEventListener('click', function() {
       _settings.serverUrl = _el('setting-server-url').value.trim();
@@ -628,7 +636,7 @@ const UIManager = (() => {
       _settings.gptModel = _el('setting-gpt-model').value;
       _settings.customEndpoint = _el('setting-custom-endpoint').value.trim();
       _settings.customKey = _el('setting-custom-key').value.trim();
-      _settings.customModel = _el('setting-custom-model').value.trim();
+      _settings.customModel = _el('setting-custom-model-select').value.trim();
       _saveSettings();
 
       // 同步到AIClient和后端
@@ -664,10 +672,9 @@ const UIManager = (() => {
   }
 
   function testConnection(provider) {
-    var statusEl = _el(provider === 'gpt' ? 'gpt-status' : 'custom-status');
+    var statusEl = _el(provider + '-status');
     if (statusEl) { statusEl.textContent = '检测中...'; statusEl.className = 'conn-status checking'; }
 
-    // 构造测试请求
     var url = _el('setting-server-url').value.trim();
     var key = provider === 'gpt' ? _el('setting-gpt-key').value.trim() : _el('setting-custom-key').value.trim();
 
@@ -676,14 +683,64 @@ const UIManager = (() => {
       return;
     }
 
+    // 先测试服务器连通
     fetch(url + '/api/health')
       .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (statusEl) { statusEl.textContent = '已连接'; statusEl.className = 'conn-status connected'; }
+      .then(function() {
+        // 服务器通，再测试AI API
+        return fetch(url + '/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'ping' }],
+            provider: provider
+          })
+        });
       })
-      .catch(function() {
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.content !== undefined) {
+          if (statusEl) { statusEl.textContent = '已连接'; statusEl.className = 'conn-status connected'; }
+        } else if (d.error) {
+          if (statusEl) { statusEl.textContent = d.error.substring(0, 20); statusEl.className = 'conn-status failed'; }
+        }
+      })
+      .catch(function(e) {
         if (statusEl) { statusEl.textContent = '连接失败'; statusEl.className = 'conn-status failed'; }
       });
+  }
+
+  function fetchModels(provider) {
+    var statusEl = _el(provider + '-status');
+    if (statusEl) { statusEl.textContent = '获取模型中...'; statusEl.className = 'conn-status checking'; }
+
+    var url = _el('setting-server-url').value.trim();
+
+    fetch(url + '/api/ai/models', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: provider })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var selId = provider === 'gpt' ? 'setting-gpt-model' : 'setting-custom-model-select';
+      var sel = _el(selId);
+      if (sel && d.models) {
+        sel.innerHTML = d.models.map(function(m) {
+          return '<option value="' + m + '">' + m + '</option>';
+        }).join('');
+        // 恢复保存的模型选择
+        var savedModel = provider === 'gpt' ? _settings.gptModel : _settings.customModel;
+        if (savedModel) sel.value = savedModel;
+      }
+      if (statusEl) {
+        statusEl.textContent = d.fallback ? '使用预设列表' : '已获取' + (d.models ? d.models.length + '个模型' : '');
+        statusEl.className = 'conn-status connected';
+      }
+    })
+    .catch(function(e) {
+      if (statusEl) { statusEl.textContent = '获取失败'; statusEl.className = 'conn-status failed'; }
+    });
   }
 
   function exportAllData() {
