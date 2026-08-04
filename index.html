@@ -12,36 +12,14 @@
 <header id="toolbar">
   <div class="toolbar-left">
     <span class="app-title">TrpgRecode</span>
-    <div class="tool-group">
-      <button id="btn-select" class="tool-btn active" title="选择/移动 (V)">🖱 选择</button>
-      <button id="btn-pan" class="tool-btn" title="平移地图 (H)">✋ 平移</button>
-      <button id="btn-range" class="tool-btn" title="范围显示 (R)">◎ 范围</button>
-      <button id="btn-measure" class="tool-btn" title="测量距离 (M)">📏 测量</button>
-    </div>
-    <div class="tool-group">
-      <button id="btn-zoomin" class="tool-btn" title="放大">＋</button>
-      <button id="btn-zoomout" class="tool-btn" title="缩小">－</button>
-      <button id="btn-zoomfit" class="tool-btn" title="适应窗口">⊞</button>
-      <span id="zoom-level" class="zoom-label">100%</span>
-    </div>
-    <div class="tool-group">
-      <label class="toggle-label"><input type="checkbox" id="toggle-grid" checked> 网格</label>
-      <label class="toggle-label"><input type="checkbox" id="toggle-snap" checked> 吸附</label>
-      <select id="grid-size-select" class="grid-select">
-        <option value="30">30px</option><option value="40">40px</option>
-        <option value="50" selected>50px</option><option value="60">60px</option>
-        <option value="70">70px</option><option value="100">100px</option>
-      </select>
-    </div>
   </div>
   <div class="toolbar-right">
     <span id="room-display" class="room-info">未加入房间</span>
     <button id="btn-create-room" class="tool-btn accent">＋ 创建房间</button>
     <button id="btn-join-room" class="tool-btn">→ 加入</button>
-    <button id="btn-check-tool" class="tool-btn accent" title="检定工具">✓ 检定</button>
+    <button id="btn-check-tool" class="tool-btn accent">✓ 检定</button>
     <button id="btn-add-token" class="tool-btn accent">＋ 角色</button>
-    <button id="btn-clear-range" class="tool-btn">✕ 清除范围</button>
-    <button id="btn-map-bg" class="tool-btn">🖼 背景</button>
+    <span id="server-status" class="status-indicator offline" title="AI状态">⚫</span>
   </div>
 </header>
 
@@ -50,6 +28,27 @@
   <!-- 左侧地图区 -->
   <section id="map-container">
     <div id="map-wrapper"><canvas id="map-canvas"></canvas></div>
+    <!-- 悬浮地图工具栏 -->
+    <div id="map-toolbar">
+      <button id="btn-select" class="map-tool active" title="选择/移动 (V)">🖱</button>
+      <button id="btn-pan" class="map-tool" title="平移 (H)">✋</button>
+      <button id="btn-range" class="map-tool" title="范围 (R)">◎</button>
+      <button id="btn-measure" class="map-tool" title="测量 (M)">📏</button>
+      <span class="map-tool-sep"></span>
+      <button id="btn-zoomin" class="map-tool" title="放大">＋</button>
+      <span id="zoom-level" class="zoom-label">100%</span>
+      <button id="btn-zoomout" class="map-tool" title="缩小">－</button>
+      <button id="btn-zoomfit" class="map-tool" title="适应">⊞</button>
+      <span class="map-tool-sep"></span>
+      <label class="map-toggle"><input type="checkbox" id="toggle-grid" checked> 网格</label>
+      <label class="map-toggle"><input type="checkbox" id="toggle-snap" checked> 吸附</label>
+      <select id="grid-size-select" class="grid-select">
+        <option value="30">30</option><option value="40">40</option><option value="50" selected>50</option><option value="60">60</option><option value="70">70</option><option value="100">100</option>
+      </select>
+      <span class="map-tool-sep"></span>
+      <button id="btn-clear-range" class="map-tool" title="清除范围">✕</button>
+      <button id="btn-map-bg" class="map-tool" title="背景">🖼</button>
+    </div>
     <div id="coord-display">X: 0 &nbsp; Y: 0</div>
   </section>
 
@@ -58,6 +57,7 @@
     <nav class="panel-tabs">
       <button class="panel-tab active" data-tab="characters">👥 角色</button>
       <button class="panel-tab" data-tab="encounter">⚔ 遭遇</button>
+      <button class="panel-tab" data-tab="gm">🎭 GM</button>
       <button class="panel-tab" data-tab="rules">📚 规则</button>
       <button class="panel-tab" data-tab="notes">📝 笔记</button>
       <button class="panel-tab" data-tab="settings">⚙ 设置</button>
@@ -89,6 +89,19 @@
           <button id="btn-roll-initiative" class="btn-small">🎲 全体先攻</button>
           <button id="btn-next-turn" class="btn-small accent">▶ 下一回合</button>
         </div>
+      </div>
+    </div>
+
+    <!-- GM面板 -->
+    <div id="tab-gm" class="panel-content">
+      <div class="panel-header">
+        <h3>GM 工具</h3>
+        <div class="panel-header-btns">
+          <button id="btn-gm-ai-gen" class="btn-small" title="让AI根据规则书生成GM工具">🤖 AI生成</button>
+        </div>
+      </div>
+      <div id="gm-tools" class="scroll-list">
+        <div class="gm-placeholder">GM工具模块。让AI读取规则书后自动生成。<br>也可以在聊天中告诉AI你的需求，动态创建工具。<br><br>示例：<br>/ai 我需要一个快速查询DND5e状态效果的GM工具<br>/ai 帮我生成一个随机遭遇表</div>
       </div>
     </div>
 

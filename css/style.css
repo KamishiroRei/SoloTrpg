@@ -177,43 +177,87 @@ html, body {
   min-height: 300px;
 }
 
-/* --- 地图区域 --- */
-#map-container {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  background: var(--bg-deep);
+/* --- 悬浮地图工具栏 --- */
+#map-toolbar {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: rgba(22, 33, 62, 0.92);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  z-index: 10;
+  backdrop-filter: blur(4px);
 }
-
-#map-wrapper {
-  width: 100%;
-  height: 100%;
-  cursor: default;
+.map-tool {
+  width: 30px;
+  height: 28px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
 }
-
-#map-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+.map-tool:hover { color: var(--text-primary); background: var(--bg-hover); }
+.map-tool.active { color: var(--accent-light); background: var(--bg-active); border-color: var(--accent-dark); }
+.map-tool-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+.map-toggle {
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 3px;
 }
+.map-toggle input { accent-color: var(--accent); }
 
 #coord-display {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
+  bottom: 6px;
+  left: 6px;
   padding: 2px 8px;
-  font-size: 11px;
+  font-size: 10px;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.5);
   border-radius: var(--radius-sm);
   pointer-events: none;
 }
 
+/* --- GM面板 --- */
+.gm-placeholder {
+  padding: 20px 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.8;
+  text-align: center;
+}
+.gm-tool-card {
+  padding: 10px;
+  margin: 4px 0;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.gm-tool-card:hover { border-color: var(--accent-dark); }
+.gm-tool-card h4 { font-size: 13px; color: var(--accent-light); margin-bottom: 4px; }
+.gm-tool-card p { font-size: 11px; color: var(--text-muted); }
+
 /* --- 右侧面板 --- */
 #side-panel {
-  width: 340px;
-  min-width: 280px;
+  width: 30%;
+  min-width: 300px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   background: var(--bg-panel);
