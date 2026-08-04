@@ -78,11 +78,27 @@ def ai_chat():
 @app_flask.route('/api/ai/models', methods=['POST'])
 def ai_models():
     provider = request.json.get('provider', 'gpt')
-    presets = {
-        'gpt': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
-        'custom': []
-    }
-    return jsonify({"models": presets.get(provider, []), "provider": provider})
+    config = load_config()
+    prov = config.get('ai', {}).get('providers', {}).get(provider, {})
+    
+    presets = {'gpt': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'], 'custom': []}
+    
+    # 尝试从API获取真实模型列表
+    if prov.get('apiKey') and prov.get('endpoint'):
+        try:
+            import urllib.request, ssl, json as j
+            base = prov['endpoint'].replace('/chat/completions', '').replace('/v1/', '/v1')
+            models_url = base.rstrip('/') + '/models' if '/v1' in base else base + '/v1/models'
+            req = urllib.request.Request(models_url, headers={'Authorization': f'Bearer {prov["apiKey"]}'})
+            resp = urllib.request.urlopen(req, timeout=8, context=ssl.create_default_context())
+            data = j.loads(resp.read())
+            if data.get('data'):
+                models = [m['id'] for m in data['data']]
+                return jsonify({"models": sorted(models), "provider": provider, "fetched": True})
+        except:
+            pass
+    
+    return jsonify({"models": presets.get(provider, []), "provider": provider, "preset": True})
 
 @app_flask.route('/api/rules/list')
 def rules_list():

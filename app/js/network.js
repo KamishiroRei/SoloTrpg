@@ -30,12 +30,11 @@ const Network = (() => {
       return 'http://localhost:3000';
     })();
 
-    socket = window.io(url, { transports: ['websocket', 'polling'] });
+    socket = window.io(url, { transports: ['websocket', 'polling'], timeout: 3000 });
 
     socket.on('connect', () => {
       console.log('[网络] 已连接');
-
-      // 检查URL参数 ?room=CODE 自动加入
+      const params = new URLSearchParams(window.location.search);
       const params = new URLSearchParams(window.location.search);
       const autoRoom = params.get('room');
       if (autoRoom) {
