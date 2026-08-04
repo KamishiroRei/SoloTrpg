@@ -50,6 +50,12 @@ const UIManager = (() => {
 
   function init() {
     _loadSettings();
+    AIClient.onMessage = function(content, role) {
+      if (role === 'ai') addChatMessage('ai', 'AI', content);
+      else if (role === 'system') addChatMessage('system', 'AI', content);
+    };
+    AIClient.onStatusChange = function(status) { updateServerStatus(status); };
+    AIClient.setActiveProvider('gpt');
     _setupToolbar();
     _setupTabs();
     setupChat();
@@ -65,8 +71,6 @@ const UIManager = (() => {
     window._onMeasureComplete = function(sx, sy, ex, ey, dist) {
       addChatMessage('system', '测量', '距离: ' + dist.toFixed(1) + ' 格');
     };
-    // AIClient 回调已在外部设置
-    AIClient.setActiveProvider('gpt');
     updateZoomLabel();
   }
 
@@ -194,18 +198,6 @@ const UIManager = (() => {
   }
 
   // ── AI对话（通过聊天集成） ─────────────────────
-
-  // 初始化AIClient回调
-  AIClient.onMessage = function(content, role) {
-    if (role === 'ai') {
-      addChatMessage('ai', 'AI', content);
-    } else if (role === 'system') {
-      addChatMessage('system', 'AI', content);
-    }
-  };
-  AIClient.onStatusChange = function(status) {
-    updateServerStatus(status);
-  };
 
   var AI_MODE_PROMPTS = {
     full: '你是TRPG的GM。严格遵守当前游戏规则，满足用户需求。融合角色设定与世界观，不盲目吹捧玩家角色。记忆不可靠，不确定时翻查规则书和模组。需要规则时回复[[search:关键词]]。',
