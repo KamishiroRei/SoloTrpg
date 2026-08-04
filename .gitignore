@@ -3,4 +3,3 @@ server/config.json
 data/uploads/
 *.log
 .DS_Store
-SoloTrpg.exe
