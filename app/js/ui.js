@@ -805,7 +805,7 @@ const UIManager = (() => {
     // 房间按钮
     _el('btn-create-room').addEventListener('click', function() {
       if (!Network.isConnected()) {
-        addChatMessage('system', '房间', '联机需要启动完整服务端：双击 start.bat 后通过服务器访问。当前EXE模式不支持联机。');
+        addChatMessage('system', '房间', '联机服务未启动。请用 start.bat 启动（不要直接双击EXE）。');
         return;
       }
       Network.createRoom();
