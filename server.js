@@ -20,10 +20,12 @@ const https = require('https');
 const PORT = process.env.PORT || 3000;
 const PROJECT_ROOT = __dirname;
 const RULER_DIR = path.join(PROJECT_ROOT, 'Ruler');
+const ARCHIVE_DIR = path.join(PROJECT_ROOT, 'Archive');
+const MODULE_DIR = path.join(PROJECT_ROOT, 'Module');
 const CONFIG_PATH = path.join(PROJECT_ROOT, 'config.json');
 
 // 确保必要目录存在
-[RULER_DIR].forEach(dir => {
+[RULER_DIR, ARCHIVE_DIR, MODULE_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -847,13 +849,159 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ── API: 自动存档（系统记录，不耗AI token） ─────────
+
+/**
+ * 记录对话到存档（追加模式）
+ */
+app.post('/api/archive/log', (req, res) => {
+  const { user, ai, time, adventure } = req.body;
+
+  const advName = adventure || 'default';
+  const advDir = path.join(ARCHIVE_DIR, advName);
+  if (!fs.existsSync(advDir)) fs.mkdirSync(advDir, { recursive: true });
+
+  const logFile = path.join(advDir, 'conversation.txt');
+  const entry = `[${time || new Date().toISOString()}]\n玩家: ${user}\nGM: ${ai}\n\n`;
+
+  try {
+    fs.appendFileSync(logFile, entry, 'utf8');
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/**
+ * 获取存档列表
+ */
+app.get('/api/archive/list', (req, res) => {
+  if (!fs.existsSync(ARCHIVE_DIR)) return res.json([]);
+
+  const adventures = fs.readdirSync(ARCHIVE_DIR, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => {
+      const dir = path.join(ARCHIVE_DIR, d.name);
+      const files = fs.readdirSync(dir).filter(f => f.endsWith('.txt') || f.endsWith('.md'));
+      return { name: d.name, files };
+    });
+
+  res.json(adventures);
+});
+
+/**
+ * 读取存档内容
+ */
+app.get('/api/archive/read', (req, res) => {
+  const { adventure, file } = req.query;
+  const filePath = path.join(ARCHIVE_DIR, adventure || 'default', file || 'conversation.txt');
+
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: '存档不存在' });
+
+  try {
+    const text = fs.readFileSync(filePath, 'utf8');
+    res.json({ content: text, file });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── API: 模组搜索 ──────────────────────────────────
+
+/**
+ * 搜索模组/剧本内容
+ */
+app.get('/api/module/search', (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.json({ results: [] });
+
+  const results = [];
+
+  function scanModules(dir, basePath = '') {
+    if (!fs.existsSync(dir)) return;
+
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      const relPath = basePath ? `${basePath}/${entry.name}` : entry.name;
+
+      if (entry.isDirectory()) {
+        scanModules(fullPath, relPath);
+      } else if (entry.name.endsWith('.md') || entry.name.endsWith('.txt')) {
+        try {
+          const text = fs.readFileSync(fullPath, 'utf8');
+          // 简单搜索：匹配标题和段落
+          const lines = text.split('\n');
+          let currentTitle = entry.name;
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (line.startsWith('#')) currentTitle = line.replace(/^#+\s*/, '');
+
+            if (line.toLowerCase().includes(q.toLowerCase())) {
+              const context = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 3)).join(' ');
+              results.push({
+                title: currentTitle.substring(0, 60),
+                type: entry.name.endsWith('.md') ? '剧本' : '文本',
+                summary: context.substring(0, 200),
+                file: relPath
+              });
+              if (results.length >= 10) return; // 限制结果数
+            }
+          }
+        } catch (e) { /* skip */ }
+      }
+    }
+  }
+
+  scanModules(MODULE_DIR);
+  res.json({ results: results.slice(0, 10), query: q });
+});
+
+/**
+ * 获取模组列表
+ */
+app.get('/api/module/list', (req, res) => {
+  if (!fs.existsSync(MODULE_DIR)) return res.json([]);
+
+  function listModules(dir, basePath = '') {
+    const result = [];
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      const relPath = basePath ? `${basePath}/${entry.name}` : entry.name;
+
+      if (entry.isDirectory()) {
+        result.push({
+          name: entry.name,
+          type: 'dir',
+          path: relPath,
+          children: listModules(fullPath, relPath)
+        });
+      } else {
+        result.push({
+          name: entry.name,
+          type: 'file',
+          path: relPath,
+          size: fs.statSync(fullPath).size
+        });
+      }
+    }
+    return result;
+  }
+
+  res.json(listModules(MODULE_DIR));
+});
+
 // ── 启动服务器 ────────────────────────────────────────
 
 app.listen(PORT, () => {
   console.log('═══════════════════════════════════════════');
   console.log('  TrpgRecode 后端服务已启动');
   console.log(`  地址: http://localhost:${PORT}`);
-  console.log(`  规则书任务区: ${RULER_DIR}`);
+  console.log(`  规则书: ${RULER_DIR}`);
+  console.log(`  模组:   ${MODULE_DIR}`);
+  console.log(`  存档:   ${ARCHIVE_DIR}`);
   console.log('═══════════════════════════════════════════');
 
   // 自动扫描规则书任务区

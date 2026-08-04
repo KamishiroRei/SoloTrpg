@@ -189,12 +189,9 @@ const RuleSearch = (() => {
   /**
    * 为AI构建规则书上下文（压缩版，token优化）
    * 
-   * 策略：
-   * 1. 优先注入：当前选中角色的相关规则（职业、装备等关键词匹配）
-   * 2. 按需注入：用户问题中提到的关键词搜索结果
-   * 3. 概览注入：所有分类的一行摘要（如果context允许）
+   * 仅在AI主动调用搜索时使用，不自动注入
    */
-  function buildAIContext(userQuery = '', gameState = null, maxTokens = 4000) {
+  function buildAIContext(userQuery = '', gameState = null, maxChars = 2000) {
     if (!searchIndex) return '';
 
     let context = '';
