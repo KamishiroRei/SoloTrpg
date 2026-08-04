@@ -83,7 +83,7 @@
         aiHistory: aiHistory.slice(-50), // 只保留最近50条
         chatHistory: window._chatHistory || [],
         timestamp: Date.now(),
-        version: 3
+        version: 2
       };
 
       localStorage.setItem('trpg_recode_save', JSON.stringify(data));
@@ -99,8 +99,6 @@
       if (!raw) return;
 
       const data = JSON.parse(raw);
-      // 版本不匹配则丢弃旧数据
-      if (data.version !== 3) { localStorage.removeItem('trpg_recode_save'); return; }
 
       if (data.mapState) {
         window.MapEngine.importState(data.mapState);
