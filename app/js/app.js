@@ -98,7 +98,9 @@
       const raw = localStorage.getItem('trpg_recode_save');
       if (!raw) return;
 
-      const data = JSON.parse(raw);
+      let data = JSON.parse(raw);
+      // 存档自动迁移
+      data = migrateSave(data);
 
       if (data.mapState) {
         window.MapEngine.importState(data.mapState);
@@ -118,6 +120,14 @@
     } catch (e) {
       console.warn('[App] 数据加载失败:', e.message);
     }
+  }
+
+  // 存档版本迁移（仅当格式结构性变化时增加case）
+  function migrateSave(data) {
+    const v = data.version || 1;
+    if (v === 1) { data.version = 2; /* 预留：v1→v2迁移逻辑 */ }
+    // if (v === 2) { /* 未来v2→v3迁移逻辑 */ data.version = 3; }
+    return data;
   }
 
   // ── 示例数据 ──────────────────────────────────────
