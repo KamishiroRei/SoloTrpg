@@ -46,13 +46,7 @@
     // 加载本地存储的数据
     loadFromLocalStorage();
 
-    // 如果没有数据，创建示例角色
-    if (window.MapEngine.getAllTokens().length === 0) {
-      createSampleData();
-    }
-
     window._trpgReady = true;
-    console.log('TrpgRecode v2.0 初始化完成');
   }
 
   // ── AI客户端初始化 ────────────────────────────────
@@ -128,86 +122,6 @@
   }
 
   // ── 示例数据 ──────────────────────────────────────
-
-  function createSampleData() {
-    const sampleTokens = [
-      {
-        name: '亚瑟·光刃',
-        displayName: '亚瑟',
-        color: '#4ecdc4',
-        gridX: 3, gridY: 2,
-        hp: 42, maxHp: 42,
-        data: {
-          'HP_current': 42, 'HP_max': 42,
-          'AC': 18, 'Speed': '30ft',
-          'STR': 18, 'DEX': 12, 'CON': 16,
-          'INT': 10, 'WIS': 14, 'CHA': 12,
-          'Class': '圣武士', 'Level': 5,
-          'Initiative': 1
-        }
-      },
-      {
-        name: '莉娜·星火',
-        displayName: '莉娜',
-        color: '#ff6b9d',
-        gridX: 0, gridY: 4,
-        hp: 32, maxHp: 32,
-        data: {
-          'HP_current': 32, 'HP_max': 32,
-          'AC': 14, 'Speed': '30ft',
-          'STR': 8, 'DEX': 14, 'CON': 14,
-          'INT': 18, 'WIS': 12, 'CHA': 10,
-          'Class': '法师', 'Level': 5,
-          'Initiative': 2
-        }
-      },
-      {
-        name: '索恩·暗影',
-        displayName: '索恩',
-        color: '#7c6ff7',
-        gridX: -2, gridY: 1,
-        hp: 38, maxHp: 38,
-        data: {
-          'HP_current': 38, 'HP_max': 38,
-          'AC': 16, 'Speed': '35ft',
-          'STR': 12, 'DEX': 18, 'CON': 14,
-          'INT': 10, 'WIS': 16, 'CHA': 8,
-          'Class': '游侠', 'Level': 5,
-          'Initiative': 4
-        }
-      },
-      {
-        name: '格鲁姆·铁锤',
-        displayName: '格鲁姆',
-        color: '#f0a040',
-        gridX: 5, gridY: 0,
-        hp: 55, maxHp: 55,
-        data: {
-          'HP_current': 55, 'HP_max': 55,
-          'AC': 17, 'Speed': '25ft',
-          'STR': 20, 'DEX': 10, 'CON': 18,
-          'INT': 8, 'WIS': 12, 'CHA': 10,
-          'Class': '野蛮人', 'Level': 5,
-          'Initiative': 0
-        }
-      }
-    ];
-
-    for (const t of sampleTokens) {
-      window.MapEngine.addToken(t);
-    }
-
-    window.UIManager.refreshCharacterList();
-    window.MapEngine.zoomFit();
-
-    window.UIManager.addChatMessage('system', '系统',
-      '欢迎使用 TrpgRecode！已加载示例冒险者小队。\n' +
-      '• 输入 2d6+3 等表达式掷骰\n' +
-      '• 以 /ai 开头可将消息发送给AI GM\n' +
-      '• 在右侧「规则」面板上传规则书（PDF/CHM），AI会自动整理\n' +
-      '• 在「设置」面板配置AI连接后即可使用全部AI功能'
-    );
-  }
 
   // ── 自动保存 ──────────────────────────────────────
 
