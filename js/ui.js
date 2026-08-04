@@ -135,11 +135,7 @@ const UIManager = (() => {
       chatInput.value = '';
       if (text.startsWith('/ai')) {
         var aiMsg = text.replace(/^\/ai\s*/, '');
-        if (aiMsg) {
-          addChatMessage('system', '你', aiMsg);
-          var aiIn = _el('ai-input'); if (aiIn) aiIn.value = aiMsg;
-          sendToAI();
-        }
+        if (aiMsg) sendToAI(aiMsg);
         return;
       }
       var result = DiceSystem.smartRoll(text);
@@ -149,6 +145,10 @@ const UIManager = (() => {
         if (Network.isConnected()) Network.sendDiceRoll(text, result);
       } else {
         addChatMessage('user', '你', text);
+        // 完整主持模式：默认消息发送给AI
+        if (_settings.aiEnabled && _settings.aiMode === 'full') {
+          sendToAI(text);
+        }
       }
     }
     var btn = _el('btn-send'); if (btn) btn.addEventListener('click', _sendChat);
@@ -655,10 +655,6 @@ const UIManager = (() => {
       var activeKey = _settings.provider === 'gpt' ? _settings.gptKey : _settings.customKey;
       if (activeKey) AIClient.setApiKey(_settings.provider, activeKey);
 
-      // 更新AI面板提供商选择
-      var aiSel = _el('ai-provider-select');
-      if (aiSel) aiSel.value = _settings.provider;
-
       addChatMessage('system', '设置', 'AI配置已保存');
     });
 
@@ -671,7 +667,6 @@ const UIManager = (() => {
       MapEngine.clearTokens();
       _chatHistory = [];
       var cm = _el('chat-messages'); if (cm) cm.innerHTML = '';
-      var am = _el('ai-messages'); if (am) am.innerHTML = '<div class="ai-welcome">对话历史已清空</div>';
       refreshCharacterList();
       var de = _el('character-detail'); if (de) de.style.display = 'none';
       AIClient.clearHistory();
