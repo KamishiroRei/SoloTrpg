@@ -469,7 +469,8 @@ async function execBashTool(cmd, cwd) {
   }
 }
 
-// 执行系统频道插件工具（路径校验：plugins/ 目录内 + 宿主文件白名单 + __root__ 软件根目录全授权）
+// 执行系统频道插件工具（路径校验：plugins/ + app/ + _host_plugins/ + __root__ 软件根目录全授权；
+// 2026-08-05 解除宿主白名单限制：写权限范围=项目文件夹，宿主文件（app/）同属可修改范围）
 // 完全对标 opencode 标准工具集：glob/list_files/grep/read_file/write_file/edit/bash/todowrite/skill/webfetch/websearch/question/task
 const APP_WHITELIST = ['app/js/plugins.js', 'app/js/ui.js', 'app/index.html', 'app/css/style.css']; // AI可修改的宿主渲染/规则详情文件
 
@@ -499,11 +500,11 @@ async function runPluginTool(tool, args, defaultSystem, ctx) {
     if (!target.startsWith(hostRoot)) return '路径越界：仅允许操作 _host_plugins/ 目录内文件';
     scope = '_host_plugins/' + rel.replace(/^_host_plugins\//, '');
   } else if (rel.startsWith('app/') || sys === '__app__') {
-    // 宿主文件（白名单）
-    const appSearchScope = (tool === 'grep' || tool === 'list_files' || tool === 'glob') && (!rel || APP_WHITELIST.some(p => p === rel || p.startsWith(rel.replace(/\/$/, '') + '/')));
-    if (!APP_WHITELIST.includes(rel) && !appSearchScope) return '宿主文件仅允许操作：' + APP_WHITELIST.join('、');
-    target = path.resolve(path.join(SOURCE_ROOT, APP_WHITELIST.includes(rel) ? rel : 'app'));
-    scope = APP_WHITELIST.includes(rel) ? rel : 'app';
+    // 宿主文件（2026-08-05 解除白名单限制：写权限范围=项目文件夹，app/ 下任意文件可读写）
+    const appRoot = path.resolve(path.join(SOURCE_ROOT, 'app'));
+    target = path.resolve(path.join(appRoot, rel.replace(/^app\//, '')));
+    if (!target.startsWith(appRoot)) return '路径越界：仅允许操作 app/ 目录内文件';
+    scope = rel;
   } else if (rel.startsWith('root/') || sys === '__root__') {
     // __root__：软件根目录全授权（自身源码、配置等所有内容）
     const root = path.resolve(RUNTIME_ROOT);
@@ -576,8 +577,12 @@ async function runPluginTool(tool, args, defaultSystem, ctx) {
         if (fs.existsSync(start) && fs.statSync(start).isFile()) pushFile(start, '_host_plugins/' + rel.replace(/^_host_plugins\//, ''));
         else walk(start, rel.replace(/^_host_plugins\//, ''));
       } else if (rel.startsWith('app/') || sys === '__app__') {
-        const candidates = rel && APP_WHITELIST.includes(rel) ? [rel] : APP_WHITELIST.filter(p => !rel || p.startsWith(rel.replace(/\/$/, '') + '/') || p === rel);
-        for (const p of candidates.length ? candidates : APP_WHITELIST) pushFile(path.resolve(path.join(SOURCE_ROOT, p)), p);
+        // 2026-08-05：app/ 全目录可搜索（不再限制白名单）
+        const appRoot = path.resolve(path.join(SOURCE_ROOT, 'app'));
+        const start = path.resolve(path.join(appRoot, rel.replace(/^app\//, '')));
+        if (!start.startsWith(appRoot)) return '路径越界';
+        if (fs.existsSync(start) && fs.statSync(start).isFile()) pushFile(start, rel.replace(/^app\//, ''));
+        else walk(start, rel.replace(/^app\//, ''));
       } else {
         if (!sys) return '未指定规则系统（system 参数为空）';
         let effectiveSys = sys;
@@ -630,8 +635,14 @@ async function runPluginTool(tool, args, defaultSystem, ctx) {
           .join('\n') || '（空目录）';
       }
       if (rel.startsWith('app/') || sys === '__app__') {
-        // 宿主白名单文件清单（固定）
-        return '宿主可操作文件（白名单）：\n' + APP_WHITELIST.join('\n');
+        // 2026-08-05：app/ 全目录可列出（不再限制白名单）
+        const appRoot = path.resolve(path.join(SOURCE_ROOT, 'app'));
+        const dir = path.resolve(path.join(appRoot, rel.replace(/^app\//, '')));
+        if (!dir.startsWith(appRoot)) return '路径越界';
+        if (!fs.existsSync(dir)) return '目录不存在：app/' + rel;
+        return fs.readdirSync(dir, { withFileTypes: true })
+          .map(e => (e.isDirectory() ? e.name + '/' : e.name))
+          .join('\n') || '（空目录）';
       }
       let effectiveSys = sys;
       let pluginRoot = path.resolve(path.join(RULER_DIR, effectiveSys, 'plugins'));
