@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
-chcp 65001 >nul
-title SoloTrpg - Source Debug Server
+chcp 936 >nul
+title SoloTrpg - 游戏服务运行中（关闭本窗口=停止服务）
 cd /d "%~dp0"
 
 if not exist "Logs" mkdir "Logs"
@@ -15,7 +15,7 @@ set "SERVER_JS=%~dp0server\server.js"
 
 break > "%LATEST_LOG%"
 call :log "============================================================"
-call :log "SoloTrpg source debug launcher"
+call :log "SoloTrpg launcher (web edition)"
 call :log "Project directory: %~dp0"
 call :log "Latest log: %LATEST_LOG%"
 call :log "Launcher log: %LAUNCH_LOG%"
@@ -62,41 +62,52 @@ set "SOLOTRPG_DEBUG=1"
 set "SOLOTRPG_LOG_DIR=%~dp0Logs"
 set "SOLOTRPG_KEEP_LAUNCH_LOG=1"
 
-call :log "Starting Node debug server in foreground."
+call :log "Starting Node server in foreground."
 call :log "The browser opens after the server starts."
 call :log "Runtime logs are written to Logs\latest.log and Logs\debug-*.log."
+echo.
+echo [SoloTrpg] 正在启动，浏览器将自动打开 http://127.0.0.1:3000 ...
+echo [SoloTrpg] 本窗口实时显示服务日志；关闭本窗口 = 停止服务并关闭游戏。
 echo.
 
 node "%SERVER_JS%" --debug
 set "SERVER_EXIT=%ERRORLEVEL%"
 echo.
 call :log "Node debug server stopped. Exit code: %SERVER_EXIT%"
+echo [SoloTrpg] 服务已停止。窗口保持显示，按任意键关闭。
+pause
 goto END
 
 :NODE_MISSING
 call :log "ERROR: Node.js was not found. start.bat requires a local Node.js installation."
-set "SERVER_EXIT=1"
+echo [SoloTrpg] 错误：未找到 Node.js，无法启动。请先安装 Node.js 22 或更高版本。
+echo [SoloTrpg] 也可以使用 https://nodejs.org 下载安装后重试。
+pause
 goto END
 
 :SERVER_DIR_FAIL
 call :log "ERROR: Cannot enter server directory: %~dp0server"
-set "SERVER_EXIT=1"
+echo [SoloTrpg] 错误：找不到 server 目录。
+pause
 goto END
 
 :INSTALL_FAIL
 call :log "ERROR: npm install failed. Exit code: %INSTALL_EXIT%"
-set "SERVER_EXIT=%INSTALL_EXIT%"
+echo [SoloTrpg] 错误：依赖安装失败（npm install），请查看上方日志。
+pause
 goto END
 
 :CHECK_FAIL
 call :log "ERROR: server.js syntax check failed. Exit code: %CHECK_EXIT%"
-set "SERVER_EXIT=%CHECK_EXIT%"
+echo [SoloTrpg] 错误：server.js 语法检查失败，请检查代码。
+pause
 goto END
 
 :END
 if not "%LAUNCHER_PID%"=="0" node "%~dp0server\startup-manager.js" --cleanup-launcher %LAUNCHER_PID% >nul 2>&1
 echo.
-echo Debug server exited. Check Logs\latest.log for details.
+echo SoloTrpg 服务已停止。
+pause
 exit /b %SERVER_EXIT%
 
 :log

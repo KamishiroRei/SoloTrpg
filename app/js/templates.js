@@ -226,8 +226,7 @@ const TemplateRenderer = (() => {
     // 操作按钮
     html += `
       <div class="sheet-actions">
-        <button class="btn-small" onclick="window.UIManager.selectCharacter('${tokenId}')">🗔 打开角色卡</button>
-        <button class="btn-small" onclick="window.UIManager.openCharacterModalForEdit('${tokenId}')">✏ 编辑</button>
+        <button class="btn-small" onclick="window.UIManager.openCharacterSheet('${tokenId}')">🗔 打开角色卡</button>
         <button class="btn-small danger" onclick="window.UIManager.deleteCharacter('${tokenId}')">✕ 删除</button>
       </div>
     `;

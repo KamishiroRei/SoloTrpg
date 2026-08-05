@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "note": "默认界面框架模板（宿主种子）。每个规则书首次加载时会复制本目录到 Ruler/<系统>/ui/，之后规则书只读自己的副本——AI 迭代界面 = 修改规则书自己的 ui/manifest.json 与 ui/panels/，不影响其他规则书。",
+  "tabs": [
+    { "id": "characters", "icon": "👥", "name": "角色" },
+    { "id": "encounter", "icon": "⚔", "name": "遭遇" },
+    { "id": "gm", "icon": "🎭", "name": "GM" },
+    { "id": "rules", "icon": "📚", "name": "规则" },
+    { "id": "notes", "icon": "📝", "name": "笔记" },
+    { "id": "settings", "icon": "⚙", "name": "设置" }
+  ],
+  "hideTabs": [],
+  "theme": {}
+}

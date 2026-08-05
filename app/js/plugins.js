@@ -153,7 +153,18 @@ const PluginRuntime = (() => {
       const list = await resp.json();
       const ids = [];
       for (const manifest of list) {
+        // 2026-08-05 GM/PL 区分：visibility=gm 的插件仅 GM 加载（普通玩家不请求、不下载）
+        if (manifest.visibility === 'gm' && !isLocalGM()) continue;
         if (loaded[manifest.id]) { ids.push(manifest.id); continue; }
+        // 本地校验（2026-08-05）：hash 一致则用缓存代码，不重复下载
+        const cached = loadPluginCache(system, manifest);
+        if (cached && cached.hash === manifest.hash) {
+          try {
+            await loadPluginCode(system, manifest, cached.code);
+            ids.push(manifest.id);
+            continue;
+          } catch (e) { /* 缓存执行失败 → 重新下载 */ }
+        }
         try {
           await loadPlugin(system, manifest);
           ids.push(manifest.id);
@@ -167,11 +178,56 @@ const PluginRuntime = (() => {
     }
   }
 
+  // 2026-08-05：GM 内容更新后全量重载（带哈希缓存校验：未变化的插件不重新下载）
+  async function reloadSystemPlugins(system) {
+    if (!system) return;
+    unloadSystemPlugins();
+    activeSystem = system;
+    await loadSystemPlugins(system);
+  }
+
+  // 本地是否 GM（单机/房主）——与 ui.js isGMUser 同语义的轻量判断
+  function isLocalGM() {
+    try {
+      if (typeof window !== 'undefined' && window.Network) {
+        if (!window.Network.isConnected || !window.Network.isConnected()) return true; // 单机=GM
+        if (typeof window.Network.amIHost === 'function') return window.Network.amIHost();
+        return true;
+      }
+      return true;
+    } catch (e) { return true; }
+  }
+
+  // 插件代码缓存（localStorage）：{ [system/id]: { hash, code } }
+  const PLUGIN_CACHE_KEY = 'trpg_plugin_cache';
+  function loadPluginCache(system, manifest) {
+    try {
+      const raw = localStorage.getItem(PLUGIN_CACHE_KEY);
+      const all = raw ? JSON.parse(raw) : {};
+      return all[system + '/' + manifest.id] || null;
+    } catch (e) { return null; }
+  }
+  function savePluginCache(system, manifest, code) {
+    try {
+      const raw = localStorage.getItem(PLUGIN_CACHE_KEY);
+      const all = raw ? JSON.parse(raw) : {};
+      all[system + '/' + manifest.id] = { hash: manifest.hash || '', code: code };
+      // 控制缓存体积（每个插件代码 + 全量 JSON 序列化，超限时清最旧）
+      localStorage.setItem(PLUGIN_CACHE_KEY, JSON.stringify(all));
+    } catch (e) { /* 存储不可用静默 */ }
+  }
+
   async function loadPlugin(system, manifest) {
     const resp = await fetch(`${serverUrl}/api/plugins/entry?system=${encodeURIComponent(system)}&id=${encodeURIComponent(manifest.id)}`);
     if (!resp.ok) throw new Error('入口获取失败 HTTP ' + resp.status);
     const code = await resp.text();
+    savePluginCache(system, manifest, code);
+    await loadPluginCode(system, manifest, code);
+    return loaded[manifest.id];
+  }
 
+  // 执行插件代码并注册（缓存命中与下载共用）
+  async function loadPluginCode(system, manifest, code) {
     const module = { exports: {} };
     const api = makePluginAPI(system, manifest);
     const fn = new Function('module', 'exports', 'PluginAPI', code + '\n;return module.exports;');
@@ -223,6 +279,7 @@ const PluginRuntime = (() => {
   return {
     init,
     loadSystemPlugins,
+    reloadSystemPlugins,
     loadHostPlugins,
     loadPlugin,
     unloadPlugin,

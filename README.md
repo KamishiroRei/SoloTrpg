@@ -11,12 +11,17 @@
 ## 快速开始
 
 ```text
-start.bat
+SoloTrpg.exe
 ```
 
-启动检查 → 运行后端 → 自动打开 http://127.0.0.1:3000
+**exe 是正式入口**：双击即启动（内嵌 Node 运行时，无需安装 Node.js），打开原生游戏窗口：
+- window.open 的新窗口由宿主接管为**原生独立窗口**（带边框、可拖动、与主窗口分离）
+- 关闭窗口 = 停止服务；F5 刷新保持当前界面（不回到开始界面）
+- 首次运行自动解压运行环境到 `%LOCALAPPDATA%\SoloTrpg\bin`
 
 首次使用：在开始界面点击「📤 上传规则书」，上传规则书后 AI 会自动解析；之后选择规则书 → 冒险 → 进入。
+
+> 网页版调试：`start.bat`（需要本机 Node.js，前台窗口显示实时日志，浏览器打开 http://127.0.0.1:3000）——仅供开发/排错，日常使用请用 exe。
 
 ## 核心概念
 
@@ -27,9 +32,10 @@ start.bat
 ## 开发
 
 - 唯一后端：`server/server.js`
-- `start.bat`：源码调试入口（检查 Node、安装依赖、语法检查、前台运行、写日志）
-- `SoloTrpg.exe`：对外发布包（内置 Node 与前端资源），由 `build-exe.bat` 构建
+- `SoloTrpg.exe`：**正式入口**（WebView2 原生窗口，内嵌 Node 运行时），由 `build-exe.bat` 构建
+- `start.bat`：调试备用（需要本机 Node.js，前台日志窗口 + 浏览器）
 - 日志：`Logs/`（latest.log 为首选诊断文件）
+- 代码修改后重新构建 exe 才生效（`build-exe.bat`）；前端修改也可用 `start.bat` 网页版直接验证
 
 ## AI 配置
 

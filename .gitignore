@@ -10,7 +10,6 @@ server/node_modules/
 Logs/
 *.log
 data/
-build/
 AI任务/
 _tools/
 temp/
@@ -22,5 +21,4 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
-# ── 发布包（本地构建，不入库） ──
-SoloTrpg.exe
+

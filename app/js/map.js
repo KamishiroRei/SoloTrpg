@@ -438,84 +438,38 @@ const MapEngine = (() => {
     const r = actualCellSize * 0.42;
     const isSelected = token === selectedToken;
     const isHovered = token === hoveredToken;
-
-    // 光晕
+    ctx.save();
     if (isSelected || isHovered) {
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, r + 4, 0, Math.PI * 2);
-      ctx.fillStyle = isSelected ? 'rgba(201, 168, 76, 0.4)' : 'rgba(255, 255, 255, 0.15)';
-      ctx.fill();
-      if (isSelected) {
-        ctx.strokeStyle = '#c9a84c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, r + 4, 0, Math.PI * 2);
+      ctx.fillStyle = isSelected ? 'rgba(201,168,76,.38)' : 'rgba(255,255,255,.14)'; ctx.fill();
+      if (isSelected) { ctx.strokeStyle = '#e0bc58'; ctx.lineWidth = 2; ctx.stroke(); }
     }
-
     const avatarUrl = token.avatarUrl || token.data?.assets?.avatarFramed || token.data?.assets?.avatar;
-    if (avatarUrl) {
-      drawTokenImage(token, avatarUrl, pos.x, pos.y, r);
-    } else {
-      // 身体圆
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = token.color || '#4ecdc4';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // 首字母
-      const initial = (token.name || token.displayName || '?').charAt(0);
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold ${Math.max(10, r * 0.9)}px "${getFontFamily()}"`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(initial, pos.x, pos.y);
+    if (avatarUrl) drawTokenImage(token, avatarUrl, pos.x, pos.y, r);
+    else {
+      ctx.beginPath(); ctx.arc(pos.x,pos.y,r,0,Math.PI*2); ctx.fillStyle=token.color||'#4ecdc4';ctx.fill();ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(10,r*.9)}px "${getFontFamily()}"`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText((token.name||token.displayName||'?').charAt(0),pos.x,pos.y);
     }
-
-    // 名字标签
-    const display = token.displayName || token.name || '';
-    if (display) {
-      const fontSize = Math.max(9, 11 * scale);
-      ctx.font = `${fontSize}px "${getFontFamily()}"`;
-      const textWidth = ctx.measureText(display).width;
-      const labelY = pos.y + r + fontSize + 2;
-
-      // 背景
-      const padX = 4;
-      const padY = 2;
-      ctx.fillStyle = 'rgba(0,0,0,0.75)';
-      ctx.fillRect(pos.x - textWidth / 2 - padX, labelY - fontSize / 2 - padY, textWidth + padX * 2, fontSize + padY * 2);
-      ctx.fillStyle = '#fff';
-      ctx.fillText(display, pos.x, labelY);
-    }
-
-    // HP条（如果有）
     if (token.hp !== undefined && token.maxHp !== undefined && token.maxHp > 0) {
-      const hpRatio = Math.max(0, token.hp / token.maxHp);
-      const barWidth = r * 1.6;
-      const barHeight = Math.max(3, 4 * scale);
-      const barY = pos.y - r - barHeight - 2;
-
-      // 背景
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.fillRect(pos.x - barWidth / 2, barY, barWidth, barHeight);
-
-      // HP填充
-      const hpColor = hpRatio > 0.5 ? '#55c07a' : hpRatio > 0.25 ? '#f0c040' : '#e05555';
-      ctx.fillStyle = hpColor;
-      ctx.fillRect(pos.x - barWidth / 2, barY, barWidth * hpRatio, barHeight);
+      const hpRatio=Math.max(0,Math.min(1,token.hp/token.maxHp)),barWidth=r*1.65,barHeight=Math.max(3,4*scale),barY=pos.y-r-barHeight-3;
+      ctx.fillStyle='rgba(5,7,14,.82)';ctx.fillRect(pos.x-barWidth/2-1,barY-1,barWidth+2,barHeight+2);
+      ctx.fillStyle=hpRatio>.5?'#55c07a':hpRatio>.25?'#f0c040':'#e05555';ctx.fillRect(pos.x-barWidth/2,barY,barWidth*hpRatio,barHeight);
     }
-
-    // 状态图标（如果有条件）
-    if (token.conditions && token.conditions.length > 0) {
-      const iconSize = Math.max(8, 12 * scale);
-      const iconY = pos.y - r - 14 * scale;
-      ctx.font = `${iconSize}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText(token.conditions.slice(0, 3).join(''), pos.x, iconY);
+    const display=token.displayName||token.name||'';
+    if(display){
+      const fontSize=Math.max(9,11*scale);ctx.font=`600 ${fontSize}px "${getFontFamily()}"`;ctx.textAlign='center';ctx.textBaseline='middle';
+      const maxWidth=Math.max(70,r*3.2),shown=display.length>18?display.slice(0,17)+'…':display,textWidth=Math.min(maxWidth,ctx.measureText(shown).width),padX=7,padY=4;
+      const plateW=textWidth+padX*2,plateH=fontSize+padY*2,labelY=pos.y+r+plateH/2+5,labelX=pos.x;
+      ctx.fillStyle='rgba(7,9,19,.88)';roundRect(ctx,labelX-plateW/2,labelY-plateH/2,plateW,plateH,4);ctx.fill();
+      ctx.strokeStyle=isSelected?'rgba(224,188,88,.85)':'rgba(255,255,255,.12)';ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle='#f4f5ff';ctx.fillText(shown,labelX,labelY,maxWidth);
     }
+    if(token.conditions&&token.conditions.length){const iconSize=Math.max(8,12*scale);ctx.font=`${iconSize}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(token.conditions.slice(0,3).join(''),pos.x,pos.y-r-14*scale);}
+    ctx.restore();
+  }
+
+  function roundRect(context,x,y,w,h,r){
+    r=Math.max(0,Math.min(r,w/2,h/2));context.beginPath();context.moveTo(x+r,y);context.arcTo(x+w,y,x+w,y+h,r);context.arcTo(x+w,y+h,x,y+h,r);context.arcTo(x,y+h,x,y,r);context.arcTo(x,y,x+w,y,r);context.closePath();
   }
 
   function drawTokenImage(token, url, x, y, r) {
@@ -797,7 +751,13 @@ const MapEngine = (() => {
   // ========== 标记管理 ==========
 
   function addToken(options = {}) {
-    const id = options.id || `token_${++tokenIdCounter}`;
+    let id = options.id;
+    if (id) {
+      const m = String(id).match(/^token_(\d+)$/);
+      if (m) tokenIdCounter = Math.max(tokenIdCounter, Number(m[1]) || 0);
+    } else {
+      do { id = `token_${++tokenIdCounter}`; } while (tokens.some(t => t.id === id));
+    }
     const token = {
       id,
       name: options.name || '未命名',
@@ -808,13 +768,21 @@ const MapEngine = (() => {
       hp: options.hp,
       maxHp: options.maxHp,
       ac: options.ac,
-      conditions: options.conditions || [],
-      data: options.data || {}  // 自定义数据
+      avatarUrl: options.avatarUrl || '',
+      category: options.category || (options.data && options.data.category) || '玩家',
+      conditions: Array.isArray(options.conditions) ? options.conditions.slice() : [],
+      owner: options.owner || null, // 角色归属=创建者玩家名（联机权限）
+      data: options.data || {}  // 规则专属扩展全部放入 data
     };
     tokens.push(token);
     render();
     return token;
   }
+
+  // 2026-08-06：远端同步入口——内部调用模块闭包原函数（不被 ui.js 网络钩子覆盖，杜绝广播循环）
+  function addTokenRemote(options = {}) { return addToken(options); }
+  function updateTokenRemote(id, updates) { return updateToken(id, updates); }
+  function removeTokenRemote(id) { return removeToken(id); }
 
   function removeToken(id) {
     const idx = tokens.findIndex(t => t.id === id);
@@ -847,7 +815,10 @@ const MapEngine = (() => {
 
   function setTokens(newTokens) {
     tokens = newTokens.map(t => ({ ...t }));
-    tokenIdCounter = tokens.length;
+    tokenIdCounter = tokens.reduce((max, t) => {
+      const m = String(t.id || '').match(/^token_(\d+)$/);
+      return m ? Math.max(max, Number(m[1]) || 0) : max;
+    }, 0);
     render();
   }
 
@@ -1043,6 +1014,9 @@ const MapEngine = (() => {
     setBackgroundImage,
     removeBackgroundImage,
     addToken,
+    addTokenRemote,
+    updateTokenRemote,
+    removeTokenRemote,
     removeToken,
     getTokenById,
     updateToken,

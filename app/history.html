@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>会话历史</title>
+<style>
+  html, body { height: auto !important; overflow: auto !important; }
+  body { background: #14141d; color: #ddd; font-family: Consolas, monospace; padding: 16px; max-width: 900px; margin: auto; }
+  .h { margin-bottom: 12px; color: #888; }
+  .h b { color: #fff; }
+  .empty { text-align: center; color: #888; margin-top: 80px; }
+  .err { text-align: center; color: #ff6b6b; margin-top: 80px; }
+  .m { border: 1px solid #2a2a3a; border-radius: 6px; padding: 8px 12px; margin: 6px 0; white-space: pre-wrap; word-break: break-all; }
+  .user { border-left: 3px solid #6cb2ff; }
+  .assistant { border-left: 3px solid #6ae08a; }
+  .tool { border-left: 3px solid #c9a86a; color: #bbb; font-size: 12px; }
+  .tool-snip { color: #8a8a9a; font-size: 11px; opacity: .85; }
+  /* 2026-08-05 全站重构：AVG 历史回看——每条消息显示"当时的立绘舞台" */
+  .avg-stage-mini { display: flex; gap: 10px; align-items: center; margin: 4px 0 6px; padding: 4px 8px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; }
+  .avg-stage-mini .t { font-size: 10px; color: #888; margin-right: 4px; }
+  .avg-stage-mini .tok { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 8px 2px 3px; border-radius: 14px; border: 1px solid #3a3a5c; background: #232345; }
+  .avg-stage-mini .tok img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+  .avg-stage-mini .tok .ph { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+  .avg-stage-mini .tok.speaking { border-color: #c9a84c; color: #e0c870; box-shadow: 0 0 6px rgba(201,168,76,.4); }
+  .avg-stage-mini .tok.dim { opacity: .45; filter: brightness(.7); }
+</style>
+</head>
+<body>
+<div id="root" class="empty">正在加载历史...</div>
+<script src="/js/tags.js"></script>
+<script>
+(function() {
+  var params = new URLSearchParams(location.search);
+  var sys = params.get('system') || '';
+  var adv = params.get('adventure') || '';
+  var ch = params.get('channel') || 'story';
+  var chName = params.get('name') || ch;
+  var root = document.getElementById('root');
+  fetch('/api/sessions/read?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv) + '&channel=' + encodeURIComponent(ch))
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !data.messages || !data.messages.length) {
+        root.className = 'empty';
+        root.textContent = '该频道暂无持久化会话记录。';
+        return;
+      }
+      // AVG 立绘舞台重建：解析每条 AI 消息的 <portrait> 指令，按顺序推进舞台状态
+      var stage = { left: null, right: null, speaking: null };
+      var esc2 = esc;
+      function resolveActor(name) {
+        // 历史窗口无 MapEngine：从本地角色存储读取立绘（trpg_characters）
+        var url = '', color = '#4ecdc4';
+        try {
+          var arr = JSON.parse(localStorage.getItem('trpg_characters') || '[]');
+          for (var i = 0; i < arr.length; i++) {
+            var t = arr[i];
+            var n = t.displayName || t.name || '';
+            if (n === name || (n && n.indexOf(name) >= 0) || (name && name.indexOf(n) >= 0)) {
+              var assets = (t.data && t.data.assets) || {};
+              url = assets.portrait || assets.avatarFramed || assets.avatar || t.avatarUrl || '';
+              color = t.color || '#4ecdc4';
+              name = t.displayName || t.name;
+              break;
+            }
+          }
+        } catch (e) {}
+        return { name: name, url: url, color: color };
+      }
+      function stageSpeak(actor) {
+        if (!actor || !actor.name) return;
+        var hasL = stage.left && stage.left.name === actor.name;
+        var hasR = stage.right && stage.right.name === actor.name;
+        if (!hasL && !hasR) {
+          if (!stage.left) stage.left = actor;
+          else if (!stage.right) stage.right = actor;
+          else {
+            if (stage.speaking && stage.speaking.name === stage.left.name) stage.right = actor;
+            else stage.left = actor;
+          }
+        }
+        stage.speaking = actor;
+      }
+      function stageHtml() {
+        var html = '';
+        [stage.left, stage.right].forEach(function(a) {
+          if (!a) return;
+          var spk = stage.speaking && stage.speaking.name === a.name;
+          html += '<span class="tok' + (spk ? ' speaking' : ' dim') + '">' +
+            (a.url ? '<img src="' + esc2(a.url) + '">' : '<span class="ph" style="background:' + esc2(a.color) + '">' + esc2((a.name || '?').charAt(0)) + '</span>') +
+            esc2(a.name) + '</span>';
+        });
+        return html ? '<div class="avg-stage-mini"><span class="t">🎭 对话</span>' + html + '</div>' : '';
+      }
+      var html = '<div class="h"><b>规则书：</b>' + esc(sys) + ' | <b>冒险：</b>' + esc(adv) + ' | <b>频道：</b>' + esc(chName) + ' | 共 ' + data.total + ' 条记录（只读）' +
+        '<br><span style="color:#888;font-size:11px;">AVG 立绘模式：每条消息显示当时的对话舞台，可上下滚动倒回查看。</span></div>';
+      data.messages.forEach(function(m) {
+        var role = m.role === 'user' ? 'user' : (m.role === 'assistant' ? 'assistant' : 'tool');
+        var label = role === 'user' ? '👤 用户' : (role === 'assistant' ? '🤖 AI' : '🔧 工具');
+        var content = String(m.content || '');
+        if (role === 'tool') {
+          var firstLine = content.replace(/\s+/g, ' ').trim();
+          html += '<div class="m tool"><b>🔧 工具结果</b><br><span class="tool-snip">' + esc(firstLine.substring(0, 120)) + (firstLine.length > 120 ? '…' : '') + '</span></div>';
+          return;
+        }
+        // AI 消息：解析立绘指令推进舞台，并剥离标签显示正文
+        var stageSnap = '';
+        if (role === 'assistant') {
+          var d = extractPortrait(content);
+          if (d) {
+            if (d.clear) stage = { left: null, right: null, speaking: null };
+            else if (d.name) stageSpeak(resolveActor(d.name));
+            content = d.text;
+            stageSnap = stageHtml();
+          }
+        }
+        if (content.length > 4000) content = content.substring(0, 4000) + '\n…（已截断显示）';
+        if (m.tool_calls) content = '工具调用: ' + m.tool_calls.map(function(tc) { return tc.function && tc.function.name; }).join(', ') + '\n' + content;
+        var editedMark = m.edited ? ' <span style="color:#c9a86a;font-size:11px;">(已编辑)</span>' : '';
+        html += '<div class="m ' + role + '"><b>' + label + '</b>' + editedMark + '<br>' + stageSnap + esc(content) + '</div>';
+      });
+      root.className = '';
+      root.innerHTML = html;
+    })
+    .catch(function(e) {
+      root.className = 'err';
+      root.textContent = '读取历史失败: ' + (e.message || e);
+    });
+  function extractPortrait(text) {
+    var s = String(text || '');
+    if (/<\/portrait>/i.test(s) && !/<portrait\b[^>]*name=/i.test(s)) {
+      return { clear: true, name: '', text: s.replace(/<portrait\b[^>]*>/gi, '').replace(/<\/portrait>/gi, '').trim() };
+    }
+    var m = s.match(/<portrait\b([^>]*)>/i);
+    if (!m) return null;
+    var attrs = m[1] || '';
+    var name = '';
+    var nm = attrs.match(/name=["']([^"']+)["']/i);
+    if (nm) name = nm[1].trim();
+    return { clear: /clear/i.test(attrs), name: name, text: s.replace(/<portrait\b[^>]*>/gi, '').replace(/<\/portrait>/gi, '').trim() };
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+})();
+</script>
+</body>
+</html>

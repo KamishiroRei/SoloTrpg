@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TrpgRecode - AI驱动的通用TRPG单人跑团平台
  * 后端服务：AI代理、规则书读取、文件缓存、角色卡解析
  *
@@ -12,6 +12,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const crypto = require('crypto');
 const { TextDecoder } = require('util');
 const zlib = require('zlib');
 const fetch = require('node-fetch');
@@ -440,7 +441,7 @@ const PLUGIN_TOOLS = [
   { type: 'function', function: { name: 'read_file', description: '读取文件。参数自判：full=true全量（≤60K文件首选）；line=<行号>+lines=<行数>按行读；offset+limit按字符；不传参数中小文件直接返回完整内容、大文件返回规模提示。大文件(>60K)禁止顺序扫读：先grep定位行号再读±50行。', parameters: { type: 'object', properties: { system: { type: 'string' }, path: { type: 'string' }, full: { type: 'boolean', description: 'true=全量' }, line: { type: 'number', description: '起始行号' }, lines: { type: 'number', description: '行数，缺省读到尾' }, offset: { type: 'number' }, limit: { type: 'number' } }, required: ['system', 'path'] } } },
   { type: 'function', function: { name: 'write_file', description: '写入/覆盖文件（可新建）。路径相对对应scope根（system=__root__时=项目根）。', parameters: { type: 'object', properties: { system: { type: 'string' }, path: { type: 'string' }, content: { type: 'string' } }, required: ['system', 'path', 'content'] } } },
   { type: 'function', function: { name: 'edit', description: '在文件中替换文本（增量编辑）。oldText必须精确匹配文件内容；找不到时用grep重新定位。', parameters: { type: 'object', properties: { system: { type: 'string' }, path: { type: 'string' }, oldText: { type: 'string' }, newText: { type: 'string' } }, required: ['system', 'path', 'oldText', 'newText'] } } },
-  { type: 'function', function: { name: 'bash', description: '执行命令（Windows cmd，超时30秒）。工作目录=对应scope根（__root__=项目根），返回附带[cwd:路径]；不要写相对cd，直接用根目录相对路径或绝对路径；统计/枚举类需求优先用list_files/glob。', parameters: { type: 'object', properties: { system: { type: 'string', description: '同文件工具；缺省__root__' }, command: { type: 'string' } }, required: ['command'] } } },
+  { type: 'function', function: { name: 'bash', description: '执行一条 shell 命令（对标 opencode：Windows 用 cmd.exe，POSIX 用 /bin/sh，可用 config.json 顶层 shell 覆盖）。工作目录=对应scope根（__root__=项目根），返回附带[cwd:路径]；不要写相对cd，直接用根目录相对路径或绝对路径；统计/枚举类需求优先用list_files/glob；脚本先写入_tools/再执行，避免node -e内联；timeout 为毫秒（默认120000，最大600000）。', parameters: { type: 'object', properties: { system: { type: 'string', description: '同文件工具；缺省__root__' }, command: { type: 'string' }, timeout: { type: 'number', description: '超时毫秒，默认120000，最大600000' } }, required: ['command'] } } },
   { type: 'function', function: { name: 'todowrite', description: '维护任务清单（跨轮次跟踪）。复杂任务开工先拆解为todo列表。', parameters: { type: 'object', properties: { todos: { type: 'array', items: { type: 'object', properties: { content: { type: 'string' }, status: { type: 'string' } } } } }, required: ['todos'] } } },
   { type: 'function', function: { name: 'skill', description: '加载技能文档：agent-guide（工作方法：任务流程/设计审核/举一反三/数据落盘，开工或需要时加载）；plugin-authoring（插件编写规范，改插件前必读）；gm-protocol（GM带团协议）；gm-standard（玩家频道标准）。', parameters: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } } },
   { type: 'function', function: { name: 'webfetch', description: '抓取网页内容（转文本）', parameters: { type: 'object', properties: { url: { type: 'string' }, maxChars: { type: 'number', description: '缺省=完整返回' } }, required: ['url'] } } },
@@ -449,23 +450,52 @@ const PLUGIN_TOOLS = [
   { type: 'function', function: { name: 'task', description: '派发子任务给独立子Agent执行并返回结果', parameters: { type: 'object', properties: { description: { type: 'string' } }, required: ['description'] } } }
 ];
 
-// ── bash 工具统一执行（2026-08-05 统合归一）：system-chat 与解析 Agent 共用 ──
-// 统一行为：cwd 附带提示（AI无需猜路径）、cd 引导、失败时返回 cwd 帮助修正、统计类命令引导
-async function execBashTool(cmd, cwd) {
+// ── bash 工具统一执行（2026-08-05 完全对标 opencode packages/core/src/tool/bash.ts） ──
+// opencode 源码做法（defaultShell）：Windows 用 process.env.COMSPEC ?? "cmd.exe"，POSIX 用 /bin/sh；
+// 支持配置覆盖 shell（config.json 顶层 "shell" 字段，对标 opencode 的 shell 配置项）。
+// 不依赖任何外部程序（不引入 git bash）；超时默认120s、最大600s（对标 DEFAULT_TIMEOUT_MS/MAX_TIMEOUT_MS）。
+const DEFAULT_BASH_TIMEOUT_MS = 2 * 60 * 1000;   // 对标 opencode DEFAULT_TIMEOUT_MS
+const MAX_BASH_TIMEOUT_MS = 10 * 60 * 1000;      // 对标 opencode MAX_TIMEOUT_MS
+const getBashShell = () => (appConfig.shell && typeof appConfig.shell === 'string' && appConfig.shell.trim())
+  ? appConfig.shell.trim()
+  : (process.platform === 'win32' ? (process.env.COMSPEC || 'cmd.exe') : '/bin/sh');
+
+async function execBashTool(cmd, cwd, timeoutMs) {
   if (!cmd) return '请提供命令';
   // 统计/枚举类命令引导（两处工具集都有 list_files/glob，提示统一）
   if (/^(findstr|dir|tree|wc|ls|ll)\b/i.test(cmd.trim())) {
     return '提示：统计文件/行数/目录结构建议用 list_files/glob/list_tree 工具（更省token且结果结构化）。若确实需要执行命令，可继续直接写完整命令（如 type 文件、python 脚本等）。';
   }
+  const shell = getBashShell();
+  const isCmd = /cmd\.exe|comspec/i.test(shell) || !process.platform || process.platform === 'win32' && !shell.includes('bash');
+  const timeout = Math.min(Math.max(Number(timeoutMs) || DEFAULT_BASH_TIMEOUT_MS, 1000), MAX_BASH_TIMEOUT_MS);
+  const execOpts = { timeout, cwd, windowsHide: true, maxBuffer: 1024 * 1024 * 16 };
   try {
-    const stdout = await execFileAsync(process.env.ComSpec || 'cmd.exe', ['/c', cmd], { timeout: 30000, cwd });
+    // 对标 opencode：ChildProcess.make(input.command, [], { cwd, shell }) —— shell 直接执行命令
+    const stdout = isCmd
+      ? await execFileAsync(shell, ['/c', cmd], execOpts)
+      : await execFileAsync(shell, ['-lc', cmd], execOpts);
     const outText = typeof stdout === 'string' ? stdout : String(stdout && stdout.stdout !== undefined ? stdout.stdout : stdout);
+    // 对标 opencode：输出 + "Command exited with code X"；本工具附带 cwd（帮助AI定位，避免反复试错）
     const cwdNote = `[cwd: ${cwd}]` + (/^cd\s/i.test(cmd.trim()) ? '\n（工作目录已定位，通常无需再 cd；相对路径直接基于该目录写）' : '');
     // 输出完整返回，不做外部截断（2026-08-05）：AI自行预估上下文长度
     return cwdNote + '\n' + String(outText || '（命令执行完成，无输出）');
   } catch (e) {
-    // 失败时告知 cwd，帮助AI修正路径（避免反复用错误相对路径）
-    return '命令执行失败: ' + String(e.message || '').substring(0, 300) + `\n[当前工作目录: ${cwd}]（命令基于此目录执行；不要用相对 cd，直接用绝对路径或基于此目录的相对路径）`;
+    // 失败分类引导（2026-08-05 标准化）：识别高频错误模式，给针对性建议，避免AI反复试错
+    const msg = String(e.message || '');
+    const guide = (() => {
+      if (/not recognized|不是内部或外部命令|is not recognized/i.test(msg)) {
+        return '（命令不存在：Windows cmd 环境无 head/grep/sed 等 Unix 命令，用 type/echo/findstr 或改用 read_file/grep 工具）';
+      }
+      if (/node.*-e|\[eval\]/i.test(msg)) {
+        return '（node -e 内联脚本引号转义易失败：请把脚本写入 _tools/ 下的 .js 文件再 node 执行，或用工具直接读写文件）';
+      }
+      if (/maxBuffer|ENAMETOOLONG|EINVAL|EPERM/i.test(msg)) {
+        return '（命令输出过大/参数过长/文件占用：拆小任务或改用 read_file 分片读取；文件被占用通常是软件正在运行）';
+      }
+      return '（检查命令路径与引号；不要反复试同一命令的变体，改一次错误再执行，或改用标准工具）';
+    })();
+    return '命令执行失败: ' + msg.substring(0, 300) + `\n[当前工作目录: ${cwd}]（命令基于此目录执行；不要用相对 cd，直接用绝对路径或基于此目录的相对路径）\n` + guide;
   }
 }
 
@@ -732,10 +762,10 @@ async function runPluginTool(tool, args, defaultSystem, ctx) {
       return hits.length ? `匹配${hits.length}个：\n${hits.slice(0, limit).join('\n')}` : '（无匹配）';
     }
     case 'bash': {
-      // 对标opencode bash：执行命令（工作目录=对应scope根，超时30s）——统一逻辑见 execBashTool
+      // 对标opencode bash（源码 packages/core/src/tool/bash.ts）：执行命令（工作目录=对应scope根，超时默认120s可配）——统一逻辑见 execBashTool
       const cmd = String(args.command || '');
       const cwd = isRootScope ? path.resolve(RUNTIME_ROOT) : path.dirname(target);
-      return await execBashTool(cmd, cwd);
+      return await execBashTool(cmd, cwd, args.timeout);
     }
     case 'todowrite': {
       // 对标opencode todowrite：维护任务清单（写入 data/todo.json）
@@ -754,7 +784,10 @@ async function runPluginTool(tool, args, defaultSystem, ctx) {
       if (name === 'gm-protocol') return GM_PROTOCOL_SKILL;
       if (name === 'gm-standard') return GM_STANDARD;
       if (name === 'agent-guide') return AGENT_GUIDE_SKILL;
-      return `未知skill：${name}。可用：plugin-authoring（插件编写规范）、gm-protocol（GM带团协议：判定标记/变量数据管理/开局流程/NPC生成/战斗平衡/美化规范）、gm-standard（玩家频道实际注入的GM带团标准提示词）、agent-guide（AI工作方法：任务流程/工具选择/需求澄清/空转检查）`;
+      if (name === 'rulebook-development') return RULEBOOK_DEVELOPMENT_SKILL;
+      if (name === 'character-system') return CHARACTER_SYSTEM_SKILL;
+      if (name === 'gameplay-ux') return GAMEPLAY_UX_SKILL;
+      return `未知skill：${name}。可用：agent-guide、rulebook-development、character-system、gameplay-ux、plugin-authoring、gm-protocol、gm-standard`;
     }
     case 'webfetch': {
       // 对标opencode webfetch：抓取网页内容
@@ -920,8 +953,9 @@ const AGENT_GUIDE_SKILL = `# AI工作方法（Agent Guide Skill）
 - 修改后要用实际查询验证至少一个正例和一个无结果例。
 - 规则索引接口支持 /api/rules/index?system=系统名&q=关键词&limit=数量。
 - 专用功能入口应位于规则详情主体的有效区域，按钮点击展开、不常驻大面板、不弹窗。
+- **扩展书自动捕获（强制）**：构建/迭代任何选项类数据（子职、职业、法术、专长、装备、背景、种族等）时，数据源必须覆盖该规则系统**全部官方资料**（核心书 + 所有扩展书/设定书/官方更新），禁止只基于核心书而遗漏扩展内容。标准流程：①枚举 compressed/rule_index.json 中该主题全部条目（含扩展书路径，如 DND 的珊娜萨的万事指南/塔莎的万事坩埚/剑湾冒险者指南/城主指南/巨人之荣耀/荒洲探险家指南/被遗忘的国度等）；②对照现有实现逐一找缺口；③从 source/ 源文提取完整数据（等级特性表、法术表等）；④补充实现并验证。验收标准：核心书与官方扩展书的全部条目在角色卡/工具中均可选、数据与源文一致；扩展条目缺失即视为未完成。第三方/UA/旧版内容默认不收录但保留手动入口，收录与否需在总结中说明。
 
-## 七、主动举一反三与自主优化（强制，2026-08-05 确立）
+## 七、主动举一反三与自主优化（强制）
 > 背景：曾出现"机械化拆解"问题——AI 只按字面需求做最小改动（如把旧角色卡拆分成页），不思考"这个页面按游戏体验应该是什么样"，导致结构与需求脱节。本平台唯一验收标准是**最佳玩家游戏体验**，程序"做完"不算完成。
 
 - **收到需求后，先问自己三问**：
@@ -933,7 +967,15 @@ const AGENT_GUIDE_SKILL = `# AI工作方法（Agent Guide Skill）
 - 发现与需求相关的**额外缺陷**（不只字面问题）时，直接一并修复并在总结中说明；发现**超出范围但明显影响体验**的问题时，用 question 工具征询是否一并处理。
 - 总结必须列出：本次主动发现并优化的问题（无则写"无"）。
 
-## 九、大文件读取与检索降级（强制，2026-08-05 确立）
+## 八、长线任务的数据落盘与防重读（强制）
+> 背景：长线大项目（如角色卡重构）中，AI 大量读取源文数据后上下文超预算触发压缩，压缩后 AI 丢失"读过什么"再次重读，形成"读→压→重读"循环，浪费 token 与轮次。解决：**数据确认后立即落盘，上下文只留操作状态**。
+
+- **数据收集期落盘**：当你需要读取大量规则数据（种族/职业/背景/法术列表等）用于构建功能时，把**确认后的数据要点写入任务文件**（「AI任务/<任务名>/ref/data.json」或项目「_tools/」下的数据文件），而不是全部留在对话上下文里。后续使用直接读自己的落盘文件。
+- **读过的文件做标记**：每读完一个文件，在落盘文件中记录「文件路径: 关键数据摘要」；上下文压缩后，先读落盘文件恢复"已确认内容"，**不得重读已落盘记录的源文**。
+- **压缩后恢复**：上下文被自动压缩后，第一步是读取自己的落盘文件（若有）恢复数据上下文，然后基于压缩摘要的"下一步"继续执行；不要重新探索目录或重读已确认文件。
+- 判定标准：同一源文文件不因压缩而重复读取；压缩后的第一轮必须从落盘文件或压缩摘要直接续接推进。
+
+## 九、大文件读取与检索降级（强制）
 > 背景：character-builder/index.js 达 200KB/3459 行，AI 曾顺序小窗口扫读 4+ 次仍只覆盖部分，触发重复读取提醒；JSON 索引检索"巧匠"未命中（格式差异）后浪费轮次。以下规则避免同类低效：
 
 - **大文件（>60K 字符）禁止顺序窗口扫读**：先用 grep 定位目标函数名/关键词（如「function renderDetail」「技巧工匠」「巧匠」），拿到行号后**只读目标行段（±50行）**；需要多处时分别 grep 定位，禁止从第1行往后逐段读。
@@ -942,14 +984,67 @@ const AGENT_GUIDE_SKILL = `# AI工作方法（Agent Guide Skill）
 - **数据字典类内容（种族/职业/背景/专长列表）优先从 compressed/ 产物读取**（rule_settings.json、rule_tables.md、rule_index.json），找不到才去 source/ 源文，避免逐个读 htm。
 - **bash 命令路径规范**：bash 工具的工作目录=对应 scope 根（system=__root__ 时=项目根目录），返回结果会附带 [cwd: 路径]。**不要写相对 cd**（如「cd Ruler/xxx」在已定位的 cwd 上会失败）；直接用基于根目录的相对路径（如「node _tools/_verify.js」）或绝对路径。需要切换目录时用「cd /d 绝对路径」。
 
-## 八、长线任务的数据落盘与防重读（强制，2026-08-05 确立）
-> 背景：长线大项目（如角色卡重构）中，AI 大量读取源文数据后上下文超预算触发压缩，压缩后 AI 丢失"读过什么"再次重读，形成"读→压→重读"循环，浪费 token 与轮次。解决：**数据确认后立即落盘，上下文只留操作状态**。
+### 十、bash 使用与验证规范（强制）
+> 环境：Windows 默认 cmd.exe（COMSPEC），POSIX 默认 /bin/sh，可用 config.json 顶层 shell 覆盖；不依赖外部程序。以下为原则（非命令禁令）：
 
-- **数据收集期落盘**：当你需要读取大量规则数据（种族/职业/背景/法术列表等）用于构建功能时，把**确认后的数据要点写入任务文件**（「AI任务/<任务名>/ref/data.json」或项目「_tools/」下的数据文件），而不是全部留在对话上下文里。后续使用直接读自己的落盘文件。
-- **读过的文件做标记**：每读完一个文件，在落盘文件中记录「文件路径: 关键数据摘要」；上下文压缩后，先读落盘文件恢复"已确认内容"，**不得重读已落盘记录的源文**。
-- **压缩后恢复**：上下文被自动压缩后，第一步是读取自己的落盘文件（若有）恢复数据上下文，然后基于压缩摘要的"下一步"继续执行；不要重新探索目录或重读已确认文件。
-- 判定标准：同一源文文件不因压缩而重复读取；压缩后的第一轮必须从落盘文件或压缩摘要直接续接推进。
+- **验证优先用工具，不用 bash 脚本循环**：检查代码/数据用 grep（定位）、read_file（读片段）；确认语法用「node --check 文件路径」（一次）；**禁止**为同一目的反复执行 bash 变体（如换 | more、> out.txt、& 串联）。
+- **Windows cmd 环境**：无 head/tail/grep/sed 等 Unix 命令；读文件前 N 行用 read_file 工具（line=1 lines=N），不用命令。管道「| more」可能阻塞，不要用。
+- **node 脚本先落盘再执行**：需要跑自定义脚本时，先 write_file 写入 _tools/xxx.js，再「node _tools/xxx.js」执行；**避免 node -e 内联长脚本**（引号转义仍易失败）。
+- **edit 未找到文本时**：先用 grep 确认目标文本确切写法（空格/大小写），再 edit；同一 oldText 失败后**不要原样重试**——先 grep 定位实际内容再改。
+- **一条命令一次目的**：不要用 && 或 & 串联多命令（失败时无法定位）；同步验证多个文件用 read_file 并行读取。
+- bash 失败返回会附带分类引导（命令不存在/内联脚本/占用/路径），**先读引导修正，不要重复同一命令**。
 `;
+
+const RULEBOOK_DEVELOPMENT_SKILL = `# 规则书开发 SKILL
+
+用于“解析规则书并把资料变成可运行规则模块”。
+
+1. 先检索原始资料、整理数据与已有模块，确认版本、来源、别名和冲突；不得只凭模型记忆补规则。
+2. 规则专属数据、页面、判定和视觉全部放在 Ruler/<规则系统>/；只有多个规则系统都会需要的运行能力才进入宿主。
+3. 任何规则内容都要落为可检索、可引用、可计算的数据：来源、版本、名称、别名、完整说明、结构化字段与默认值齐全。
+4. 自动化链路必须完整：选项过滤→数量/等级/前置计算→玩家选择→派生值更新→存档→AI工具读取→联机同步。
+5. 保留手动自定义入口，但不能用“可手填”代替自动规则实现。
+6. 新规则或扩展资料接入后，要验证正例、边界、空结果、旧存档兼容与热重载；错误写入 Logs/。
+7. DND 当前是第一套完整参考模式，但不得把 DND 名称、字段、页面或美术写死进宿主。`;
+
+const CHARACTER_SYSTEM_SKILL = `# 角色系统 SKILL
+
+用于角色创建、现行角色卡、背包、装备、法术、标签、权限与版本。
+
+## 统一角色体验
+- 创建、查看、编辑使用同一份角色数据和同一规则组件；查看默认只读，拥有者与 GM 可原位进入编辑，禁止维护两套样式和两套字段。
+- 编辑现行角色时不出现“投点模式、初始装备”等创建语义：属性就是可修改最终数字；装备是正规背包。
+- 每次保存先生成 GM 历史备份，支持字段差异对比和恢复；刷新、重启、单人与 P2P 后仍一致。
+
+## 角色列表与地图
+- 地图点头像只选中右侧角色条目，不打开角色卡。
+- 角色条目点击只选中；通过条目显式“角色卡”按钮打开。
+- 玩家/友方/敌人/NPC/自定义分类使用分页；把可编辑角色拖到分页即可改分类，不在条目中塞分类按钮。
+
+## 物品与背包
+- 物品统一为数据条目：id/名称/类别/数量/单价/总价/重量/装备状态/规则来源/完整说明/效果。
+- 套组展开为明确内容并保留套组来源；治疗药水等可直接调整数量；卷轴先选法术、环位与版本，再动态算价格和数据。
+- 护甲只能从背包中已有护甲装备；武器攻击和伤害自动汇总属性、熟练、魔法与效果。
+
+## 标签
+- 法术、特性、装备、状态、熟练等只使用全局 TrpgTag；同一数据在创建页和角色卡只有一种标签与一种浮窗。
+- 浮窗显示完整规则信息、来源与结构化字段，不使用摘要占位；标签数据仍是可计算的正式数据，不只是一段 HTML。
+
+## 图片素材
+- 一张原图依次生成 3:4 垂直立绘和圆形头像；PNG 保留透明；吸管从原图采样背景色并提供容差与柔边。
+- 裁剪工具独立窗口，角色卡只展示结果；宿主接管新窗口时不得误报浏览器拦截。`;
+
+const GAMEPLAY_UX_SKILL = `# 游戏体验设计 SKILL
+
+用于界面、流程和交互重构。
+
+1. 先写出玩家从哪里进入、要完成什么、看到什么反馈、数据如何变化，再决定布局；禁止继承旧布局后只做局部美化。
+2. 信息层级按实际操作频率组织：核心状态和常用行动优先；技能、长说明等进入对应分页或浮窗，不能挤占中央区域。
+3. 工具面板与内容面板是独立层级。地图工具栏默认位于左侧、可拖动并保存位置；顶部栏不覆盖它。
+4. 所有拖放、保存、装备、购买、恢复操作应有清楚的可用/禁用状态和即时反馈；空状态告诉玩家下一步。
+5. 视觉由规则模块根据规则书自行设计，宿主不写死深色、浅色、颜色或固定布局。只要求可读、可滚动、可缩放、响应式、错误状态清楚。
+6. 完成标准是真实流程可走通，而不是按钮存在。至少验证入口、操作、计算、保存恢复、AI读取、单人与联机一致性。`;
+
 
 const GM_PROTOCOL_SKILL = `# GM带团协议（GM Protocol Skill）
 
@@ -999,13 +1094,27 @@ CSS用<style>包裹、高对比、中文为主、现代高级感、适配宽屏�
 ## 七、插件落地要求
 规则书专用功能（创卡/升级/法术/速查/遭遇）以插件形式落到 Ruler/<系统>/plugins/<id>/；涉及本协议标记的渲染，参考宿主正则渲染机制实现（AI输出标记→前端渲染），插件可提供渲染函数而非要求AI写HTML。
 
-## 八、电子游戏级体验标准（2026-08-05 确立，最高规格；所有规则书模块按此迭代）
+## 八、电子游戏级体验标准（最高规格，所有规则书模块按此迭代）
 本平台不是演示工具，而是**基于TRPG原本规则的半电子游戏**：功能齐全、体验完好、自动注意并思考各种细节。标杆参考：SillyTavern 大型 DND 世界书角色卡（Ruler/_shared_tools/reference/DND2024角色卡标杆/，可只读参考其状态栏HTML/正则/变量schema）。
 - **定位**：每个规则系统=完整可玩的电子游戏模块；玩家按规则书走完整流程（创建→升级→战斗→速查→休息）每一步顺畅、数据精准、界面精美。
 - **数据化精准**：一切游戏数据（HP/AC/先攻/法术位/物品/状态/资源）结构化存储、可读可改、派生值按规则书公式自动计算实时联动；装备/效果能影响数值（effectTags/effects），禁止纯文本摆数据。
 - **角色卡等大型模块必含**（参数来自规则书）：①多角色管理（持久化+恢复+切换+删除+头像）②分页/标签导航（属性/背包/特性/法术/笔记/背景）③查看/编辑双模式 ④数据化字段（物品类别/数量/价格/装备/效果；法术环阶/学派/施法时间/距离/成分/持续/专注）⑤派生值自动计算链 ⑥效果系统（effectTags+effects，@pb/@strmod表达式）⑦玩家驱动掷骰（成长/HP/属性/攻击/豁免/技能可点击掷骰，日志高亮大成功/大失败）⑧休息与资源（短休/长休、法术位格点、资源恢复规则）⑨状态管理（HP当前/最大/临时、状态列表、死亡豁免、灵感）⑩AI接口（当前状态摘要供带团AI读取）。
-- **视觉强制标准**（解决"看不清"）：主题与宿主一致——宿主深色高对比（背景#1a1a2e系/文字#e0e0f0系），插件必须深色主题或自带完整浅色容器（禁止浅色卡片嵌深色页面割裂）；文字对比度≥4.5:1（WCAG AA），禁止 #999/#aaa 级别浅灰小字做正文；语义色彩（红=危险/激活、绿=成功/恢复、金=资源、蓝=信息）；标题衬线奇幻字体（Cinzel/Noto Serif SC）+正文现代无衬线；悬停反馈/tooltip/保存通知/展开收起动画；头像可换可裁剪、自定义滚动条、空状态友好文案。
-- **验收唯一标准**：真实玩家按规则书走完真实流程每一步顺畅；核对"看不清/点不动/改不了/算不对/数据不落盘"五类缺陷为零；对照本节清单逐项核查。`;
+- **视觉强制标准**：主题与宿主一致——视觉由规则模块根据规则书与世界观自行设计，不得把深色、浅色、固定配色或固定布局写死进宿主；插件样式必须隔离且保证文字可读；文字对比度≥4.5:1（WCAG AA），禁止 #999/#aaa 级别浅灰小字做正文；语义色彩（红=危险/激活、绿=成功/恢复、金=资源、蓝=信息）；标题衬线奇幻字体（Cinzel/Noto Serif SC）+正文现代无衬线；悬停反馈/tooltip/保存通知/展开收起动画；头像可换可裁剪、自定义滚动条、空状态友好文案。
+- **验收唯一标准**：真实玩家按规则书走完真实流程每一步顺畅；核对"看不清/点不动/改不了/算不对/数据不落盘"五类缺陷为零；对照本节清单逐项核查。
+
+## 九、AVG 立绘与过场插图（2026-08-05 全站确立）
+- **AVG 双人立绘**：剧情频道（或标记"显示发言立绘"的频道）中用 <portrait name="角色名">对话文本</portrait> 让该角色发言。规则：首次出现的角色立绘居左，第二个不同角色居右；当前发言者立绘正常高亮，另一方压暗（filter 变暗）；<portrait clear> 清空舞台。立绘自动取自角色 data.assets.portrait（3:4垂直立绘）→avatarFramed→avatar；无立绘时显示首字占位。同一对话中保持两人舞台，第三人替换非发言侧。
+- **过场插图**：玩家不需要移动/战斗时，用 <illustration src="module:模组内图片路径 或 图片URL" caption="标题">场景描述</illustration> 以插图全屏临时代替地图，<illustration clear> 结束插图恢复地图。GM 面板有同名手动工具；作为 AI GM 时自然可使用同一套能力。
+- 输出立绘/插图标记时，正文照常书写（标记不显示给玩家）。
+
+## 十、标签系统（2026-08-05 全站确立）
+- 角色卡/插件中一切可枚举数据（特性/装备/法术/状态/效果/熟练/豁免/资源/学派）以宿主标签系统 window.TrpgTag.chip() 渲染（类型色系+来源+浮动详情），禁止纯文本平铺。标签化插件页面同源可用 TrpgTag（独立窗口同样加载 tags.js）。
+
+## 十一、角色卡权限与 GM 版本备份（2026-08-06 确立）
+- **玩家名=玩家身份**：玩家进入房间输入玩家名；同名即同一玩家（多端/重连归属不丢）；可改名（旧名角色归属自动转给新名）；GM 也有玩家名，重连按名恢复 GM 身份。
+- 角色 owner=创建者玩家名；修改权限=owner 或 GM，其他玩家只读；GM 有权修改任何角色并**转交控制权**（token_transfer）；带团修改后宿主自动存档旧版本。
+- GM 可通过角色卡/GM 面板查看历史版本与对比差异；玩家误改时 GM 可用备份恢复。
+- 定位：小品级轻量软件，权限=防误操作与归属清晰（善意协作层），不追求大公司级安全。`;
 
 // 系统频道AI对话（SSE）：工具循环直到AI纯文本回复（对标opencode）
 app.post('/api/ai/system-chat', async (req, res) => {
@@ -1029,7 +1138,14 @@ app.post('/api/ai/system-chat', async (req, res) => {
   // 循环中增量保存；无 channel 时为传统一次性会话（不持久化）
   const sessAdventure = String(reqAdventure || '默认');
   const sessChannel = String(reqChannel || '');
-  const loadedSession = sessChannel ? loadSession(reqSystem, sessAdventure, sessChannel) : [];
+  // 2026-08-05 防御：加载阶段异常必须结束请求（否则 SSE 挂起，前端永远"AI思考中"）
+  let loadedSession;
+  try {
+    loadedSession = sessChannel ? loadSession(reqSystem, sessAdventure, sessChannel) : [];
+  } catch (e) {
+    console.error('[会话] 加载历史失败:', e.message);
+    loadedSession = [];
+  }
   let history = Array.isArray(messages) ? messages.slice() : [];
   // D+：本次请求的新 user 消息落盘（首次时含会话起点一并落盘）
   if (sessChannel) {
@@ -1041,10 +1157,24 @@ app.post('/api/ai/system-chat', async (req, res) => {
     if (newUsers.length) appendSession(reqSystem, sessAdventure, sessChannel, newUsers);
   }
   if (loadedSession.length) {
+    // 2026-08-05 保护：历史超限（>600KB）时自动精简——保留起点/摘要/尾部，防上下文超模型上限
+    // （loadedSession 为 const 参数，精简结果用局部变量承接；异常时静默回退不挂起）
+    let effectiveSession = loadedSession;
+    if (sessChannel) {
+      try {
+        const histSize = loadedSession.reduce((sum, m) => sum + String(m.content || '').length, 0);
+        if (histSize > 600000) {
+          const sysMsgs = loadedSession.filter(m => m.role === 'system' && (String(m.content || '').indexOf('【会话起点】') >= 0 || String(m.content || '').indexOf('【对话自动压缩摘要') >= 0));
+          const tail = loadedSession.slice(-60); // 保留最近60条（约2轮+工具）
+          effectiveSession = sysMsgs.concat(tail);
+          console.log(`[会话] 历史超限自动精简（${histSize}字符 → ${effectiveSession.length}条）`);
+        }
+      } catch (e) { console.error('[会话] 精简失败（回退全量）:', e.message); }
+    }
     // 已持久化历史 + 本次新消息：history 以 jsonl 为准，附加未持久化的新 user 消息
-    const persistedUserMsgs = loadedSession.filter(m => m.role === 'user').map(m => String(m.content));
+    const persistedUserMsgs = effectiveSession.filter(m => m.role === 'user').map(m => String(m.content));
     const freshMsgs = history.filter(m => m.role !== 'system' && !(m.role === 'user' && persistedUserMsgs.includes(String(m.content))));
-    history = loadedSession.concat(freshMsgs);
+    history = effectiveSession.concat(freshMsgs);
     if (!freshMsgs.length) {
       // 无新消息（纯续问场景兜底）：确保最后一条是 user
       const lastUser = history.slice().reverse().find(m => m.role === 'user');
@@ -1053,15 +1183,16 @@ app.post('/api/ai/system-chat', async (req, res) => {
   }
   // 最小必要注入（对标 opencode system prompt 动态构建；不写超长 WORK_RULE，规范细节由 skill 工具按需加载）
   // 工具规范=各工具 description（唯一标准）；行为规范（设计审核/举一反三/数据落盘/大文件读取）用 skill agent-guide 按需加载
-  const SYSTEM_NOTE = '你是TrpgRecode的自主迭代AI（对标opencode）。工作流程：理解任务目标→规划（复杂任务先todowrite）→定位读取→edit/write_file修改→验证→纯文本总结。唯一验收标准=最佳玩家游戏体验，程序"做完"不算完成；收到需求先想游戏体验应是什么样，主动举一反三优化相关页面与同类问题。开工先调用 skill {"name":"agent-guide"} 加载工作方法（任务流程/设计审核/举一反三/数据落盘/大文件读取）；编写或修改规则书插件前必须调用 skill {"name":"plugin-authoring"}；涉及带团体验/判定/数据管理设计时必须调用 skill {"name":"gm-protocol"}。system参数（所有文件/搜索工具）：规则系统名/__host__/__app__/__root__（软件根目录）。授权：system=__root__有软件根目录读写权（可改 server/、app/、config.json）；只读工具可访问系统任意绝对路径；grep与list_files自动跳过 node_modules/.git/data/Logs/AI任务；修改服务端源码（server/）后必须在最终总结中提醒重启后端生效。协议：无轮数上限、不硬编码maxTokens、reasoningEffort由配置/请求驱动、思考与正文完整推送、工具结果完整保留、历史超预算时自动LLM压缩（compact），防失控仅保留单次调用超时、连接断开中止、空输出重试2次。';
+  const SYSTEM_NOTE = '你是 TrpgRecode 的项目开发 Agent。先理解真实跑团行为，再定位、修改、重载并验证。基础提示只保留宿主边界和闭环要求；具体规范必须按任务调用 skill：agent-guide（工作闭环）、rulebook-development（规则书解析与规则模块）、character-system（角色卡/背包/标签/权限/版本）、gameplay-ux（界面与玩家流程）、plugin-authoring（插件接口）、gm-protocol（GM与规则调用）。宿主不得写死规则、页面结构或美术；DND 专属内容留在 DND 模块；只使用 server/server.js 后端。system 参数可用规则系统名、__host__、__app__、__root__。完成标准是真实玩家流程、数据保存恢复、AI可调用和单人/P2P一致，而不是文件或按钮存在。';
+  const HOST_CAPABILITY_NOTE = '\n\n【宿主能力摘要】\n- 角色资产：data.assets.avatar=圆形头像，avatarFramed=带框头像，portrait=3:4垂直立绘；PNG 保留透明。\n- 地图点选角色只选中角色条目；角色卡由条目显式按钮打开。角色分类通过拖到分页调整。\n- 全局标签统一使用 TrpgTag，完整规则信息和来源进入浮窗。\n- 角色卡查看与编辑共用同一数据和页面；拥有者/GM可编辑，每次保存保留GM版本。\n- 战斗数据变化使用结构化更新并落盘，AI、前端和联机读取同一份数据。';
   const firstSystem = history.findIndex(m => m.role === 'system');
   if (firstSystem >= 0) {
     // 防重复注入：system 已含 SYSTEM_NOTE 则不重复拼接
     const sysContent = String(history[firstSystem].content || '');
-    const addNote = sysContent.indexOf(SYSTEM_NOTE.substring(0, 30)) < 0 ? '\n\n' + SYSTEM_NOTE : '';
+    const addNote = sysContent.indexOf(SYSTEM_NOTE.substring(0, 30)) < 0 ? '\n\n' + SYSTEM_NOTE + HOST_CAPABILITY_NOTE : '';
     history[firstSystem] = Object.assign({}, history[firstSystem], { content: sysContent + addNote });
   } else {
-    history.unshift({ role: 'system', content: SYSTEM_NOTE });
+    history.unshift({ role: 'system', content: SYSTEM_NOTE + HOST_CAPABILITY_NOTE });
   }
   // 继续场景引导（2026-08-05）：加载历史后，若最后一条是 assistant 正文（上次任务已完成结论），
   // 注入提示引导 AI 直接基于历史推进，避免"继续"时重新漫长搜索探索
@@ -1085,7 +1216,10 @@ app.post('/api/ai/system-chat', async (req, res) => {
   // 工具输出完整保留入历史，不做外部截断（2026-08-05）：由AI根据自身上下文长度合理预估，
   // 禁止外部设置字符上限（如TOOL_OUTPUT_MAX_CHARS）干扰AI对信息的完整获取
   let rounds = 0;
-  let lastCompactRound = -99; // compact 冷却（2026-08-05）：记录上次压缩轮次，避免"压→读→再压"抖动
+  // compact 冷却（2026-08-05 修复）：重启后 rounds 从0重数、lastCompactRound=-99 导致冷却失效，
+  // 重启第一轮就允许压缩。改为：加载了持久化历史时 lastCompactRound 从 0 起步（模拟"会话开始即刚压缩过"），
+  // 条件 rounds - lastCompactRound > 15 → 重启后前15轮不触发压缩，与 COMPACT_COOLDOWN_ROUNDS 语义一致
+  let lastCompactRound = loadedSession.length ? 0 : -99;
   let emptyRetries = 0;
   // 空转检测分级（2026-08-05）：连续"无正文输出+只读工具"轮次分级提醒（等级1温和/等级2强提示）；
   // 同时检测同一文件被重复读取（≥3次视为问题引导提示）；提醒让AI自我评估，避免硬干扰其有效规划
@@ -1219,11 +1353,19 @@ app.post('/api/ai/system-chat', async (req, res) => {
         if (tailStart < 2) tailStart = 2;
         const head = history.slice(0, 1);
         const tail = history.slice(tailStart);
-        const mid = history.slice(1, tailStart);
+        // 2026-08-05 增量压缩：mid = 最近一次压缩摘要 + 其后的新消息（旧摘要之前的内容不重发——
+        // 已被旧摘要覆盖；压缩器只总结"新进展"，合并进旧摘要生成最新摘要）
+        let lastSummaryIdx = -1;
+        for (let i = history.length - 1; i >= 0; i--) {
+          const m = history[i];
+          if (m.role === 'system' && typeof m.content === 'string' && m.content.indexOf('【对话自动压缩摘要') >= 0) { lastSummaryIdx = i; break; }
+        }
+        const midStart = lastSummaryIdx >= 0 ? lastSummaryIdx : 1; // 有旧摘要则从其开始；否则从头
+        const mid = history.slice(midStart, tailStart);
         try {
           const summary = await callAI(provider.endpoint, provider.apiKey, model, [
-            { role: 'system', content: '你是对话压缩器。用简洁中文按以下模板总结任务对话进展，供后续轮次直接继续执行：\n## 目标（Objective）\n- 用户要完成什么\n\n## 重要细节（Important Details）\n- 约束/偏好/决策/关键事实，或 (none)\n\n## 已确认内容（Confirmed Facts，必填）\n- 本任务已读取/确认过的文件与关键数据结论（如"种族列表：龙裔/矮人/精灵…已从X.htm读取"、"职业起始装备见rule_tables.md第N行"），每条一短行；这样压缩后AI不必重读已确认内容。\n\n## 工作状态（Work State）\n### 已完成（Completed）\n### 进行中（Active）\n### 受阻（Blocked）\n\n## 下一步（Next Move）\n1. ...\n\n## 相关文件（Relevant Files）\n- 路径：为什么相关\n\n规则：保留每个小节即使为空；用简短要点不用长段落；保留精确文件路径、工具名、关键数据；**已确认内容小节必须尽量完整列出已读取文件及其数据要点，防止AI压缩后回头重读**；不要提及压缩过程。' },
-            { role: 'user', content: JSON.stringify(mid.map(m => ({
+            { role: 'system', content: '你是对话压缩器。输入为【旧摘要】（上一次压缩结果，可能为空）+【新进展】（旧摘要之后的对话）。你的任务：把两者合并为一份**最新完整摘要**，供后续轮次直接继续执行。\n\n## 合并规则（强制）\n1. 以旧摘要为骨架，保留其全部有效小节与关键结论（目标/已确认内容/工作状态/下一步）。\n2. 把新进展中**新增/变化**的内容并入对应小节：新确认的文件与数据、新完成的修改、新决策、进展更新。\n3. 相同条目以新进展为准覆盖旧条目；过期/已完成的事项移入「已完成」。\n4. **只输出合并后的完整摘要**（不要重复新进展原文，不要提及压缩过程）。\n\n## 摘要模板（输出必须完整包含以下小节，即使为空）\n## 目标（Objective）\n- 用户要完成什么\n\n## 重要细节（Important Details）\n- 约束/偏好/决策/关键事实，或 (none)\n\n## 已确认内容（Confirmed Facts，必填）\n- 本任务已读取/确认过的文件与关键数据结论（如"种族列表：龙裔/矮人/精灵…已从X.htm读取"），每条一短行。\n\n## 工作状态（Work State）\n### 已完成（Completed）\n### 进行中（Active）\n### 受阻（Blocked）\n\n## 下一步（Next Move）\n1. ...\n\n## 相关文件（Relevant Files）\n- 路径：为什么相关\n\n规则：保留精确文件路径、工具名、关键数据；用简短要点不用长段落。' },
+            { role: 'user', content: '## 旧摘要（上一次压缩结果，可能为空）\n' + (lastSummaryIdx >= 0 ? String(history[lastSummaryIdx].content || '').replace('【对话自动压缩摘要，原中间消息已移除】', '').trim() : '（无旧摘要）') + '\n\n## 新进展（旧摘要之后的对话，JSON）\n' + JSON.stringify(mid.filter(m => m !== history[midStart] || lastSummaryIdx < 0).map(m => ({
               role: m.role,
               content: typeof m.content === 'string' ? m.content.substring(0, 800) : '',
               tool: m.tool_calls && m.tool_calls[0] && m.tool_calls[0].function ? m.tool_calls[0].function.name : '',
@@ -1232,11 +1374,33 @@ app.post('/api/ai/system-chat', async (req, res) => {
           ], { timeoutMs: 60000 });
           const summaryText = (summary && summary.content) ? String(summary.content).trim().substring(0, 4000) : '';
           if (summaryText) {
-            history = head.concat([{ role: 'system', content: '【对话自动压缩摘要，原中间消息已移除】\n' + summaryText }], tail);
+            history = head.concat([{ role: 'system', content: '【对话自动压缩摘要，原中间消息已移除】\n' + summaryText + '\n\n（摘要未覆盖的细节不再保留——如需要，请自行读取文件/数据确认，不要期望从历史中找到。）' }], tail);
           } else {
             history = head.concat(tail);
           }
           lastCompactRound = rounds; // 冷却起点：本轮压缩后 COMPACT_COOLDOWN_ROUNDS 内不重复触发
+          // 2026-08-05 修复：压缩后同步重写 jsonl——否则旧历史（2080+行）永远累积在磁盘，
+          // 每次新请求全量加载导致上下文超模型上限（110万token 400错误）
+          if (sessChannel && sessAdventure) {
+            try {
+              const file = sessionFilePath(reqSystem, sessAdventure, sessChannel);
+              if (fs.existsSync(file)) {
+                const keepMsgs = history.filter(m => m.role !== 'system' || m.content.indexOf('【对话自动压缩摘要') >= 0 || m.content.indexOf('【会话起点】') >= 0);
+                const lines = keepMsgs
+                  .filter(m => m.role === 'user' || m.role === 'assistant' || m.role === 'tool')
+                  .map(m => {
+                    const slim = { role: m.role, content: m.content };
+                    if (m.tool_calls) slim.tool_calls = m.tool_calls;
+                    if (m.reasoning_content) slim.reasoning_content = m.reasoning_content;
+                    if (m.role === 'tool') slim.tool_call_id = m.tool_call_id || '';
+                    if (m.role === 'user' || m.role === 'assistant') slim.id = m.id || ('m_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8));
+                    return JSON.stringify(slim);
+                  });
+                fs.writeFileSync(file, lines.join('\n') + (lines.length ? '\n' : ''), 'utf8');
+                console.log(`[会话] 压缩后已同步重写 jsonl（${lines.length} 条，原 ${fs.existsSync(file) ? '已替换' : ''}）`);
+              }
+            } catch (e) { console.error('[会话] 压缩落盘失败:', e.message); }
+          }
           send({ type: 'ai_text', text: '（上下文已自动压缩，继续执行）' });
           // 对标 opencode：压缩后 auto 继续提示语（英文原文）
           history.push({ role: 'user', content: 'Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.' });
@@ -1388,6 +1552,41 @@ async function callAIStream(req, res, endpoint, apiKey, model, messages, options
 }
 
 async function callAI(endpoint, apiKey, model, messages, options = {}) {
+  // 2026-08-05 超时重试（对标 opencode 单次调用失败重试）：非用户中止的网络/超时错误自动重试，
+  // 最多2次、间隔3s/6s退避；用户手动 abort（options.signal）不重试直接抛。
+  // 自动中断（2026-08-05）：**确定性错误立即中止不重试**——上下文超限(400)/鉴权(401/403)/模型错误(404)
+  // 等重试必然再次失败（且每次重试都全价重发同样的大历史，纯浪费）；仅瞬态错误（网络/超时/5xx/429）重试。
+  const MAX_ATTEMPTS = 3;
+  const RETRY_DELAYS = [3000, 6000];
+  const isDeterministicError = (err) => {
+    const msg = String((err && err.message) || '');
+    // 429(限流)/5xx/网络/超时 = 瞬态，可重试；400(上下文超限等)/401/403/404 = 确定性，重试必败且浪费
+    return /HTTP 400|HTTP 401|HTTP 403|HTTP 404|maximum context length|上下文超|API错误|invalid.*model/i.test(msg);
+  };
+  let lastErr = null;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await callAIOnce(endpoint, apiKey, model, messages, options);
+    } catch (err) {
+      const userAborted = (options.signal && options.signal.aborted) || (err && err.name === 'AbortError' && options.signal && options.signal.aborted);
+      if (userAborted) throw err; // 用户中止：不重试
+      lastErr = err;
+      // 自动中断：确定性错误立即中止（重试必然失败且浪费 token）
+      if (isDeterministicError(err)) {
+        console.log(`[AI] ✗ 确定性错误（自动中断，不重试）: ${String(err.message || '').substring(0, 200)}`);
+        throw err;
+      }
+      if (attempt < MAX_ATTEMPTS) {
+        const delay = RETRY_DELAYS[attempt - 1] || 6000;
+        console.log(`[AI] ⚠ 第${attempt}次调用失败（${String(err.message || '').substring(0, 120)}），${delay / 1000}s 后重试（${attempt + 1}/${MAX_ATTEMPTS}）`);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastErr;
+}
+
+async function callAIOnce(endpoint, apiKey, model, messages, options = {}) {
   const startTime = Date.now();
   const { chatUrl } = resolveApiUrls(endpoint);
   const lastMsg = messages[messages.length - 1]?.content?.substring?.(0, 50) || '';
@@ -1665,7 +1864,14 @@ app.get('/api/plugins/list', (req, res) => {
       if (fs.existsSync(manifestPath)) {
         try {
           const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-          if (manifest.id) list.push(manifest);
+          if (manifest.id) {
+            // 2026-08-05：附带 index.js 内容哈希（前端本地校验：未变化的插件不重复下载）
+            const entryPath = path.join(pluginsDir, entry.name, 'index.js');
+            if (fs.existsSync(entryPath)) {
+              manifest.hash = crypto.createHash('md5').update(fs.readFileSync(entryPath)).digest('hex');
+            }
+            list.push(manifest);
+          }
         } catch (e) { /* 损坏的manifest跳过 */ }
       }
     }
@@ -2081,6 +2287,7 @@ const AGENT_TOOL_PROMPT = `你是规则书解析Agent。规则书HTML已规范�
 3. 职业表、法术表、装备表等核心数据页用compress_to_table压缩为查表表格，供后续查询直接消费。
 4. 根据实际内容用write_settings写入规则设置；规则系统名不合适时用rename_system改名（占位名会被系统拒绝）。
 5. 需要追加功能时（职业升级工具、法术查询等）：先用skill工具加载plugin-authoring规范，再用write_file编写插件到plugins/<id>/，前端热加载生效。界面定律：规则书相关功能必须放入规则书详情面板——详情区显示入口按钮，点击按钮展开功能面板；禁止常驻堆叠大面板或独立弹窗；专用功能必须填充/替换同一个详情容器，不要另起一个独立模块把"上传规则书后启动解析流程……"等通用占位说明顶到下面。插件必须实际验证：正例命中、空例为空、点击可展开、数据来自规则书。
+6. 角色卡类功能（创卡/升级/装备/法术）必须遵守 plugin-authoring 中的 2026-08-06 标准：角色卡一体化（创建/查看/修改一个模块、数据驱动TABS）、背包系统（条目化+装备限制为背包内已有+套组归类+动态价格）、立绘/头像三段流程（独立窗口截取+抠背景色+坐标换算）、职业规则预览、背景加值动态显示+骰子拖动分配、法术按法表+等级动态计算并可视化、标签携带完整法术/物品信息禁止截断。功能深度参考：米蕾薇尔.xlsx 所体现的自动计算链（属性→修正→豁免/技能/AC/攻击汇总“3D6+5/DC”）；**只学习自动化结构与信息完整度，不复制其布局或视觉**。平台自动化程度必须更高，不得退化为手动填表。
 6. 全部完成后，自然语言总结工作成果（含验证证据）——输出纯文本即任务完成。
 7. 收尾前：若尚未编写插件，先用skill工具加载plugin-authoring规范，再为本书核心玩法编写1-3个实用插件（如职业升级工具、法术查询面板、怪物速查、遭遇生成器）到plugins/<id>/，前端会热加载。
 
@@ -2243,9 +2450,9 @@ async function runAgentTool(tool, args, ctx) {
       return `${rel || '规则系统根目录'}（显示${count}项${truncated ? '，已达上限' : ''}）：\n${lines.join('\n') || '（空目录）'}`;
     }
     case 'bash': {
-      // 对标opencode bash：执行命令（工作目录=规则系统目录，超时30s）——统一逻辑见 execBashTool
+      // 对标opencode bash（源码 packages/core/src/tool/bash.ts）：执行命令（工作目录=规则系统目录，超时默认120s可配）——统一逻辑见 execBashTool
       const cmd = String(args.command || '');
-      return await execBashTool(cmd, ctx.systemDir);
+      return await execBashTool(cmd, ctx.systemDir, args.timeout);
     }
     case 'todowrite': {
       // 对标opencode todowrite：维护任务清单
@@ -2274,7 +2481,11 @@ async function runAgentTool(tool, args, ctx) {
       if (name === 'plugin-authoring') return PLUGIN_AUTHORING_SKILL;
       if (name === 'gm-protocol') return GM_PROTOCOL_SKILL;
       if (name === 'gm-standard') return GM_STANDARD;
-      return `未知skill：${name}。可用：plugin-authoring（插件编写规范）、gm-protocol（GM带团协议：判定标记/变量数据管理/开局流程/NPC生成/战斗平衡/美化规范）、gm-standard（玩家频道实际注入的GM带团标准提示词）`;
+      if (name === 'agent-guide') return AGENT_GUIDE_SKILL;
+      if (name === 'rulebook-development') return RULEBOOK_DEVELOPMENT_SKILL;
+      if (name === 'character-system') return CHARACTER_SYSTEM_SKILL;
+      if (name === 'gameplay-ux') return GAMEPLAY_UX_SKILL;
+      return `未知skill：${name}。可用：agent-guide、rulebook-development、character-system、gameplay-ux、plugin-authoring、gm-protocol、gm-standard`;
     }
     case 'webfetch': {
       // 对标opencode webfetch：抓取网页内容
@@ -2522,8 +2733,18 @@ const PLUGIN_AUTHORING_SKILL = `# 插件编写规范（Plugin Authoring Skill）
 > 本平台不是演示工具，而是**基于TRPG原本规则的半电子游戏**：功能齐全、体验完好、自动注意并思考各种细节。标杆参考：SillyTavern 大型 DND 世界书角色卡（Ruler/_shared_tools/reference/DND2024角色卡标杆/，可只读参考）。
 - 每个规则系统=完整可玩的电子游戏模块：玩家按规则书走完整流程（创建→升级→战斗→速查→休息）每一步顺畅、数据精准、界面精美。
 - 角色卡等大型模块必含（参数来自规则书）：①多角色管理（持久化+恢复+切换+删除+头像）②分页/标签导航 ③查看/编辑双模式 ④数据化字段（物品/法术结构化）⑤派生值自动计算链 ⑥效果系统（effectTags/effects，@pb/@strmod表达式）⑦玩家驱动掷骰（可点击掷骰+日志高亮）⑧休息与资源（短休/长休/法术位格点）⑨状态管理（HP/状态/死亡豁免/灵感）⑩AI接口（当前状态摘要供带团AI读取）。
-- 视觉强制标准（解决"看不清"）：主题与宿主一致（深色高对比，背景#1a1a2e系/文字#e0e0f0系），禁止浅色卡片嵌深色页面割裂；文字对比度≥4.5:1，禁止#999/#aaa浅灰小字做正文；语义色彩（红=危险/绿=成功/金=资源/蓝=信息）；标题衬线奇幻字体+正文现代无衬线；悬停反馈/tooltip/保存通知/展开收起动画。
+- 视觉强制标准（解决"看不清"）：视觉由规则模块按规则书与世界观设计，宿主不固定深浅主题或配色；文字对比度≥4.5:1，禁止#999/#aaa浅灰小字做正文；语义色彩（红=危险/绿=成功/金=资源/蓝=信息）；标题衬线奇幻字体+正文现代无衬线；悬停反馈/tooltip/保存通知/展开收起动画。
 - 验收唯一标准：真实玩家走完真实流程每一步顺畅；"看不清/点不动/改不了/算不对/数据不落盘"五类缺陷为零。
+
+## 标签系统底层（2026-08-05 全站确立，强制）
+> 宿主提供全局标签系统 window.TrpgTag（app/js/tags.js），一切可枚举的规则数据（特性/装备/法术/状态/效果/熟练/豁免/资源/学派/来源）必须以**标签**为基本展示单元，禁止平铺成纯文本列表。插件内同源可用（独立窗口页面同样加载）。
+- **TrpgTag.chip({name, type, tone, source, extra, desc, detail, active, removable, dataAct, dataI})**：返回标签 HTML。type 决定色系：race/cls/bg/subclass/custom/feat/weapon/armor/shield/item/wondrous/tool/status/effect/spell/resource/save/skill/info/gold/neutral；desc/detail 自动接入 hover 浮动详情（.tg-tip 全局浮层，不改变布局）。
+- **TrpgTag.bindTips(container)**：为容器绑定标签浮动详情事件委托（幂等，render 后调用一次）。
+- **TrpgTag.dynamic(name, expr, ctx, opts)**：动态数值标签，表达式支持 @pb/@level/@strmod/@dexmod/@conmod/@intmod/@wismod/@chamod 实时求值。
+- **标签与交互**：标签可携带 data-act/data-i 参与宿主事件委托；可移除标签（removable:true）点击 ✕ 触发宿主条目删除（宿主 click 委托已处理 data-tg-rm）。
+- **归类展示**：可动态添加且数量多的数据（装备/法术/物品）必须**按规则自然类别分组**（法术按学派+环位、装备按类别+武器属性细分），以**横向排列的列表条目**管理（每行=标签+操作按钮），条目携带一眼可读的关键信息（名称/数量/价格/伤害/属性），详细信息交给标签浮动层。
+- **武器攻击卡**：角色卡须为每件武器显示动态攻击修正（属性修正+熟练+魔法加值+效果累计）与伤害公式，可点击掷骰（攻击=d20+修正，伤害自动掷出，暴击翻倍）。
+- 宿主/规则插件统一使用该底层；插件页面不自行发明另一套标签样式。
 
 ## 界面定律（必须遵守）
 - 规则书相关功能必须放在**规则书详情面板**内：详情区先显示一个**入口按钮**（标题+一句话说明），点击按钮后展开/切换功能面板。
@@ -2553,6 +2774,7 @@ const PLUGIN_AUTHORING_SKILL = `# 插件编写规范（Plugin Authoring Skill）
 - 表格化结构化展示：选项按规则自然分组（示例 DND：法术按环位分组表格，可勾选加入已选项）；自动列表可勾选/添加，同时保留手动输入/自定义条目入口（自动与手动并存）。
 - 组织参考 SillyTavern 大型 DND 世界书（按环位/类别分组、名称识别），用规则数据列表实现（比纯正则可靠）。
 - 通用原则：任何规则的"可选内容"都按此自动化，不只法术。
+- **扩展书自动捕获（强制）**：选项数据源 = 核心书 + 全部官方扩展书。构建/修改选项列表（子职/职业/法术/专长/装备/背景等）前，先枚举 rule_index.json 或 compressed/ 产物确认该主题在**所有扩展书**中的条目，对照现有实现补齐缺口；禁止只按核心书或手头已知条目实现。扩展条目（如 DND 塔莎/珊娜萨/剑湾/城主指南/设定书子职）缺失即未完成。第三方/UA 默认不自动收录，保留手动入口并在总结说明。
 
 ## 角色卡游戏体验完整标准（Game-experience，通用）
 > 通用 TRPG 平台原则：AI 自动解析任意规则书并制作工具。标准只定义"必须从规则书提取并完整实现"，禁止把任何具体规则（DND 购点/生命骰/职业等）写死为标准；具体参数一律来自该规则书解析产物（compressed/rule_settings.json、rule_tree.json、压缩表、源文）。
@@ -2561,20 +2783,57 @@ const PLUGIN_AUTHORING_SKILL = `# 插件编写规范（Plugin Authoring Skill）
 - 属性生成默认全做：提供该规则书定义的全部标准生成模式（示例 DND：购点/骰点/标准数组/手动），缺任一=未完成；骰点自动出结果不展示过程、可重复掷；手动保留。
 - 内容范围 = 官方内容：选项列表覆盖核心+官方扩展（示例 DND 含奇械师）；默认不收录第三方但留手动/自定义入口；范围由该规则书实际决定。
 - 掷骰由玩家驱动：规则中由玩家掷骰的值（示例 DND HP/属性）提供掷骰按钮可重复掷、可手动输入；禁止默认填最大/均值。
-- 编辑模式不做完整创建流程：简单回填即可。
+- 正式角色卡中属性 = 可直接修改的数字（无投点/手动模式区分）；生成模式只存在于创建流程，生成结果写入后即变为普通数字，一切派生值自动重算。
 - 角色升级流程（Level-up）：按该规则书升级规则提供完整流程（玩家驱动：成长骰、等级派生值自动更新、能力/专长选择提示、法术类更新），数据落盘；规则书定义了升级就必做，缺失=未完成。
 - 自动计算链完整：按规则书公式推导并实时联动（示例 DND：AC 护甲公式/先攻=敏修/DC=8+熟练+施法属性修正）；禁止只给建议值。
 - 玩家视角验收：模拟真实玩家完整创建+升级一次并核对派生值。
 - 全方面技术核查：滚动/自适应属类别问题，交付前检查所有独立窗口页面可滚动、缩放正常。
 
-## 角色卡与开卡流程分离（2026-08-05 确立，通用）
-> 创建角色必须先选模式：**开卡流程** 或 **已有角色卡（编辑）**。开卡是一次性引导，完成后进入常驻角色卡；开卡控件不常驻在角色卡页面。
-- 模式二选一：进入创建先呈现"开卡流程 / 编辑已有角色"入口。开卡=分步引导（属性生成→构成→装备→技能/豁免/专长→法术→完成）；编辑=简单回填已有 data。
-- 开卡流程是独立阶段：骰点/购点/起始装备选择只在开卡中出现；角色卡页面展示开卡结果（最终属性、装备清单、技能/豁免/专长列表），不再重复摆放生成控件。
-- 自动更新链：熟练/豁免/起始装备/专长/技能数量/额外加值随创建与升级自动匹配更新（按规则书公式计算派生值，不手动维护）。
-- 角色卡多页布局：按功能分页（示例：背景/信息、属性、道具、法术），玩家可在页间切换速查。
-- 选择精简化：法术选择先给"可选环位+可用数量"，玩家选环位后以列表选择法术，法术效果动态小窗展示；V/S/M 等标签显示实际意义、标签化排列、悬浮小窗显示定义与效果。
-- 规划层级：整体结构先规划（模式选择→开卡→多页角色卡→各页组件），保证有效且美观。
+## 角色卡一体化标准（2026-08-06 确立，取代"角色卡与开卡流程分离"，强制）
+> 角色卡不存在"创建"与"修改"两个功能，而是**一个模块、三种模式**：创建=新建分步引导、查看=只读展示全部数据、编辑=完整分页表单。宿主右上角永远是"＋ 新建"；修改入口在角色卡页面内部。
+- **数据驱动 TABS**：模块由统一的 TABS 定义驱动（基础/种族/职业/背景/属性/技能/法术/背包/特性/笔记），创建/查看/编辑三模式共用同一套分页定义与数据模型（token.data 单一结构），禁止创建页与详情页各搞一套页签/结构。
+- **权限（2026-08-06 联机权限模型）**：玩家名 = 玩家身份（进入房间时输入、持久于主机、**同名即同一玩家**、可改名且旧名角色归属自动转移、GM 也有玩家名且重连恢复 GM 身份）。角色 owner = 创建者玩家名；修改权限 = owner 或 GM，其他玩家只读；**GM 可转交控制权**（token_transfer）。地图位置移动放行所有玩家；角色卡数据修改本地预检 + 服务端校验兜底（perm_denied 回滚）。玩家可绑定"我的角色"（聊天显示"角色名（玩家名）"）。定位：小品级轻量软件，权限目标是防误操作与归属清晰，不追求大公司级安全（不防客户端篡改）。
+- **编辑=完整分页表单**：修改角色卡按创建流程同款分页逐条调整（基础/种族/职业/背景/属性/技能/法术/背包/特性），数据回填后玩家逐页修改，改动实时联动派生值；禁止"简单回填"式敷衍编辑界面。
+- **不存在"初始装备"**：修改场景没有"起始装备选择"，装备一律是正规背包（见背包系统标准）；创建流程的起始装备选择一次性产出背包内容。
+- 开卡流程是独立阶段：骰点/购点/标准数组等生成模式只在新建模式出现；查看/编辑模式中属性是普通可改数字。
+
+## 背包系统标准（2026-08-06 确立，强制）
+> 角色卡装备一律为正规背包，条目化管理；修改场景不存在"初始装备选择"。
+- **条目化**：装备/道具为长条列表条目（名称/类别/数量/单价/总价/装备状态/效果），条目本身是浮动标签（hover 显示完整详情），数量可增减（如治疗药水可设 2 瓶），禁止"点选即启用"式一次性控件。
+- **装备限制**：装备类物品（护甲/武器/盾）的"装备中"选择必须限制为背包内已有物品，禁止全量规则表任选（购买时才从规则表选）。
+- **套组归类**：套组类物品（探索套组/学者套组/外交套组等）从规则书定义明确内容，条目化归类展示，标签信息完整（含内容清单/总价/说明）。
+- **动态价格**：消耗品/卷轴类按规则书公式动态计算价格（如卷轴=选择法术+环位自动算价），禁止固定写死或手动填价。
+- 金币账本联动：购买扣款、售出加款、负重/容量自动计算（规则书有定义时）。
+
+## 立绘/头像三段流程标准（2026-08-06 确立，强制）
+- 流程：上传原始图片 → **独立窗口**（window.open）内先截取立绘（3:4 垂直可拖动选区）→ 再截取头像（圆形选区）。一张原图产出两个素材（data.assets.portrait + avatar/avatarFramed）。
+- 抠背景色：独立窗口内提供抠背景色工具——吸管采样背景颜色 + 容差调节，将背景色透明化（canvas 像素处理），预览实时可见。
+- 主窗口（创建页）只显示立绘结果预览与头像结果，不内嵌裁剪器。
+- **坐标换算铁律**：canvas 预览空间坐标必须换算回原图像素坐标再 drawImage（记录 fit/dx/dy 换算），禁止把 canvas 坐标当原图坐标（曾致所见≠所得）；缩放应真正缩放图像或选区半径，语义与提示文案一致。
+
+## 职业规则预览标准（2026-08-06 确立）
+- 创建/编辑角色卡时，职业分页下方内嵌该职业对应规则书网页预览（iframe 加载 source/ 或可折叠独立窗口打开原文），玩家随时对照职业特性/表格；职业切换时预览同步切换。
+
+## 背景加值标准（2026-08-06 确立）
+- 背景分页只负责"选择怎么加"（方案 A/B/C 或自定义），具体数值分配动态显示在**属性分页**（每个属性显示来源加值汇总：背景/种族/提升等），改动实时联动。
+- 骰子值的分配**可拖动**（拖拽骰池数值到属性槽，可拖回重新分配），禁止仅点击式或纯输入式。
+
+## 法术选择动态化标准（2026-08-06 确立）
+- 可选法术受**职业法表**限制（自动来自规则书压缩产物），法表外法术不可选（除非手动自定义入口）。
+- 按**当前等级动态计算**可选数量（戏法数/准备数/环位上限等按规则书公式），**可视化显示**（已选/上限/剩余，进度条或数字，超限红色警示）。
+- 法术条目标签内容 = **完整法术信息**（环位/学派/施法时间/距离/成分/持续时间/完整描述），悬浮或点击展开全文，禁止简报式截断；数据缺失（如激愤斩/印记斩类条目）必须从规则书源文补齐后交付。
+
+## 角色列表分类分页标准（2026-08-06 确立，宿主）
+- 宿主角色列表按分类分页（玩家/友方/敌人/NPC + 可动态添加自定义分类），每个 token 带 category 字段。
+- 条目旁显示关键信息（等级/职业/HP/AC/状态），显示不下的信息用悬浮窗（title/浮动层）补全。
+- 点击地图头像或角色条目只做**选中与定位**；必须通过条目内明确的「角色卡」按钮打开独立窗口（sheet.html）。主窗口不内嵌长详情，避免与聊天区发生层级冲突。
+
+## GM 版本备份标准（2026-08-06 确立，宿主+服务端）
+- 角色卡每次保存自动把上一版本存档为 GM 原始版本备份（服务端 Ruler/<系统>/存档/<冒险>/characters/<id>/：current.json + versions/<时间戳>.json）。
+- GM 面板/角色卡页面提供"历史版本"入口：查看版本列表、对比任意两版本差异（字段级 diff 展示）。
+
+## 频道提示词多行标准（2026-08-06 确立，宿主）
+- 频道提示词是多行文本（按频道职责多维度描述），编辑界面必须是多行 textarea 弹层，禁止浏览器单行 prompt()；频道 tab 悬浮预览多行显示。
 
 ## 大型功能独立窗口标准（Large-feature Window）
 - 大型功能或明显需要空间的功能（规则树导航、角色卡创建/查看、源文阅读、长表单、批量工具）必须实现为独立窗口页面：app/ 下独立 html + window.open（宿主 WebView2 接管为原生窗口），禁止塞进主窗口小容器、弹层或内嵌滚动区。
@@ -4191,6 +4450,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ── 2026-08-06：玩家名注册表查询（加入房间弹层用：下拉选择"当前无人的玩家" + 输入自动匹配） ──
+// 返回所有已注册玩家名 + 在线状态；online=false 的名字可接入（本人重进/换设备）
+app.get('/api/players/names', (req, res) => {
+  try {
+    const names = Object.keys(playerRegistry).map((n) => ({
+      name: n,
+      online: isNameTaken(n)
+    })).sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+    res.json({ total: names.length, players: names });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── API: 关闭服务（仅本机，GUI 无控制台时的退出途径） ──
 
 app.post('/api/shutdown', (req, res) => {
@@ -4200,6 +4473,107 @@ app.post('/api/shutdown', (req, res) => {
   res.json({ success: true, message: '服务正在关闭' });
   console.log('[启动] 收到本机关闭请求，退出中...');
   setTimeout(() => { process.exit(0); }, 200);
+});
+
+// ── 角色存档与 GM 版本备份（2026-08-06）────────────────────────────
+// 文件：Ruler/<系统>/存档/<冒险>/characters/<角色id>/current.json + versions/<ts>.json
+// 每次保存把旧 current 压入 versions，GM 可查看历史版本并对比/恢复。
+function characterDir(system, adventure, id) {
+  const sys = cleanRuleName(String(system || ''));
+  const adv = String(adventure || '默认');
+  const cid = String(id || '').replace(/[^a-zA-Z0-9_\-]/g, '_') || 'char';
+  return path.join(RULER_DIR, sys, '存档', adv, 'characters', cid);
+}
+
+app.post('/api/characters/archive', (req, res) => {
+  const { system, adventure, characters } = req.body || {};
+  if (!Array.isArray(characters) || !characters.length) return res.json({ success: true, saved: 0, archived: 0 });
+  let saved = 0, archived = 0;
+  characters.forEach(c => {
+    if (!c || !c.id) return;
+    const dir = characterDir(system, adventure, c.id);
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      const curFile = path.join(dir, 'current.json');
+      const snapshotObject = { savedAt: new Date().toISOString(), character: c };
+      const snapshot = JSON.stringify(snapshotObject, null, 2);
+      let changed = true;
+      if (fs.existsSync(curFile)) {
+        let prev = '';
+        try { prev = fs.readFileSync(curFile, 'utf8'); } catch (e) {}
+        try {
+          const previousObject = JSON.parse(prev || '{}');
+          changed = JSON.stringify(previousObject.character || null) !== JSON.stringify(c);
+        } catch (e) {
+          changed = prev.trim() !== snapshot.trim();
+        }
+        if (changed && prev.trim()) {
+          const vDir = path.join(dir, 'versions');
+          fs.mkdirSync(vDir, { recursive: true });
+          const vFile = path.join(vDir, new Date().toISOString().replace(/[:.]/g, '-') + '.json');
+          if (!fs.existsSync(vFile)) { fs.writeFileSync(vFile, prev, 'utf8'); archived++; }
+        }
+      }
+      if (changed || !fs.existsSync(curFile)) fs.writeFileSync(curFile, snapshot, 'utf8');
+      saved++;
+    } catch (e) { console.error('[角色存档] 失败:', e.message); }
+  });
+  res.json({ success: true, saved, archived });
+});
+
+app.get('/api/characters/versions', (req, res) => {
+  const { system, adventure, id } = req.query || {};
+  const dir = characterDir(system, adventure, id);
+  const out = { current: null, versions: [] };
+  try {
+    const curFile = path.join(dir, 'current.json');
+    if (fs.existsSync(curFile)) {
+      try {
+        const cur = JSON.parse(fs.readFileSync(curFile, 'utf8'));
+        out.current = { ts: cur.savedAt || 'current', character: cur.character };
+      } catch (e) {}
+    }
+    const vDir = path.join(dir, 'versions');
+    if (fs.existsSync(vDir)) {
+      fs.readdirSync(vDir).filter(f => f.endsWith('.json')).sort().reverse().forEach(f => {
+        try {
+          const v = JSON.parse(fs.readFileSync(path.join(vDir, f), 'utf8'));
+          out.versions.push({ ts: v.savedAt || f.replace('.json', ''), file: f, character: v.character });
+        } catch (e) {}
+      });
+    }
+  } catch (e) {}
+  res.json(out);
+});
+
+app.get('/api/characters/version', (req, res) => {
+  const { system, adventure, id, ts } = req.query || {};
+  const dir = characterDir(system, adventure, id);
+  try {
+    const file = path.join(dir, 'versions', String(ts || '').replace(/[^a-zA-Z0-9_\-]/g, '_') + '.json');
+    if (!fs.existsSync(file)) return res.status(404).json({ error: '版本不存在' });
+    res.json(JSON.parse(fs.readFileSync(file, 'utf8')));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/characters/restore', (req, res) => {
+  const { system, adventure, id, ts } = req.body || {};
+  const dir = characterDir(system, adventure, id);
+  try {
+    const file = path.join(dir, 'versions', String(ts || '').replace(/[^a-zA-Z0-9_\-]/g, '_') + '.json');
+    if (!fs.existsSync(file)) return res.status(404).json({ error: '版本不存在' });
+    const v = JSON.parse(fs.readFileSync(file, 'utf8'));
+    // 恢复：先把当前内容压入 versions，再把目标版本写为 current
+    const curFile = path.join(dir, 'current.json');
+    if (fs.existsSync(curFile)) {
+      const vDir = path.join(dir, 'versions');
+      fs.mkdirSync(vDir, { recursive: true });
+      const bkFile = path.join(vDir, new Date().toISOString().replace(/[:.]/g, '-') + '.json');
+      if (!fs.existsSync(bkFile)) fs.writeFileSync(bkFile, fs.readFileSync(curFile, 'utf8'), 'utf8');
+    }
+    fs.writeFileSync(curFile, JSON.stringify({ savedAt: new Date().toISOString(), character: v.character }, null, 2), 'utf8');
+    res.json({ success: true, character: v.character });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── 会话持久化（D+方案 2026-08-05）：规则书-冒险-频道 三级会话，JSONL 存储 ──────────
@@ -4235,6 +4609,12 @@ function appendSession(system, adventure, channel, messages) {
         if (m.tool_calls) slim.tool_calls = m.tool_calls;
         if (m.reasoning_content) slim.reasoning_content = m.reasoning_content;
         if (m.role === 'tool') slim.tool_call_id = m.tool_call_id || '';
+        // 条目化（2026-08-05）：user/assistant 消息携带唯一 id（前端编辑/撤回定位用；工具消息不参与）
+        if (m.role === 'user' || m.role === 'assistant') {
+          slim.id = m.id || ('m_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8));
+          if (m.edited) slim.edited = true;
+          if (m.status === 'retracted') slim.status = 'retracted';
+        }
         return JSON.stringify(slim);
       });
     fs.appendFileSync(file, lines.join('\n') + (lines.length ? '\n' : ''), 'utf8');
@@ -4481,18 +4861,145 @@ app.get('/api/module/search', (req, res) => {
 
 app.get('/api/module/list', (req, res) => {
   const system = req.query.system || '';
-  const base = system ? path.join(RULER_DIR, system, '模组') : RULER_DIR;
+  const base = system ? path.join(RULER_DIR, cleanRuleName(String(system)), '模组') : RULER_DIR;
   if (!fs.existsSync(base)) return res.json([]);
-  function list(dir, depth = 0) {
-    const result = [];
-    fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
-      if (depth === 0 && (e.name === 'compressed' || e.name === 'source' || e.name === '存档')) return;
+  // 树状列出（目录递归展开为 children）
+  function list(dir) {
+    return fs.readdirSync(dir, { withFileTypes: true }).map(e => {
       const full = path.join(dir, e.name);
-      result.push({ name: e.name, type: e.isDirectory() ? 'dir' : 'file', size: e.isFile() ? fs.statSync(full).size : 0 });
+      const item = { name: e.name, type: e.isDirectory() ? 'dir' : 'file', size: e.isFile() ? fs.statSync(full).size : 0 };
+      if (e.isDirectory()) item.children = list(full);
+      return item;
     });
-    return result;
   }
-  res.json(list(base));
+  res.json({ system, base: base, tree: list(base) });
+});
+
+// ── API: 模组导入/读取/删除（支持文件夹递归上传，2026-08-05） ──
+// 多文件上传：FormData 中每个文件带 relPath（相对路径，文件夹结构由前端 webkitdirectory 生成）
+app.post('/api/module/upload', upload.array('files'), (req, res) => {
+  try {
+    const system = cleanRuleName(String(req.body.system || ''));
+    const base = path.join(RULER_DIR, system, '模组');
+    fs.mkdirSync(base, { recursive: true });
+    const files = req.files || [];
+    if (!files.length) return res.status(400).json({ error: '未收到文件' });
+    const saved = [];
+    const relPaths = Array.isArray(req.body.relPath) ? req.body.relPath : [req.body.relPath || null];
+    files.forEach((f, i) => {
+      let rel = relPaths[i] || f.originalname || f.filename;
+      rel = String(rel).replace(/^[\\/]+/, '').replace(/\.\./g, '_'); // 防目录穿越
+      if (!rel) rel = f.originalname || f.filename;
+      const target = path.join(base, rel);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.renameSync(f.path, target);
+      saved.push({ rel, size: f.size });
+    });
+    res.json({ success: true, saved, total: saved.length });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 读取模组文件内容（文本预览，限制长度；二进制文件返回标识）
+app.get('/api/module/read', (req, res) => {
+  try {
+    const system = cleanRuleName(String(req.query.system || ''));
+    const rel = String(req.query.path || '').replace(/^[\\/]+/, '').replace(/\.\./g, '_');
+    const full = path.join(RULER_DIR, system, '模组', rel);
+    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) return res.status(404).json({ error: '文件不存在' });
+    const ext = path.extname(full).toLowerCase();
+    const maxLen = 20000;
+    if (['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.zip', '.rar', '.7z', '.pdf', '.chm', '.xlsx', '.docx', '.mp3', '.wav', '.ogg'].includes(ext)) {
+      return res.json({ binary: true, name: path.basename(full), size: fs.statSync(full).size });
+    }
+    let content = '';
+    try { content = fs.readFileSync(full, 'utf8'); } catch (e) { content = fs.readFileSync(full, 'latin1'); }
+    res.json({ binary: false, name: path.basename(full), size: fs.statSync(full).size, content: content.substring(0, maxLen), truncated: content.length > maxLen });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 规则书界面框架（2026-08-05 引擎化）：每个规则书强制自带 ui/ 文件夹（从宿主默认模板复制），
+// 宿主默认模板 = app/default-ui/（种子）；规则书只读自己的副本，AI 迭代 = 修改规则书内 ui/ 文件，保持隔离。
+// 结构：Ruler/<系统>/ui/manifest.json（tabs/theme/hideTabs）+ ui/panels/<tabId>.html（自定义面板）
+
+// 确保规则书有 ui/ 目录：无则从 app/default-ui/ 复制一份（隔离：此后只读规则书自己的副本）
+function ensureRuleUi(system) {
+  try {
+    const uiDir = path.join(RULER_DIR, system, 'ui');
+    if (fs.existsSync(uiDir)) return true;
+    const defaultUi = path.join(SOURCE_ROOT, 'app', 'default-ui');
+    if (!fs.existsSync(defaultUi)) return false;
+    fs.mkdirSync(path.dirname(uiDir), { recursive: true });
+    fs.cpSync(defaultUi, uiDir, { recursive: true });
+    console.log(`[UI框架] ${system}：已从默认模板复制 ui/（隔离副本）`);
+    return true;
+  } catch (e) {
+    console.error('[UI框架] 复制默认ui失败:', e.message);
+    return false;
+  }
+}
+
+app.get('/api/ui-manifest', (req, res) => {
+  const system = cleanRuleName(String(req.query.system || ''));
+  if (!system) return res.status(400).json({ error: '参数缺失' });
+  ensureRuleUi(system); // 无 ui/ → 从默认模板复制（规则书强制自带 ui/）
+  const mf = path.join(RULER_DIR, system, 'ui', 'manifest.json');
+  if (!fs.existsSync(mf)) return res.status(404).json({ error: '无自定义界面（使用默认框架）' });
+  try {
+    const manifest = JSON.parse(fs.readFileSync(mf, 'utf8'));
+    res.json({ system, manifest });
+  } catch (e) { res.status(500).json({ error: 'manifest 解析失败: ' + e.message }); }
+});
+
+app.get('/api/ui-panel', (req, res) => {
+  try {
+    const system = cleanRuleName(String(req.query.system || ''));
+    const panel = String(req.query.panel || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!system || !panel) return res.status(400).json({ error: '参数缺失' });
+    const full = path.join(RULER_DIR, system, 'ui', 'panels', panel + '.html');
+    if (!fs.existsSync(full)) return res.status(404).json({ error: '面板不存在' });
+    const html = fs.readFileSync(full, 'utf8');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 规则书界面框架（2026-08-05 引擎化）——end
+
+// 模组资源直接输出（2026-08-05）：AI 在剧情/战斗中引用模组图片等资源时，前端 <img> 直接加载本接口
+// 用法：<img src="/api/module/file?system=xxx&path=images/foo.png"> —— 远端不同步模组信息，仅按需加载资源
+app.get('/api/module/file', (req, res) => {
+  try {
+    const system = cleanRuleName(String(req.query.system || ''));
+    const rel = String(req.query.path || '').replace(/^[\\/]+/, '').replace(/\.\./g, '_');
+    const full = path.join(RULER_DIR, system, '模组', rel);
+    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) return res.status(404).end();
+    const ext = path.extname(full).toLowerCase();
+    const mime = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.bmp': 'image/bmp', '.ico': 'image/x-icon', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.pdf': 'application/pdf', '.svg': 'image/svg+xml' }[ext] || 'application/octet-stream';
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile(full);
+  } catch (e) {
+    res.status(500).end();
+  }
+});
+
+// 删除模组文件/目录
+app.post('/api/module/delete', (req, res) => {
+  try {
+    const system = cleanRuleName(String(req.body.system || ''));
+    const rel = String(req.body.path || '').replace(/^[\\/]+/, '').replace(/\.\./g, '_');
+    if (!rel) return res.status(400).json({ error: '缺少路径' });
+    const full = path.join(RULER_DIR, system, '模组', rel);
+    if (!fs.existsSync(full)) return res.status(404).json({ error: '目标不存在' });
+    fs.rmSync(full, { recursive: true, force: true });
+    res.json({ success: true, removed: rel });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── API: 会话查阅（D+ 2026-08-05）─────────────────────
@@ -4527,6 +5034,44 @@ app.get('/api/sessions/read', (req, res) => {
   try {
     const msgs = loadSession(system, adventure, channel);
     res.json({ system, adventure, channel, total: msgs.length, messages: msgs });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── 会话条目操作（2026-08-05 条目化）：按消息 id 撤回（删除）或编辑（更新内容） ──
+// 用于单机/本地端的聊天编辑撤回；联机广播权限由 socket 层校验，此处本地端直操作持久化文件。
+app.post('/api/sessions/remove', (req, res) => {
+  const { system, adventure, channel, id } = req.body || {};
+  if (!system || !id) return res.status(400).json({ error: '参数缺失' });
+  const file = sessionFilePath(system, adventure, channel || 'story');
+  if (!fs.existsSync(file)) return res.json({ success: true });
+  try {
+    const lines = fs.readFileSync(file, 'utf8').split('\n').filter(l => l.trim());
+    const kept = lines.filter(l => {
+      try { const m = JSON.parse(l); return !(m && m.id === id); } catch (e) { return true; }
+    });
+    fs.writeFileSync(file, kept.join('\n') + (kept.length ? '\n' : ''), 'utf8');
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/sessions/edit', (req, res) => {
+  const { system, adventure, channel, id, content } = req.body || {};
+  if (!system || !id) return res.status(400).json({ error: '参数缺失' });
+  const file = sessionFilePath(system, adventure, channel || 'story');
+  if (!fs.existsSync(file)) return res.status(404).json({ error: '会话不存在' });
+  try {
+    const lines = fs.readFileSync(file, 'utf8').split('\n').filter(l => l.trim());
+    let found = false;
+    const out = lines.map(l => {
+      try {
+        const m = JSON.parse(l);
+        if (m && m.id === id) { found = true; m.content = String(content || ''); m.edited = true; return JSON.stringify(m); }
+        return l;
+      } catch (e) { return l; }
+    });
+    if (!found) return res.status(404).json({ error: '消息不存在' });
+    fs.writeFileSync(file, out.join('\n') + '\n', 'utf8');
+    res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -4607,7 +5152,85 @@ const io = new Server(server, {
 });
 
 // 房间管理
-const rooms = {}; // { roomCode: { tokens:[], players:{}, hostId:null, createdAt:Date } }
+const rooms = {}; // { roomCode: { tokens:[], players:{}, hostId:null, createdAt:Date, messages:{} } }
+// messages: { [msgId]: { author: socketId, type: 'user'|'ai' } } —— 条目化消息归属表（编辑/撤回权限校验用）
+
+// ── 2026-08-06 联机存档化：全局玩家名注册表 + 房间存档 + 在线宽限期 ──
+// 玩家名=玩家身份，注册表持久化到磁盘（data/players.json）；同名在线不可接管（重名拒绝），离线名可接入重进；
+// 刷新/短断开有 60s 宽限期，期间同名重连无缝恢复（不掉线广播）。
+
+const DATA_DIR = path.join(RUNTIME_ROOT, 'data');
+const PLAYERS_FILE = path.join(DATA_DIR, 'players.json');
+const ROOMS_DIR = path.join(DATA_DIR, 'rooms');
+
+// 玩家注册表：{ [name]: { createdAt, lastSeenAt } }（持久）
+let playerRegistry = {};
+// 全局在线表：{ [name]: { socketIds:Set, roomCode, offlineSince } }（内存；offlineSince=null 表示在线）
+const onlineNames = {};
+
+function loadPlayerRegistry() {
+  try {
+    if (fs.existsSync(PLAYERS_FILE)) {
+      playerRegistry = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8')) || {};
+    }
+  } catch (e) { console.error('[联机] 玩家注册表加载失败:', e.message); }
+}
+function savePlayerRegistry() {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(PLAYERS_FILE, JSON.stringify(playerRegistry, null, 1), 'utf8');
+  } catch (e) { console.error('[联机] 玩家注册表保存失败:', e.message); }
+}
+loadPlayerRegistry();
+
+// 房间存档（磁盘恢复：服务端重启后房间仍可按码恢复，玩家名/归属/token 不丢）
+function roomArchivePath(code) { return path.join(ROOMS_DIR, String(code).toUpperCase() + '.json'); }
+function saveRoomArchive(room) {
+  try {
+    if (!room || !room.code) return;
+    fs.mkdirSync(ROOMS_DIR, { recursive: true });
+    const snapshot = {
+      code: room.code,
+      system: room.system || '',
+      adventure: room.adventure || '默认',
+      hostName: room.hostName || '',
+      createdAt: room.createdAt || Date.now(),
+      updatedAt: Date.now(),
+      // players 只存名字与主机标记（在线状态运行时判定）
+      players: Object.keys(room.players || {}).reduce((acc, n) => {
+        const p = room.players[n];
+        acc[n] = { name: n, isHost: !!(p && p.isHost) };
+        return acc;
+      }, {}),
+      tokens: (room.tokens || []).map(t => JSON.parse(JSON.stringify(t)))
+    };
+    fs.writeFileSync(roomArchivePath(room.code), JSON.stringify(snapshot, null, 1), 'utf8');
+  } catch (e) { console.error('[联机] 房间存档失败:', e.message); }
+}
+function loadRoomArchive(code) {
+  try {
+    const file = roomArchivePath(code);
+    if (!fs.existsSync(file)) return null;
+    const snap = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (!snap || !snap.code) return null;
+    const room = {
+      code: snap.code,
+      tokens: Array.isArray(snap.tokens) ? snap.tokens : [],
+      players: {},
+      hostId: null, // 运行时判定（内存），重启后由 hostName 同名重连恢复
+      hostName: snap.hostName || '',
+      system: snap.system || '',
+      adventure: snap.adventure || '默认',
+      createdAt: snap.createdAt || Date.now(),
+      messages: {}
+    };
+    Object.keys(snap.players || {}).forEach((n) => {
+      room.players[n] = { name: n, isHost: !!(snap.players[n] && snap.players[n].isHost), socketIds: [], offlineSince: Date.now() };
+    });
+    return room;
+  } catch (e) { console.error('[联机] 房间存档加载失败:', e.message); }
+  return null;
+}
 
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 去掉容易混淆的 0O1I
@@ -4620,59 +5243,134 @@ function generateRoomCode() {
 
 function getOrCreateRoom(code) {
   if (!rooms[code]) {
-    rooms[code] = {
-      code,
-      tokens: [],
-      players: {},
-      hostId: null,
-      createdAt: Date.now()
-    };
+    // 2026-08-06：优先从磁盘存档恢复（服务端重启后房间/角色/token 不丢）
+    const archived = loadRoomArchive(code);
+    if (archived) {
+      rooms[code] = archived;
+    } else {
+      rooms[code] = {
+        code,
+        tokens: [],
+        players: {},
+        hostId: null,
+        hostName: '',
+        createdAt: Date.now(),
+        messages: {}
+      };
+    }
   }
   return rooms[code];
 }
 
+// 玩家名占线检查：名字已注册且当前在线（非宽限期离线）→ 拒绝接管
+function isNameTaken(name) {
+  const o = onlineNames[name];
+  return !!(o && o.socketIds && o.socketIds.size > 0);
+}
+
+// 玩家接入：注册/恢复身份 + 绑定本 socket（返回是否为新注册）
+function bindPlayerName(socket, room, name, isHost) {
+  const now = Date.now();
+  socket.playerName = name;
+  if (!playerRegistry[name]) {
+    playerRegistry[name] = { createdAt: now, lastSeenAt: now };
+    savePlayerRegistry();
+  } else {
+    playerRegistry[name].lastSeenAt = now;
+  }
+  if (!onlineNames[name]) onlineNames[name] = { socketIds: new Set(), roomCode: null, offlineSince: null };
+  onlineNames[name].socketIds.add(socket.id);
+  onlineNames[name].roomCode = room ? room.code : onlineNames[name].roomCode;
+  onlineNames[name].offlineSince = null; // 宽限期内重连 = 恢复在线
+  if (room) {
+    if (!room.players[name]) room.players[name] = { name, isHost, socketIds: [], offlineSince: null };
+    const p = room.players[name];
+    p.socketIds = p.socketIds || [];
+    if (p.socketIds.indexOf(socket.id) < 0) p.socketIds.push(socket.id);
+    p.offlineSince = null;
+    if (isHost) p.isHost = true;
+    if (room.hostName && name === room.hostName) room.hostId = socket.id; // GM 重连恢复
+  }
+}
+
 io.on('connection', (socket) => {
   let currentRoom = null;
-  let playerName = '';
+  let playerName = ''; // 玩家名 = 玩家身份（2026-08-06 联机权限：同名即同一玩家，持久于主机端房间表）
 
   // ── 创建房间 ──
-  socket.on('create_room', () => {
+  socket.on('create_room', (data) => {
     const code = generateRoomCode();
     const room = getOrCreateRoom(code);
     room.hostId = socket.id;
+    // 2026-08-05：房间绑定 GM 当前规则书+冒险（GM 开发内容按冒险隔离；玩家接入时自动载入）
+    room.system = String((data && data.system) || '');
+    room.adventure = String((data && data.adventure) || '默认');
 
-    playerName = '房主';
-    room.players[socket.id] = { name: playerName, isHost: true };
+    // 2026-08-06：GM 玩家名（房主身份=玩家名；全局注册表持久）
+    playerName = String((data && data.name) || '').trim() || '房主';
+    // 名字在线占用保护：GM 名若已被其他在线玩家使用 → 拒绝创建（不能接管在线者的名字）
+    if (isNameTaken(playerName)) {
+      socket.emit('room_error', '玩家名「' + playerName + '」已被在线玩家使用，请换一个名字');
+      return;
+    }
+    bindPlayerName(socket, room, playerName, true);
+    room.hostName = playerName;
 
     socket.join(code);
     currentRoom = code;
 
-    socket.emit('room_created', { code, players: room.players, tokens: room.tokens });
+    socket.emit('room_created', { code, players: room.players, tokens: room.tokens, system: room.system, adventure: room.adventure, myName: playerName });
     io.to(code).emit('players_update', room.players);
-    console.log(`[房间] ${code} 创建`);
+    saveRoomArchive(room);
+    console.log(`[房间] ${code} 创建（GM=${playerName} system=${room.system || '无'} adventure=${room.adventure}）`);
   });
 
-  // ── 加入房间 ──
+  // ── 加入房间（2026-08-06：玩家名=身份——注册表持久、同名在线不可接管、离线名可接入重进、宽限期重连无缝恢复） ──
   socket.on('join_room', (data) => {
     const code = (data.code || '').toUpperCase();
-    if (!rooms[code]) {
+    if (!rooms[code] && !loadRoomArchive(code)) {
       socket.emit('room_error', '房间不存在');
       return;
     }
-    const room = rooms[code];
-    playerName = data.name || `访客${Object.keys(room.players).length + 1}`;
-    room.players[socket.id] = { name: playerName, isHost: false };
+    const room = getOrCreateRoom(code);
+    const name = String(data.name || '').trim();
+    if (name) {
+      if (isNameTaken(name)) {
+        socket.emit('room_error', '玩家名「' + name + '」已被在线玩家使用（不能接管他人的名字）。若这是你本人（刷新/换设备），请稍候几秒重试，或使用下方"离线玩家"列表选择自己的名字接入。');
+        return;
+      }
+      playerName = name;
+    } else {
+      // 匿名：自动生成访客名（避免与注册表重名）
+      let idx = Object.keys(room.players).length + 1;
+      playerName = '访客' + idx;
+      while (isNameTaken(playerName) || playerRegistry[playerName]) { idx++; playerName = '访客' + idx; }
+    }
+    socket.playerName = playerName;
+    bindPlayerName(socket, room, playerName, room.hostName === playerName);
 
     socket.join(code);
     currentRoom = code;
 
-    socket.emit('room_joined', { code, players: room.players, tokens: room.tokens, isHost: false });
+    // 2026-08-05：响应携带房间绑定的 system/adventure → 玩家端自动载入 GM 的开发内容与规则书
+    const isHostBack = socket.id === room.hostId;
+    socket.emit('room_joined', { code, players: room.players, tokens: room.tokens, isHost: isHostBack, system: room.system, adventure: room.adventure, myName: playerName });
     socket.broadcast.to(code).emit('players_update', room.players);
     io.to(code).emit('chat', { sender: '系统', text: `${playerName} 加入了房间`, time: new Date().toLocaleTimeString('zh-CN') });
+    saveRoomArchive(room);
     console.log(`[房间] ${code} ← ${playerName} 加入 (${Object.keys(room.players).length}人)`);
   });
 
-  // ── 游戏事件（仅转发到同房间其他人） ──
+  // ── GM 内容更新广播（2026-08-05）：GM 保存插件/界面/规则内容后由前端手动触发，玩家端全量重载 ──
+  socket.on('content_update', (data) => {
+    if (!currentRoom || !rooms[currentRoom]) return;
+    const room = rooms[currentRoom];
+    if (socket.id !== room.hostId) return; // 仅 GM 可广播内容更新
+    io.to(currentRoom).emit('content_updated', { system: room.system, adventure: room.adventure, by: 'gm', time: new Date().toLocaleTimeString('zh-CN') });
+    console.log(`[房间] ${currentRoom} GM内容已更新，通知玩家重载`);
+  });
+
+  // ── 游戏事件（仅转发到同房间其他人；2026-08-06 联机权限：角色归属=创建者玩家名，GM 可改一切并转交） ──
 
   const relay = (event, data) => {
     if (currentRoom) socket.broadcast.to(currentRoom).emit(event, data);
@@ -4682,39 +5380,80 @@ io.on('connection', (socket) => {
     if (currentRoom) io.to(currentRoom).emit(event, data);
   };
 
+  // 角色修改权限：token.owner（创建者玩家名）或 GM（房主）可修改
+  const canEditToken = (room, token) => {
+    if (!token) return false;
+    if (socket.id === room.hostId) return true; // GM 全权
+    return token.owner === socket.playerName;  // 创建者（同名即身份）
+  };
+
   socket.on('token_add', (data) => {
-    if (currentRoom && rooms[currentRoom]) rooms[currentRoom].tokens.push(data);
+    if (currentRoom && rooms[currentRoom]) {
+      // 2026-08-06：owner 由服务端按当前玩家名强制写入（防伪造归属）；角色说话/权限判定均以 owner 为准
+      data.owner = socket.playerName;
+      rooms[currentRoom].tokens.push(data);
+      saveRoomArchive(rooms[currentRoom]);
+    }
     relay('token_add', data);
   });
-
   socket.on('token_move', (data) => {
     if (currentRoom && rooms[currentRoom]) {
       const t = rooms[currentRoom].tokens.find(tk => tk.id === data.id);
-      if (t) { t.gridX = data.gridX; t.gridY = data.gridY; }
+      if (t) { t.gridX = data.gridX; t.gridY = data.gridY; saveRoomArchive(rooms[currentRoom]); }
     }
+    // 地图位置移动放行所有玩家（不算角色卡数据修改）
     relay('token_move', data);
   });
 
   socket.on('token_update', (data) => {
     if (currentRoom && rooms[currentRoom]) {
-      const t = rooms[currentRoom].tokens.find(tk => tk.id === data.id);
-      if (t) Object.assign(t, data);
+      const room = rooms[currentRoom];
+      const t = room.tokens.find(tk => tk.id === data.id);
+      if (!canEditToken(room, t)) {
+        // 拒绝：返回服务端合法镜像供前端回滚（小品级：防误操作，非防破解）
+        socket.emit('perm_denied', { action: 'token_update', id: data.id, message: '该角色由 ' + (t && t.owner ? '玩家「' + t.owner + '」' : '其他玩家') + ' 创建，只有创建者或 GM 可修改', token: t || null });
+        return;
+      }
+      if (t) { Object.assign(t, data); saveRoomArchive(room); }
     }
     relay('token_update', data);
   });
 
   socket.on('token_remove', (data) => {
     if (currentRoom && rooms[currentRoom]) {
+      const room = rooms[currentRoom];
+      const t = room.tokens.find(tk => tk.id === data.id);
+      if (!canEditToken(room, t)) {
+        socket.emit('perm_denied', { action: 'token_remove', id: data.id, message: '只有创建者或 GM 可删除该角色', token: t || null });
+        return;
+      }
       rooms[currentRoom].tokens = rooms[currentRoom].tokens.filter(tk => tk.id !== data.id);
+      saveRoomArchive(rooms[currentRoom]);
     }
     relay('token_remove', data);
   });
 
   socket.on('token_sync_all', (data) => {
-    if (currentRoom && rooms[currentRoom]) {
-      rooms[currentRoom].tokens = data.tokens || [];
-    }
+    if (!currentRoom || !rooms[currentRoom]) return;
+    const room = rooms[currentRoom];
+    if (socket.id !== room.hostId) return; // 2026-08-06：仅 GM 可全量下发（玩家只读接收）
+    room.tokens = data.tokens || [];
+    saveRoomArchive(room);
     relay('token_sync_all', data);
+  });
+
+  // 2026-08-06：GM 转交角色控制权（token.owner → 其他玩家名）
+  socket.on('token_transfer', (data) => {
+    if (!currentRoom || !rooms[currentRoom]) return;
+    const room = rooms[currentRoom];
+    if (socket.id !== room.hostId) { socket.emit('perm_denied', { action: 'token_transfer', id: data.id, message: '只有 GM 可转交角色控制权' }); return; }
+    const t = room.tokens.find(tk => tk.id === data.id);
+    if (!t) return;
+    const to = String(data.to || '').trim();
+    t.owner = to || t.owner;
+    saveRoomArchive(room);
+    relayAll('token_updated', { id: data.id, owner: t.owner, by: playerName || 'GM' });
+    console.log(`[房间] ${currentRoom} 角色「${t.name || t.id}」控制权转交 → ${t.owner}`);
   });
 
   socket.on('dice_roll', (data) => {
@@ -4722,7 +5461,19 @@ io.on('connection', (socket) => {
   });
 
   socket.on('chat_msg', (data) => {
-    relayAll('chat', { ...data, sender: `${playerName}: ${data.text}` });
+    if (!currentRoom || !rooms[currentRoom]) return;
+    const room = rooms[currentRoom];
+    // 条目化（2026-08-05）：消息带唯一 id，登记归属表（编辑/撤回权限校验）
+    const msgId = String(data.id || `m_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+    room.messages[msgId] = { author: socket.id, type: 'user' };
+    relayAll('chat', {
+      id: msgId,
+      text: String(data.text || ''),
+      channelId: data.channelId || 'story',
+      sender: playerName || '玩家',
+      characterName: String(data.characterName || ''), // 2026-08-06：绑定角色名（显示"角色名（玩家名）"）
+      time: new Date().toLocaleTimeString('zh-CN')
+    });
   });
 
   socket.on('ai_chat', (data) => {
@@ -4730,7 +5481,10 @@ io.on('connection', (socket) => {
     const room = rooms[currentRoom];
     // AI输出只能由房主/GM广播；普通玩家不能伪造AI消息。
     if (socket.id !== room.hostId) return;
+    const msgId = String(data.id || `m_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+    room.messages[msgId] = { author: room.hostId, type: 'ai' };
     socket.broadcast.to(currentRoom).emit('ai_chat', {
+      id: msgId,
       text: String(data.text || ''),
       channelId: data.channelId || 'story',
       sender: 'AI',
@@ -4738,43 +5492,110 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('set_name', (name) => {
-    playerName = name;
-    if (currentRoom && rooms[currentRoom] && rooms[currentRoom].players[socket.id]) {
-      rooms[currentRoom].players[socket.id].name = name;
-      relayAll('players_update', rooms[currentRoom].players);
-    }
-  });
-
-  // ── 断开 ──
-  socket.on('disconnect', () => {
+  // 条目化编辑（2026-08-05）：仅消息作者本人可编辑（GM 不能改玩家的消息）
+  socket.on('chat_edit', (data) => {
     if (!currentRoom || !rooms[currentRoom]) return;
     const room = rooms[currentRoom];
-    const p = room.players[socket.id];
-    delete room.players[socket.id];
+    const rec = room.messages[data.id];
+    if (!rec) return;
+    if (socket.id !== rec.author) return; // 非作者不可编辑
+    relayAll('chat_edited', { id: data.id, newText: String(data.newText || ''), channelId: data.channelId });
+  });
 
-    if (Object.keys(room.players).length === 0) {
-      // 空房间清理（延迟10分钟）
-      setTimeout(() => {
-        if (rooms[currentRoom] && Object.keys(rooms[currentRoom].players).length === 0) {
-          delete rooms[currentRoom];
-          console.log(`[房间] ${currentRoom} 已清理`);
-        }
-      }, 600000);
-    } else {
-      // 房主/GM断线后不自动转移给普通玩家，避免非GM变成房主。
-      if (socket.id === room.hostId) {
-        room.hostId = null;
-      }
-      io.to(currentRoom).emit('players_update', room.players);
+  // 条目化撤回（2026-08-05）：作者本人 或 GM（房主）可撤回；撤回后所有端移除该条目
+  socket.on('chat_retract', (data) => {
+    if (!currentRoom || !rooms[currentRoom]) return;
+    const room = rooms[currentRoom];
+    const rec = room.messages[data.id];
+    if (!rec) return;
+    const isAuthor = socket.id === rec.author;
+    const isGM = socket.id === room.hostId;
+    if (!isAuthor && !isGM) return; // 非作者且非GM不可撤回
+    delete room.messages[data.id];
+    relayAll('chat_retracted', { id: data.id, by: playerName || '玩家', channelId: data.channelId, isGM });
+  });
+
+  // 2026-08-06：改名 = 玩家身份变更——旧名释放；旧名创建的角色归属自动转给新名（身份延续，GM 可再转交纠正）
+  socket.on('set_name', (name) => {
+    const newName = String(name || '').trim();
+    if (!newName) return;
+    if (newName === playerName) return;
+    // 新名在线占用保护（不能接管在线者的名字）
+    if (isNameTaken(newName)) {
+      socket.emit('room_error', '玩家名「' + newName + '」已被在线玩家使用，请换一个名字');
+      return;
     }
+    if (!currentRoom || !rooms[currentRoom]) {
+      // 未在房间：仅更新身份
+      if (onlineNames[playerName]) onlineNames[playerName].socketIds.delete(socket.id);
+      playerName = newName;
+      socket.playerName = newName;
+      bindPlayerName(socket, null, newName, false);
+      return;
+    }
+    const room = rooms[currentRoom];
+    const oldName = playerName;
+    const oldP = room.players[oldName];
+    if (oldP) {
+      oldP.socketIds = (oldP.socketIds || []).filter(sid => sid !== socket.id);
+      if (!oldP.socketIds.length && oldP.name !== room.hostName) {
+        delete room.players[oldName];
+        // 旧名创建的 token 归属转移给新名
+        room.tokens.forEach(t => { if (t.owner === oldName) t.owner = newName; });
+      }
+    }
+    if (onlineNames[oldName]) onlineNames[oldName].socketIds.delete(socket.id);
+    playerName = newName;
+    socket.playerName = newName;
+    bindPlayerName(socket, room, newName, room.hostName === newName);
+    relayAll('players_update', room.players);
+    relayAll('chat', { sender: '系统', text: `${oldName} 已改名为 ${newName}`, time: new Date().toLocaleTimeString('zh-CN') });
+    saveRoomArchive(room);
+  });
 
-    io.to(currentRoom).emit('chat', {
-      sender: '系统',
-      text: `${p?.name || '某人'} 离开了房间`,
-      time: new Date().toLocaleTimeString('zh-CN')
-    });
-    console.log(`[房间] ${currentRoom} ← ${p?.name || '?'} 离开`);
+  // ── 断开（2026-08-06：宽限期——刷新/短暂断线 60s 内同名重连无缝恢复，不掉线广播；超时才移除） ──
+  const OFFLINE_GRACE_MS = 60000;
+  socket.on('disconnect', () => {
+    // 从全局在线表摘除本 socket
+    if (onlineNames[playerName]) {
+      onlineNames[playerName].socketIds.delete(socket.id);
+    }
+    if (!currentRoom || !rooms[currentRoom]) return;
+    const room = rooms[currentRoom];
+    const p = room.players[playerName];
+    const now = Date.now();
+    if (p) {
+      p.socketIds = (p.socketIds || []).filter(sid => sid !== socket.id);
+      if (!p.socketIds.length) {
+        // 全部端离线：进入宽限期（不删玩家、不广播掉线；同名重连即恢复）
+        p.offlineSince = now;
+        if (onlineNames[playerName]) onlineNames[playerName].offlineSince = now;
+        // GM 断线：hostId 置空，宽限期内同名重连恢复（bindPlayerName 处理）
+        if (socket.id === room.hostId) room.hostId = null;
+        setTimeout(() => {
+          if (!rooms[currentRoom]) return;
+          const r2 = rooms[currentRoom];
+          const p2 = r2.players[playerName];
+          // 宽限期内已重连（offlineSince 被清除）→ 不处理
+          if (p2 && p2.offlineSince && (Date.now() - p2.offlineSince) >= OFFLINE_GRACE_MS) {
+            delete r2.players[playerName];
+            if (onlineNames[playerName]) { onlineNames[playerName].offlineSince = null; delete onlineNames[playerName]; }
+            io.to(currentRoom).emit('players_update', r2.players);
+            io.to(currentRoom).emit('chat', { sender: '系统', text: `${playerName} 已离线`, time: new Date().toLocaleTimeString('zh-CN') });
+            saveRoomArchive(r2);
+            console.log(`[房间] ${currentRoom} ← ${playerName} 宽限期结束，已离线`);
+            if (Object.keys(r2.players).length === 0) {
+              setTimeout(() => {
+                if (rooms[currentRoom] && Object.keys(rooms[currentRoom].players).length === 0) {
+                  delete rooms[currentRoom];
+                  console.log(`[房间] ${currentRoom} 已清理（存档保留，可凭房间码恢复）`);
+                }
+              }, 600000);
+            }
+          }
+        }, OFFLINE_GRACE_MS + 1000);
+      }
+    }
   });
 });
 
@@ -4786,12 +5607,12 @@ function openGamePage() {
   const { spawn } = require('child_process');
   const url = `http://127.0.0.1:${PORT}`;
 
+  // Windows 用 cmd /c start（最可靠的打开默认浏览器方式；explorer.exe 传 URL 在某些配置下不可靠）
   let command;
   let args;
   if (process.platform === 'win32') {
-    // explorer.exe 能直接把 URL 交给系统默认浏览器，不依赖 PowerShell 执行策略。
-    command = 'explorer.exe';
-    args = [url];
+    command = process.env.ComSpec || 'cmd.exe';
+    args = ['/c', 'start', '', url];
   } else if (process.platform === 'darwin') {
     command = 'open';
     args = [url];
@@ -4807,7 +5628,16 @@ function openGamePage() {
       windowsHide: true
     });
     opener.once('error', error => {
-      console.error(`[启动] 自动打开浏览器失败，请手动访问 ${url}: ${error.message}`);
+      // 降级：cmd start 失败时退回 explorer.exe（旧方式）
+      if (process.platform === 'win32') {
+        try {
+          const fallback = spawn('explorer.exe', [url], { detached: true, stdio: 'ignore', windowsHide: true });
+          fallback.once('error', ferr => console.error(`[启动] 自动打开浏览器失败，请手动访问 ${url}: ${ferr.message}`));
+          fallback.unref();
+        } catch (ferr) { console.error(`[启动] 自动打开浏览器失败，请手动访问 ${url}: ${ferr.message}`); }
+      } else {
+        console.error(`[启动] 自动打开浏览器失败，请手动访问 ${url}: ${error.message}`);
+      }
     });
     opener.once('spawn', () => {
       console.log(`[启动] 已请求系统默认浏览器打开 ${url}`);

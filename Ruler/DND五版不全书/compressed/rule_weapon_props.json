@@ -1,0 +1,543 @@
+{
+ "system": "DND五版不全书",
+ "source": "玩家手册2024/装备/武器.htm",
+ "total": 39,
+ "weapons": {
+  "名称": {
+   "name": "名称",
+   "fullName": "名称",
+   "category": "",
+   "damage": "伤害",
+   "damageType": "",
+   "properties": [
+    "词条"
+   ],
+   "mastery": "精通",
+   "weight": "重量",
+   "price": "价格"
+  },
+  "短棒": {
+   "name": "短棒",
+   "fullName": "短棒Club",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d4",
+   "damageType": "钝击",
+   "properties": [
+    "轻型"
+   ],
+   "mastery": "缓速",
+   "weight": "2磅",
+   "price": "1 SP"
+  },
+  "匕首": {
+   "name": "匕首",
+   "fullName": "匕首Dagger",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d4",
+   "damageType": "穿刺",
+   "properties": [
+    "灵巧",
+    "轻型",
+    "投掷（射程 20/60）"
+   ],
+   "mastery": "迅击",
+   "weight": "1磅",
+   "price": "2 GP"
+  },
+  "巨棒": {
+   "name": "巨棒",
+   "fullName": "巨棒Greatclub",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d8",
+   "damageType": "钝击",
+   "properties": [
+    "双手"
+   ],
+   "mastery": "推离",
+   "weight": "10磅",
+   "price": "2 SP"
+  },
+  "手斧": {
+   "name": "手斧",
+   "fullName": "手斧Handaxe",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d6",
+   "damageType": "挥砍",
+   "properties": [
+    "轻型",
+    "投掷（射程 20/60）"
+   ],
+   "mastery": "侵扰",
+   "weight": "2磅",
+   "price": "5 GP"
+  },
+  "标枪": {
+   "name": "标枪",
+   "fullName": "标枪Javelin",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d6",
+   "damageType": "穿刺",
+   "properties": [
+    "投掷（射程 30/120）"
+   ],
+   "mastery": "缓速",
+   "weight": "2磅",
+   "price": "5 SP"
+  },
+  "轻锤": {
+   "name": "轻锤",
+   "fullName": "轻锤Light Hammer",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d4",
+   "damageType": "钝击",
+   "properties": [
+    "轻型",
+    "投掷（射程 20/60）"
+   ],
+   "mastery": "迅击",
+   "weight": "2磅",
+   "price": "2 GP"
+  },
+  "硬头锤": {
+   "name": "硬头锤",
+   "fullName": "硬头锤Mace",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d6",
+   "damageType": "钝击",
+   "properties": [],
+   "mastery": "削弱",
+   "weight": "4磅",
+   "price": "5 GP"
+  },
+  "长棍": {
+   "name": "长棍",
+   "fullName": "长棍Quarterstaff",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d6",
+   "damageType": "钝击",
+   "properties": [
+    "多用（1d8）"
+   ],
+   "mastery": "失衡",
+   "weight": "4磅",
+   "price": "2 SP"
+  },
+  "镰刀": {
+   "name": "镰刀",
+   "fullName": "镰刀Sickle",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d4",
+   "damageType": "挥砍",
+   "properties": [
+    "轻型"
+   ],
+   "mastery": "迅击",
+   "weight": "2磅",
+   "price": "1 GP"
+  },
+  "矛": {
+   "name": "矛",
+   "fullName": "矛Spear",
+   "category": "简易近战武器 Simple Melee Weapons",
+   "damage": "1d6",
+   "damageType": "穿刺",
+   "properties": [
+    "投掷（射程 20/60）",
+    "多用（1d8）"
+   ],
+   "mastery": "削弱",
+   "weight": "3磅",
+   "price": "1 GP"
+  },
+  "飞镖": {
+   "name": "飞镖",
+   "fullName": "飞镖Dart",
+   "category": "简易远程武器 Simple Ranged Weapons",
+   "damage": "1d4",
+   "damageType": "穿刺",
+   "properties": [
+    "灵巧",
+    "投掷（射程 20/60）"
+   ],
+   "mastery": "侵扰",
+   "weight": "1/4磅",
+   "price": "5 CP"
+  },
+  "轻弩": {
+   "name": "轻弩",
+   "fullName": "轻弩Light Crossbow",
+   "category": "简易远程武器 Simple Ranged Weapons",
+   "damage": "1d8",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 80/320；弩矢）",
+    "装填",
+    "双手"
+   ],
+   "mastery": "缓速",
+   "weight": "5磅",
+   "price": "25 GP"
+  },
+  "短弓": {
+   "name": "短弓",
+   "fullName": "短弓Shortbow",
+   "category": "简易远程武器 Simple Ranged Weapons",
+   "damage": "1d6",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 80/320；箭矢）",
+    "双手"
+   ],
+   "mastery": "侵扰",
+   "weight": "2磅",
+   "price": "25 GP"
+  },
+  "投石索": {
+   "name": "投石索",
+   "fullName": "投石索Sling",
+   "category": "简易远程武器 Simple Ranged Weapons",
+   "damage": "1d4",
+   "damageType": "钝击",
+   "properties": [
+    "弹药（射程 30/120；子弹）"
+   ],
+   "mastery": "缓速",
+   "weight": "—",
+   "price": "1 SP"
+  },
+  "战斧": {
+   "name": "战斧",
+   "fullName": "战斧Battleaxe",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "挥砍",
+   "properties": [
+    "多用（1d10）"
+   ],
+   "mastery": "失衡",
+   "weight": "4磅",
+   "price": "10 GP"
+  },
+  "链枷": {
+   "name": "链枷",
+   "fullName": "链枷Flail",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "钝击",
+   "properties": [],
+   "mastery": "削弱",
+   "weight": "2磅",
+   "price": "10 GP"
+  },
+  "长柄刀": {
+   "name": "长柄刀",
+   "fullName": "长柄刀Glaive",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d10",
+   "damageType": "挥砍",
+   "properties": [
+    "重型",
+    "触及",
+    "双手"
+   ],
+   "mastery": "擦掠",
+   "weight": "6磅",
+   "price": "20 GP"
+  },
+  "巨斧": {
+   "name": "巨斧",
+   "fullName": "巨斧Greataxe",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d12",
+   "damageType": "挥砍",
+   "properties": [
+    "重型",
+    "双手"
+   ],
+   "mastery": "横扫",
+   "weight": "7磅",
+   "price": "30 GP"
+  },
+  "巨剑": {
+   "name": "巨剑",
+   "fullName": "巨剑Greatsword",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "2d6",
+   "damageType": "挥砍",
+   "properties": [
+    "重型",
+    "双手"
+   ],
+   "mastery": "擦掠",
+   "weight": "6磅",
+   "price": "50 GP"
+  },
+  "戟": {
+   "name": "戟",
+   "fullName": "戟Halberd",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d10",
+   "damageType": "挥砍",
+   "properties": [
+    "重型",
+    "触及",
+    "双手"
+   ],
+   "mastery": "横扫",
+   "weight": "6磅",
+   "price": "20 GP"
+  },
+  "骑枪": {
+   "name": "骑枪",
+   "fullName": "骑枪Lance",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d10",
+   "damageType": "穿刺",
+   "properties": [
+    "重型",
+    "触及",
+    "双手（骑乘时除外）"
+   ],
+   "mastery": "失衡",
+   "weight": "6磅",
+   "price": "10 GP"
+  },
+  "长剑": {
+   "name": "长剑",
+   "fullName": "长剑Longsword",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "挥砍",
+   "properties": [
+    "多用（1d10）"
+   ],
+   "mastery": "削弱",
+   "weight": "3磅",
+   "price": "15 GP"
+  },
+  "巨锤": {
+   "name": "巨锤",
+   "fullName": "巨锤Maul",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "2d6",
+   "damageType": "钝击",
+   "properties": [
+    "重型",
+    "双手"
+   ],
+   "mastery": "失衡",
+   "weight": "10磅",
+   "price": "10 GP"
+  },
+  "钉头锤": {
+   "name": "钉头锤",
+   "fullName": "钉头锤Morningstar",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "穿刺",
+   "properties": [],
+   "mastery": "削弱",
+   "weight": "4磅",
+   "price": "15 GP"
+  },
+  "长矛": {
+   "name": "长矛",
+   "fullName": "长矛Pike",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d10",
+   "damageType": "穿刺",
+   "properties": [
+    "重型",
+    "触及",
+    "双手"
+   ],
+   "mastery": "推离",
+   "weight": "18磅",
+   "price": "5 GP"
+  },
+  "刺剑": {
+   "name": "刺剑",
+   "fullName": "刺剑Rapier",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "穿刺",
+   "properties": [
+    "灵巧"
+   ],
+   "mastery": "侵扰",
+   "weight": "2磅",
+   "price": "25 GP"
+  },
+  "弯刀": {
+   "name": "弯刀",
+   "fullName": "弯刀Scimitar",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d6",
+   "damageType": "挥砍",
+   "properties": [
+    "灵巧",
+    "轻型"
+   ],
+   "mastery": "迅击",
+   "weight": "3磅",
+   "price": "25 GP"
+  },
+  "短剑": {
+   "name": "短剑",
+   "fullName": "短剑Shortsword",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d6",
+   "damageType": "穿刺",
+   "properties": [
+    "灵巧",
+    "轻型"
+   ],
+   "mastery": "侵扰",
+   "weight": "2磅",
+   "price": "10 GP"
+  },
+  "三叉戟": {
+   "name": "三叉戟",
+   "fullName": "三叉戟Trident",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "穿刺",
+   "properties": [
+    "投掷（射程 20/60）",
+    "多用（1d10）"
+   ],
+   "mastery": "失衡",
+   "weight": "4磅",
+   "price": "5 GP"
+  },
+  "战镐": {
+   "name": "战镐",
+   "fullName": "战镐Warpick",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "穿刺",
+   "properties": [
+    "多用（1d10）"
+   ],
+   "mastery": "削弱",
+   "weight": "2磅",
+   "price": "5 GP"
+  },
+  "战锤": {
+   "name": "战锤",
+   "fullName": "战锤Warhammer",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d8",
+   "damageType": "钝击",
+   "properties": [
+    "多用（1d10）"
+   ],
+   "mastery": "推离",
+   "weight": "2磅",
+   "price": "15 GP"
+  },
+  "鞭": {
+   "name": "鞭",
+   "fullName": "鞭Whip",
+   "category": "军用近战武器 Martial Melee Weapons",
+   "damage": "1d4",
+   "damageType": "挥砍",
+   "properties": [
+    "灵巧",
+    "触及"
+   ],
+   "mastery": "缓速",
+   "weight": "3磅",
+   "price": "2 GP"
+  },
+  "吹箭筒": {
+   "name": "吹箭筒",
+   "fullName": "吹箭筒Blowgun",
+   "category": "军用远程武器 Martial Ranged Weapons",
+   "damage": "1",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 25/100；吹矢）",
+    "装填"
+   ],
+   "mastery": "侵扰",
+   "weight": "1磅",
+   "price": "10 GP"
+  },
+  "手弩": {
+   "name": "手弩",
+   "fullName": "手弩Hand Crossbow",
+   "category": "军用远程武器 Martial Ranged Weapons",
+   "damage": "1d6",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 30/120；弩矢）",
+    "轻型",
+    "装填"
+   ],
+   "mastery": "侵扰",
+   "weight": "3磅",
+   "price": "75 GP"
+  },
+  "重弩": {
+   "name": "重弩",
+   "fullName": "重弩Heavy Crossbow",
+   "category": "军用远程武器 Martial Ranged Weapons",
+   "damage": "1d10",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 100/400；弩矢）",
+    "重型",
+    "装填",
+    "双手"
+   ],
+   "mastery": "推离",
+   "weight": "18磅",
+   "price": "50 GP"
+  },
+  "长弓": {
+   "name": "长弓",
+   "fullName": "长弓Longbow",
+   "category": "军用远程武器 Martial Ranged Weapons",
+   "damage": "1d8",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 150/600；箭矢）",
+    "重型",
+    "双手"
+   ],
+   "mastery": "缓速",
+   "weight": "2磅",
+   "price": "50 GP"
+  },
+  "火铳": {
+   "name": "火铳",
+   "fullName": "火铳Musket",
+   "category": "军用远程武器 Martial Ranged Weapons",
+   "damage": "1d12",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 40/120；子弹）",
+    "装填",
+    "双手"
+   ],
+   "mastery": "缓速",
+   "weight": "10磅",
+   "price": "500 GP"
+  },
+  "手铳": {
+   "name": "手铳",
+   "fullName": "手铳Pistol",
+   "category": "军用远程武器 Martial Ranged Weapons",
+   "damage": "1d10",
+   "damageType": "穿刺",
+   "properties": [
+    "弹药（射程 30/90；子弹）",
+    "装填"
+   ],
+   "mastery": "侵扰",
+   "weight": "3磅",
+   "price": "250 GP"
+  }
+ }
+}

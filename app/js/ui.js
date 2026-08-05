@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    TrpgRecode - UI管理模块
    ============================================ */
 
@@ -7,6 +7,8 @@ const UIManager = (() => {
   console.log('[UI] 模块加载...');
 
   let _editingCharId = null;
+  // 当前详情面板展示的角色 tokenId（<UpdateVariable> 数据回写后自动刷新）
+  let _lastDetailTokenId = null;
   let _pendingCharacterAssets = null;
   let _imageTool = { image: null, originalDataUrl: '', cropPortrait: null, cropAvatar: null, crop: { x: 110, y: 40, w: 300, h: 225 }, dragging: false, dragOffsetX: 0, dragOffsetY: 0, zoom: 1 };
   let _encounter = { active: false, initiatives: [], currentIndex: 0, round: 1 };
@@ -16,15 +18,16 @@ const UIManager = (() => {
   let _channelUnread = {};
   let _currentAdventure = '默认'; // D+三级会话：当前冒险（规则书-冒险-频道）
   let _activeSheet = null;      // 当前规则系统的角色卡插件 { system, handler }
+  let _charListEventsBound = false; // 角色列表事件委托是否已绑定（幂等标志，refreshCharacterList 兜底绑定）
   let _sheetCollector = null;   // 插件表单的收集函数（保存时调用，返回 { name, displayName, color, data }）
   let _pendingResume = null; // { userMessage, partialContent, partialReasoning, prompt, channelId } AI回复中断后的续接状态
   let _activeDevAbort = null; // 当前AI开发请求的AbortController（状态框"停止"按钮用）
   let _rulePollTimer = null; // 规则书接管进度轮询定时器
   let _ruleTaskViewSystem = null; // 当前内容视图正在显示的进度所属系统
   const DEFAULT_CHANNELS = [
-    { id: 'story', name: '剧情', prompt: '剧情频道：负责剧情描写、场景推进、NPC互动和叙事连续性。' },
-    { id: 'combat', name: '战斗', prompt: '战斗频道：负责先攻、回合、行动、检定、伤害、状态和战场变化。' },
-    { id: 'system', name: '系统', prompt: '系统频道：负责规则书解析、配置修改、工具任务、运行日志和系统需求。' }
+    { id: 'story', name: '剧情', prompt: '你在剧情频道担任 GM。推进场景、扮演 NPC、维护叙事连续性；玩家行动由玩家决定。遇到判定或数据变化时调用当前规则模块，不在聊天中临时猜规则。', skills: ['gm-protocol'], avg: true },
+    { id: 'combat', name: '战斗', prompt: '你在战斗频道管理先攻、回合、行动、伤害、状态与资源。所有结果读取当前规则模块并写回角色和会话数据，展示必要的骰值与加值。', skills: ['gm-protocol'] },
+    { id: 'system', name: '系统', prompt: '你在系统频道担任 TrpgRecode 开发 Agent。先理解玩家真正要完成的跑团行为，再按需调用开发、规则书、角色系统或体验设计 SKILL，形成定位、修改、重载、验证闭环。', skills: ['agent-guide'] }
   ];
   const _settings = {
     provider: 'gpt',
@@ -171,11 +174,13 @@ const UIManager = (() => {
     });
     AIClient.setActiveProvider(_settings.provider || 'gpt');
     _setupToolbar();
+    setupMovableMapToolbar();
     _setupTabs();
     setupChat();
     setupChatResize();
     setupDice();
     setupRules();
+    setupModuleManager();
     setupCharacterImport();
     setupCharacterImageTool();
     setupModals();
@@ -189,6 +194,7 @@ const UIManager = (() => {
     // 兜底：任何未显式落盘的 token 变更（如地图拖动位置）在关闭/刷新前统一保存
     window.addEventListener('beforeunload', persistCharacters);
     updateAIControls();
+    setupCharacterListEvents();
     refreshCharacterList();
     window._chatHistory = _chatHistory;
     window._onMeasureComplete = function(sx, sy, ex, ey, dist) {
@@ -196,7 +202,45 @@ const UIManager = (() => {
     };
     updateZoomLabel();
     // 开始界面（2026-08-05）：全局入口——选择规则书→冒险（或继续上次）后才进入内部
-    renderStartScreen();
+    // F5刷新保持（2026-08-05）：存在上次进入记录时直接恢复主界面（当前规则书+冒险），
+    // 而不是每次刷新都回到开始界面（刷新=在当前界面重载，不是退出）
+    var lastEntry = _loadLastEntry();
+    if (lastEntry && lastEntry.system) {
+      _selectedRuleSystem = lastEntry.system;
+      _currentAdventure = lastEntry.adventure || '默认';
+      try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {}
+      enterMainInterface(); // 内部已加载当前频道服务端历史
+    } else {
+      renderStartScreen();
+    }
+  }
+
+  function setupMovableMapToolbar() {
+    var bar = _el('map-toolbar');
+    var grip = _el('map-toolbar-grip');
+    if (!bar || !grip || bar.dataset.dragReady === '1') return;
+    bar.dataset.dragReady = '1';
+    var key = 'trpg_map_toolbar_pos';
+    function clampPos(x, y) {
+      return {
+        x: Math.max(8, Math.min(window.innerWidth - bar.offsetWidth - 8, x)),
+        y: Math.max(76, Math.min(window.innerHeight - bar.offsetHeight - 8, y))
+      };
+    }
+    function apply(x, y, save) {
+      var p = clampPos(x, y);
+      bar.style.left = p.x + 'px'; bar.style.top = p.y + 'px';
+      if (save) try { localStorage.setItem(key, JSON.stringify(p)); } catch (e) {}
+    }
+    try { var saved = JSON.parse(localStorage.getItem(key) || 'null'); if (saved) apply(saved.x, saved.y, false); } catch (e) {}
+    var moving = false, ox = 0, oy = 0;
+    grip.addEventListener('pointerdown', function (e) {
+      moving = true; var r = bar.getBoundingClientRect(); ox = e.clientX - r.left; oy = e.clientY - r.top;
+      grip.setPointerCapture(e.pointerId); bar.classList.add('dragging'); e.preventDefault();
+    });
+    grip.addEventListener('pointermove', function (e) { if (moving) apply(e.clientX - ox, e.clientY - oy, false); });
+    grip.addEventListener('pointerup', function (e) { if (!moving) return; moving = false; bar.classList.remove('dragging'); var r = bar.getBoundingClientRect(); apply(r.left, r.top, true); try { grip.releasePointerCapture(e.pointerId); } catch (_) {} });
+    window.addEventListener('resize', function () { var r = bar.getBoundingClientRect(); apply(r.left, r.top, false); });
   }
 
   function _setupToolbar() {
@@ -237,7 +281,112 @@ const UIManager = (() => {
     }
   }
 
+  // ── 规则书界面框架引擎（2026-08-05）：宿主只提供引擎，界面框架是规则书自身文件 ──
+  // 新规则书无 ui/ 文件 → 用内置默认框架（DEFAULT_TABS）；AI 解析后写 Ruler/<系统>/ui/manifest.json 迭代定制。
+  // manifest 结构: { tabs:[{id,icon,name,customPanel?}], hideTabs:[], theme:{cssVars}, sidebar:{...} }
+  var DEFAULT_TABS = [
+    { id: 'characters', icon: '👥', name: '角色' },
+    { id: 'encounter', icon: '⚔', name: '遭遇' },
+    { id: 'gm', icon: '🎭', name: 'GM' },
+    { id: 'rules', icon: '📚', name: '规则' },
+    { id: 'notes', icon: '📝', name: '笔记' },
+    { id: 'settings', icon: '⚙', name: '设置' }
+  ];
+  var _uiManifest = null; // 当前规则书的界面框架（null=默认）
+
+  // 加载并应用规则书 ui-manifest（引擎化：界面文件在规则书文件夹内）
+  function applyUiManifest(system) {
+    _uiManifest = null;
+    // 重置主题变量（回到默认）
+    resetThemeVars();
+    fetch('/api/ui-manifest?system=' + encodeURIComponent(system || ''))
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (!data || !data.manifest) return; // 无 manifest → 保持默认框架
+        _uiManifest = data.manifest;
+        var mf = data.manifest;
+        // 1) 主题：覆盖 CSS 变量
+        if (mf.theme && typeof mf.theme === 'object') applyThemeVars(mf.theme);
+        // 2) 页签：重建（替换/追加/隐藏）
+        if (Array.isArray(mf.tabs) && mf.tabs.length) renderDynamicTabs(mf.tabs, mf.hideTabs || []);
+      })
+      .catch(function() { /* 网络错误保持默认 */ });
+  }
+
+  function applyThemeVars(theme) {
+    var root = document.documentElement;
+    Object.keys(theme).forEach(function(k) {
+      root.style.setProperty('--' + k, String(theme[k]));
+    });
+  }
+  function resetThemeVars() {
+    var root = document.documentElement;
+    var defs = { bg: '#1a1a2e', 'bg-main': '#1a1a2e', 'bg-panel': '#16213e', 'bg-surface': '#1e2a4a', 'bg-hover': '#253358', 'bg-active': '#2a3f6e', border: '#2a2a4a', 'border-light': '#3a3a5c', 'text-primary': '#e0e0f0', 'text-secondary': '#a0a0c0', 'text-muted': '#6a6a8a', accent: '#c9a84c', 'accent-light': '#e0c870', 'accent-dark': '#a08030', danger: '#e05555' };
+    Object.keys(defs).forEach(function(k) {
+      root.style.setProperty('--' + k, defs[k]);
+    });
+  }
+
+  // 动态重建页签（manifest 定制）：先清空原静态页签，按 manifest 生成；
+  // 每个 tab 若有对应 ui/panels/<id>.html → iframe 加载（自定义面板）；否则用宿主默认面板 div
+function renderDynamicTabs(tabs, hideTabs) {
+var nav = document.querySelector('.panel-tabs');
+if (!nav) return;
+var hide = {};
+(hideTabs || []).forEach(function(h) { hide[h] = true; });
+// 2026-08-05：GM 页签（GM工具+模组）仅 GM/主机可见——非 GM 一律隐藏
+var notGM = typeof isGMUser === 'function' && !isGMUser();
+// 生成页签按钮
+nav.innerHTML = '';
+var firstVisible = null;
+tabs.forEach(function(t, i) {
+if (hide[t.id]) return;
+if (notGM && t.id === 'gm') return; // 非 GM 隐藏 GM 页签
+if (notGM && t.visibility === 'gm') return; // 2026-08-05：GM/PL 区分——visibility=gm 的页签仅 GM
+if (!firstVisible) firstVisible = t;
+      var btn = document.createElement('button');
+      btn.className = 'panel-tab' + (i === 0 ? ' active' : '');
+      btn.setAttribute('data-tab', t.id);
+      btn.textContent = (t.icon || '') + ' ' + (t.name || t.id);
+      btn.addEventListener('click', function() {
+        nav.querySelectorAll('.panel-tab').forEach(function(x) { x.classList.remove('active'); });
+        this.classList.add('active');
+        document.querySelectorAll('.panel-content').forEach(function(p) { p.classList.remove('active'); });
+        var c = _el('tab-' + t.id); if (c) c.classList.add('active');
+        if (t.id === 'rules') { refreshModuleList(); }
+        if (t.id === 'encounter') renderInitiativeList();
+        if (t.id === 'settings') _populateSettingsForm();
+      });
+      nav.appendChild(btn);
+    });
+    // 为 manifest 新增的自定义 tab 创建面板容器（iframe 加载规则书 ui/panels/<id>.html）
+    tabs.forEach(function(t) {
+      if (hide[t.id]) return;
+      if (!_el('tab-' + t.id)) {
+        // 宿主无此面板 → 创建 iframe 面板（规则书自定义）
+        var panel = document.createElement('div');
+        panel.id = 'tab-' + t.id;
+        panel.className = 'panel-content custom-panel' + (t.id === (firstVisible || {}).id ? ' active' : '');
+        panel.innerHTML = '<iframe class="custom-panel-frame" src="/api/ui-panel?system=' + encodeURIComponent(_selectedRuleSystem || '') + '&panel=' + encodeURIComponent(t.id) + '" frameborder="0"></iframe>';
+        var side = _el('side-panel');
+        if (side) side.appendChild(panel);
+      }
+    });
+    // 激活第一个可见 tab
+    if (firstVisible) {
+      nav.querySelectorAll('.panel-tab').forEach(function(x) {
+        x.classList.toggle('active', x.getAttribute('data-tab') === firstVisible.id);
+      });
+      document.querySelectorAll('.panel-content').forEach(function(p) { p.classList.remove('active'); });
+      var c = _el('tab-' + firstVisible.id); if (c) c.classList.add('active');
+    }
+  }
+
   function _setupTabs() {
+    // 2026-08-05：GM 页签（GM工具+模组管理）仅 GM/主机可见——非 GM 隐藏
+    if (typeof isGMUser === 'function' && !isGMUser()) {
+      document.querySelectorAll('.panel-tab[data-tab="gm"]').forEach(function(t) { t.style.display = 'none'; });
+    }
     document.querySelectorAll('.panel-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
         var target = this.getAttribute('data-tab');
@@ -245,19 +394,21 @@ const UIManager = (() => {
         document.querySelectorAll('.panel-content').forEach(function(p) { p.classList.remove('active'); });
         this.classList.add('active');
         var c = _el('tab-' + target); if (c) c.classList.add('active');
-        if (target === 'rules') refreshRulesList();
+        if (target === 'rules') { refreshModuleList(); }
         if (target === 'encounter') renderInitiativeList();
         if (target === 'settings') _populateSettingsForm();
       });
     });
-    // 设置面板二级页签
+    // 二级页签（作用域隔离：只切换同一面板内的 sub-tab / sub-panel，避免跨面板干扰）
     document.querySelectorAll('.sub-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
-        document.querySelectorAll('.sub-tab').forEach(function(t) { t.classList.remove('active'); });
-        document.querySelectorAll('.sub-panel').forEach(function(p) { p.classList.remove('active'); });
+        var scope = this.closest('.panel-content') || document;
+        scope.querySelectorAll('.sub-tab').forEach(function(t) { t.classList.remove('active'); });
+        scope.querySelectorAll('.sub-panel').forEach(function(p) { p.classList.remove('active'); });
         this.classList.add('active');
         var p = _el('sub-' + this.getAttribute('data-sub'));
         if (p) p.classList.add('active');
+        if (this.getAttribute('data-sub') === 'modules') refreshModuleList();
       });
     });
   }
@@ -273,6 +424,12 @@ const UIManager = (() => {
     var upBtn = _el('btn-channel-up'); if (upBtn) upBtn.addEventListener('click', function() { moveChannel(-1); });
     var downBtn = _el('btn-channel-down'); if (downBtn) downBtn.addEventListener('click', function() { moveChannel(1); });
     var promptBtn = _el('btn-channel-prompt'); if (promptBtn) promptBtn.addEventListener('click', editChannelPrompt);
+    // 频道弹层按钮（2026-08-06 多行提示词）
+    var cmClose = _el('channel-modal-close'); if (cmClose) cmClose.addEventListener('click', closeChannelModal);
+    var cmCancel = _el('channel-modal-cancel'); if (cmCancel) cmCancel.addEventListener('click', closeChannelModal);
+    var cmSave = _el('channel-modal-save'); if (cmSave) cmSave.addEventListener('click', saveChannelModal);
+    var cmModal = _el('channel-modal');
+    if (cmModal) cmModal.addEventListener('mousedown', function(e) { if (e.target === cmModal) closeChannelModal(); });
     // 冒险选择器（D+三级会话：规则书-冒险-频道；默认'默认'，从服务端读取冒险列表）
     var advSelect = _el('adventure-select');
     if (advSelect) {
@@ -325,6 +482,29 @@ const UIManager = (() => {
     });
     var historyBtn = _el('btn-channel-history');
     if (historyBtn) historyBtn.addEventListener('click', viewChannelHistory);
+    // 2026-08-05：清空当前频道对话（系统频道开发记录不保留）——删除服务端 jsonl + 清空本地历史
+    var clearBtn = _el('btn-channel-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        var ch = getActiveChannel();
+        if (!ch) return;
+        if (!confirm('清空「' + ch.name + '」频道的全部对话？\n开发记录将不可恢复（本地历史与服务器会话一并清空）。')) return;
+        var sys = _selectedRuleSystem || '';
+        var adv = _currentAdventure || '默认';
+        fetch('/api/sessions/delete', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ system: sys, adventure: adv, channel: ch.id })
+        }).catch(function() {});
+        // 清空本地聊天历史（该频道）
+        _chatHistory = _chatHistory.filter(function(m) { return (m.channelId || 'story') !== ch.id; });
+        _persistChatLog();
+        renderChatMessages();
+        addChatMessage('system', '频道', '已清空「' + ch.name + '」频道对话。');
+      });
+      // 系统频道才显示清空按钮（剧情/战斗等保留记录）
+      var ch = getActiveChannel();
+      if (ch && ch.id === 'system') clearBtn.style.display = '';
+    }
     // 冒险管理面板：打开/关闭/新建/搜索
     var advMgrBtn = _el('btn-adventure-manage');
     if (advMgrBtn) advMgrBtn.addEventListener('click', toggleAdventurePanel);
@@ -411,7 +591,9 @@ const UIManager = (() => {
           chatInput.value = ''; clearDraft(); autoResizeChatInput();
           sendToAI(text); // 发送失败时 sendToAI 会把内容放回输入框
         } else {
-          addChatMessage('user', '你', text);
+          // 2026-08-06：本地聊天同样显示"角色名（你）"
+          var myChar = getMyCharacterName();
+          addChatMessage('user', myChar ? myChar + '（你）' : '你', text);
           chatInput.value = ''; clearDraft(); autoResizeChatInput();
         }
       }
@@ -444,7 +626,7 @@ const UIManager = (() => {
       btn.className = 'chat-channel-tab' + (ch.id === _activeChannelId ? ' active' : '');
       btn.title = ch.prompt || ch.name;
       var label = document.createElement('span');
-      label.textContent = ch.name;
+      label.textContent = (ch.avg ? '🎭 ' : '') + ch.name;
       btn.appendChild(label);
       var unread = _channelUnread[ch.id] || 0;
       if (ch.id !== _activeChannelId && unread > 0) {
@@ -458,6 +640,11 @@ const UIManager = (() => {
         _channelUnread[ch.id] = 0;
         renderChannelTabs();
         renderChatMessages();
+        // 2026-08-05：清空按钮仅系统频道显示
+        var clearBtn = _el('btn-channel-clear');
+        if (clearBtn) clearBtn.style.display = (ch.id === 'system') ? '' : 'none';
+        // 2026-08-05：切换频道时加载该频道的服务端历史（若有新内容）
+        loadChannelHistoryFromServer(ch.id);
       });
       tabs.appendChild(btn);
     });
@@ -465,14 +652,7 @@ const UIManager = (() => {
   }
 
   function createChannel() {
-    var name = prompt('频道名称');
-    if (!name) return;
-    var text = prompt('频道默认提示词（可留空）') || '';
-    var id = 'ch_' + Date.now();
-    _chatChannels.push({ id: id, name: name.trim(), prompt: text.trim() });
-    _activeChannelId = id;
-    _saveChannels();
-    renderChannelTabs();
+    openChannelModal(null, true);
   }
 
   function moveChannel(delta) {
@@ -544,22 +724,137 @@ const UIManager = (() => {
     }
   }
 
+  // 频道弹层（新建/提示词编辑）：多行 textarea 输入，2026-08-06 取代浏览器单行 prompt()
+  var _channelModalCtx = null;
+  function openChannelModal(ch, isNew) {
+    var modal = _el('channel-modal'); if (!modal) return;
+    var title = _el('channel-modal-title'); if (title) title.textContent = isNew ? '新建频道' : '频道设置（提示词）';
+    var nameEl = _el('channel-modal-name');
+    if (nameEl) nameEl.value = ch ? (ch.name || '') : '';
+    var promptEl = _el('channel-modal-prompt');
+    if (promptEl) promptEl.value = ch ? (ch.prompt || '') : '';
+    var avgCb = _el('channel-modal-avg');
+    if (avgCb) avgCb.checked = !!(ch && ch.avg);
+    _channelModalCtx = { ch: ch, isNew: isNew };
+    modal.style.display = 'flex';
+    if (isNew && nameEl) nameEl.focus();
+    else if (promptEl) promptEl.focus();
+  }
+  function closeChannelModal() {
+    var modal = _el('channel-modal'); if (modal) modal.style.display = 'none';
+    _channelModalCtx = null;
+  }
+  function saveChannelModal() {
+    var ctx = _channelModalCtx; if (!ctx) return;
+    var modal = _el('channel-modal'); if (!modal) return;
+    var name = (_el('channel-modal-name').value || '').trim();
+    var promptEl = _el('channel-modal-prompt');
+    var prompt = promptEl ? promptEl.value : '';
+    var avgCb = _el('channel-modal-avg');
+    var avg = !!(avgCb && avgCb.checked);
+    if (!name) { alert('请填写频道名称'); return; }
+    if (ctx.isNew) {
+      var ch = { id: 'ch_' + Date.now(), name: name, prompt: prompt };
+      if (avg) ch.avg = true;
+      _chatChannels.push(ch);
+      _activeChannelId = ch.id;
+    } else if (ctx.ch) {
+      ctx.ch.name = name;
+      ctx.ch.prompt = prompt;
+      if (avg) ctx.ch.avg = true; else delete ctx.ch.avg;
+    }
+    _saveChannels();
+    modal.style.display = 'none';
+    _channelModalCtx = null;
+    renderChannelTabs();
+  }
+
   function editChannelPrompt() {
     var ch = getActiveChannel();
-    var text = prompt('频道默认提示词', ch.prompt || '');
-    if (text === null) return;
-    ch.prompt = text;
-    _saveChannels();
+    if (!ch) return;
+    openChannelModal(ch, false);
   }
 
   function renderChatMessages() {
     var cont = _el('chat-messages'); if (!cont) return;
     cont.innerHTML = '';
     var max = _settings.maxChat || 200;
+    // 2026-08-05 全站重构：AVG 频道渲染历史时按消息顺序重建立绘舞台快照，
+    // 每条消息显示其"当时的立绘状态"（倒回查看时立绘与对话进程一致）
+    var avgOn = avgEnabledFor(_activeChannelId);
+    var histStage = { left: null, right: null, speaking: null };
     _chatHistory.filter(function(m) { return (m.channelId || 'story') === _activeChannelId; }).slice(-max).forEach(function(m) {
-      appendChatMessageElement(cont, m);
+      var snap = null;
+      if (avgOn && m.type === 'ai') {
+        var d = extractPortraitDirective(m.message);
+        if (d) {
+          if (d.clear) {
+            histStage = { left: null, right: null, speaking: null };
+          } else if (d.name) {
+            var actor = resolvePortraitActor(d.name);
+            var hasL = histStage.left && histStage.left.name === actor.name;
+            var hasR = histStage.right && histStage.right.name === actor.name;
+            if (!hasL && !hasR) {
+              if (!histStage.left) histStage.left = actor;
+              else if (!histStage.right) histStage.right = actor;
+              else {
+                if (histStage.speaking && histStage.speaking.name === histStage.left.name) histStage.right = actor;
+                else histStage.left = actor;
+              }
+            }
+            histStage.speaking = actor;
+          }
+          snap = { left: histStage.left, right: histStage.right, speaking: histStage.speaking };
+        }
+      }
+      appendChatMessageElement(cont, m, snap);
     });
     cont.scrollTop = cont.scrollHeight;
+    renderAvgStageBar();
+  }
+
+  // ── 服务端会话历史加载（2026-08-05 修复）：主界面聊天区与历史窗口同源 ──
+  // 聊天区历史此前只依赖 localStorage（可能被清空/跨会话丢失），导致"聊天区看不到历史、历史窗口能看到"。
+  // 现在进入界面/切换频道时从服务端 jsonl（/api/sessions/read）加载 user/assistant 消息到聊天区，
+  // tool 消息不显示（与历史窗口显示策略一致）。
+  var _serverHistLoaded = {}; // channelId -> 最后加载的 assistant 时间戳（去重用）
+
+  function loadChannelHistoryFromServer(channelId, force) {
+    var sys = _selectedRuleSystem || '';
+    var adv = _currentAdventure || '默认';
+    if (!sys) return;
+    fetch('/api/sessions/read?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv) + '&channel=' + encodeURIComponent(channelId || 'story'))
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (!data || !data.messages || !data.messages.length) return;
+        var lastLoaded = _serverHistLoaded[channelId] || 0;
+        var loaded = 0;
+        data.messages.forEach(function(m) {
+          if (m.role !== 'user' && m.role !== 'assistant') return; // tool 消息不显示给用户
+          var text = String(m.content || '').trim();
+          if (!text) return;
+          // 跳过系统注入消息（【会话起点】与动态摘要等，对用户无意义）
+          if (text.indexOf('【会话起点】') === 0) return;
+          if (m.role === 'user' && text === '继续') return; // 内部续接指令不显示
+          var time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+          var key = channelId + '|' + (m.role === 'user' ? 'user' : 'ai') + '|' + text.substring(0, 80);
+          // 与 localStorage 历史去重：同内容同类型不重复添加
+          var dup = _chatHistory.some(function(x) {
+            return (x.channelId || 'story') === channelId && x.type === (m.role === 'user' ? 'user' : 'ai') && String(x.message || '').indexOf(text.substring(0, 60)) >= 0;
+          });
+          if (dup) { loaded++; return; }
+          _chatHistory.push({ time: time, sender: m.role === 'user' ? '你' : 'AI', message: text, type: m.role === 'user' ? 'user' : 'ai', channelId: channelId });
+          loaded++;
+        });
+        if (loaded > 0) {
+          var max = _settings.maxChat || 200;
+          while (_chatHistory.length > max) _chatHistory.shift();
+          _persistChatLog();
+          if (channelId === _activeChannelId) renderChatMessages();
+        }
+        _serverHistLoaded[channelId] = Date.now();
+      })
+      .catch(function() { /* 服务端无历史或网络错误时静默（本地历史仍可用） */ });
   }
 
   // ── 聊天记录持久化（2026-08-05）：只保存玩家输入(user)与AI输出正文(ai/dice)，
@@ -607,16 +902,81 @@ const UIManager = (() => {
     } catch (e) { /* 恢复失败不影响使用 */ }
   }
 
-  function appendChatMessageElement(cont, msg) {
+  function appendChatMessageElement(cont, msg, stageSnapshot) {
     if (msg.reasoning) {
       appendAIElementWithReasoning(cont, msg);
       return;
     }
+    // 2026-08-06 AVG 立绘模式：频道标记"显示发言立绘"且 AI 输出 <portrait name="角色名"> 时
+    // 以"双人立绘舞台+文字"布局渲染（开始对话者居左、新来者居右、发言者高亮、另一方压暗）
+    if (msg.type === 'ai') {
+      // 插图指令：<illustration> 以插图临时代替地图（过场），<illustration clear> 恢复
+      var ill = extractIllustrationDirective(msg.message);
+      if (ill) {
+        if (ill.clear) hideIllustration();
+        else if (ill.url) showIllustration(ill.url, ill.caption);
+        msg = Object.assign({}, msg, { message: stripIllustrationTags(msg.message) });
+      }
+      var avgDirective = extractPortraitDirective(msg.message);
+      if (avgDirective) {
+        if (avgEnabledFor(msg.channelId || _activeChannelId)) {
+          renderAVGMessage(cont, msg, avgDirective, stageSnapshot);
+          return;
+        }
+        // 频道未标记"显示发言立绘"：剥离立绘标签，按普通消息显示正文
+        msg = Object.assign({}, msg, { message: avgDirective.text });
+      }
+    }
+    // 玩家发言驱动立绘舞台：当前频道启用 AVG 时，玩家消息按发送者匹配角色立绘并高亮
+    if (msg.type === 'user' && avgEnabledFor(msg.channelId || _activeChannelId) && !stageSnapshot) {
+      var pActor = resolvePortraitActor(msg.sender && msg.sender !== '你' ? msg.sender : '');
+      if (pActor && pActor.name && msg.sender !== '你') {
+        stageSpeak(pActor);
+        renderAvgStageBar();
+      }
+    }
+    // 2026-08-05 条目化：撤回占位——已撤回消息显示"XX撤回了一条消息"，不显示内容
+    if (msg.status === 'retracted') {
+      var rd = document.createElement('div');
+      rd.className = 'chat-message system chat-retracted-note';
+      rd.innerHTML = '<span class="msg-sender">系统:</span><span class="msg-text chat-retracted-text">' + _esc(msg.retractedBy || '有人') + ' 撤回了一条消息</span>';
+      cont.appendChild(rd);
+      return;
+    }
     var div = document.createElement('div');
     div.className = 'chat-message ' + msg.type;
+    div.setAttribute('data-msgid', msg.id || '');
+    // 操作区（2026-08-05）：编辑（作者本人）、撤回（作者本人或GM）、许可（GM+联机+pending）
+    var ops = '';
+    var canEdit = (msg.type === 'user' && msg.author === 'local') || (msg.type === 'ai' && typeof isGMUser === 'function' && isGMUser());
+    var canRetract = canEdit || (typeof isGMUser === 'function' && isGMUser());
+    if (msg.status === 'pending' && typeof isGMUser === 'function' && isGMUser() && Network && Network.isConnected && Network.isConnected() && Network.getRoomCode && Network.getRoomCode()) {
+      ops += '<span class="msg-op msg-op-approve" title="许可：广播给所有玩家">✅ 许可</span>' +
+             '<span class="msg-op msg-op-reject" title="拒绝：不广播并移除">↩ 拒绝</span>';
+    } else {
+      if (canEdit) ops += '<span class="msg-op msg-op-edit" title="编辑">✎</span>';
+      if (canRetract) ops += '<span class="msg-op msg-op-retract" title="撤回">↩</span>';
+    }
+    var pendingBadge = (msg.status === 'pending') ? '<span class="msg-pending-badge">📋 待许可</span>' : '';
+    var editedMark = msg.edited ? ' <span class="msg-edited-mark" title="已编辑">(已编辑)</span>' : '';
     div.innerHTML = '<span class="msg-time">' + _esc(msg.time) + '</span>' +
       '<span class="msg-sender">' + _esc(msg.sender) + ':</span>' +
-      '<span class="msg-text">' + simpleMarkdown(msg.message) + '</span>';
+      pendingBadge +
+      '<span class="msg-text">' + simpleMarkdown(msg.message) + editedMark + '</span>' +
+      (ops ? '<span class="msg-ops">' + ops + '</span>' : '');
+    // 绑定操作
+    if (div.querySelector('.msg-op-approve')) {
+      div.querySelector('.msg-op-approve').addEventListener('click', function() { approveAIMessage(msg); });
+    }
+    if (div.querySelector('.msg-op-reject')) {
+      div.querySelector('.msg-op-reject').addEventListener('click', function() { rejectAIMessage(msg); });
+    }
+    if (div.querySelector('.msg-op-edit')) {
+      div.querySelector('.msg-op-edit').addEventListener('click', function() { startEditMessage(div, msg); });
+    }
+    if (div.querySelector('.msg-op-retract')) {
+      div.querySelector('.msg-op-retract').addEventListener('click', function() { retractMessage(msg); });
+    }
     cont.appendChild(div);
   }
 
@@ -630,7 +990,8 @@ const UIManager = (() => {
       var def = DEFAULT_CHANNELS.find(function(c) { return c.id === targetChannel; });
       if (def) _chatChannels.push(JSON.parse(JSON.stringify(def)));
     }
-    var item = { time: time, sender: sender, message: message, type: type, channelId: targetChannel };
+    // 条目化（2026-08-05）：唯一 id + 作者归属（权限：编辑/撤回校验）
+    var item = { id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), time: time, sender: sender, message: message, type: type, channelId: targetChannel, author: type === 'user' ? 'local' : (type === 'ai' ? 'ai' : 'system'), status: 'normal' };
     _chatHistory.push(item);
     if (targetChannel === _activeChannelId) {
       appendChatMessageElement(cont, item);
@@ -658,10 +1019,19 @@ const UIManager = (() => {
       applyBottomHeight(window.innerHeight - e.clientY);
     });
     window.addEventListener('mouseup', function() { if (dragging) localStorage.setItem('trpg_bottom_height', String(panel.offsetHeight)); dragging = false; });
+    // 2026-08-05 全站重构：地图是最底层铺满全窗口（fixed inset:0），底部聊天区是浮动层，
+    // 调整聊天高度只改变浮动层自身，地图比例不再随之变动。
     function applyBottomHeight(h) {
-      h = Math.max(160, Math.min(420, h || 220));
+      h = Math.max(120, Math.min(Math.round(window.innerHeight * 0.7), h || 220));
       panel.style.height = h + 'px';
-      main.style.height = 'calc(100vh - 42px - ' + h + 'px)';
+      main.style.height = '';
+      main.style.top = '0'; main.style.left = '0'; main.style.right = '0'; main.style.bottom = '0';
+      // 2026-08-06：右侧面板底部与聊天栏顶对齐（同层级浮动层互不遮挡），角色列表/详情不再被聊天栏盖住
+      var side = _el('side-panel');
+      if (side) side.style.bottom = (h + 4) + 'px';
+      if (window.MapEngine && typeof window.MapEngine.resize === 'function') {
+        try { window.MapEngine.resize(); } catch (e) {}
+      }
     }
   }
 
@@ -683,8 +1053,8 @@ const UIManager = (() => {
   // ── AI对话（通过聊天集成） ─────────────────────
 
   var AI_MODE_PROMPTS = {
-    full: '当前模式：完整GM带团。负责剧情推进、NPC扮演、规则判定与数据管理（HP/资源/物品/状态精确更新）。融合角色设定与世界观，不盲目吹捧玩家角色。记忆不可靠，不确定时翻查规则书和模组。需要规则时回复[[search:关键词]]。',
-    scene: '当前模式：场景描写。只负责描写环境、氛围、NPC外观和行为。不干预玩家之间的扮演对话，不替玩家做决定，不判定行动结果。玩家要求场景变化或地图更新时照做。需要模组设定时回复[[module:关键词]]。',
+    full: '当前模式：完整GM带团。负责剧情推进、NPC扮演、规则判定与数据管理（HP/资源/物品/状态精确更新）。融合角色设定与世界观，不盲目吹捧玩家角色。记忆不可靠，不确定时翻查规则书和模组。需要规则时回复[[search:关键词]]。剧情对话支持AVG双人立绘模式：用 <portrait name="角色名">对话文本</portrait> 让该角色发言并显示立绘（首次出现的角色居左，第二位居右，当前发言者高亮、另一方压暗，模拟完整AVG），</portrait> 或 <portrait clear> 关闭立绘。过场/无需地图移动的场景：用 <illustration src="模组路径或图片URL" caption="标题">描述</illustration> 以插图临时代替地图，<illustration clear> 结束插图恢复地图。',
+    scene: '当前模式：场景描写。只负责描写环境、氛围、NPC外观和行为。不干预玩家之间的扮演对话，不替玩家做决定，不判定行动结果。玩家要求场景变化或地图更新时照做。需要模组设定时回复[[module:关键词]]。NPC出场说话时可用 <portrait name="角色名">对话文本</portrait> 显示立绘（双人舞台：首次居左、第二位居右、发言者高亮另一方压暗），</portrait> 或 <portrait clear> 关闭。过场插图：<illustration src="模组路径或URL" caption="标题">描述</illustration> 或 <illustration clear> 结束。',
     rules: '当前模式：规则助手。只回答规则问题，引用规则书原文。不做剧情推进，不描写场景，不替玩家决策。需要查规则时回复[[search:关键词]]。'
   };
 
@@ -701,7 +1071,13 @@ const UIManager = (() => {
   function addAIMessageWithReasoning(reasoningText, content, channelId) {
     var time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
     var targetChannel = channelId || _activeChannelId || 'story';
-    var item = { time: time, sender: 'AI', message: content, type: 'ai', channelId: targetChannel, reasoning: reasoningText || '' };
+    // 2026-08-05 思考显示区分：仅系统频道（开发）保留 AI 思考展示；
+    // 剧情/战斗等玩家频道不保存不显示思考内容（沉浸感），只显示正文
+    var keepReasoning = targetChannel === 'system';
+    // 2026-08-05 联机许可流程：房间内 AI 输出先 pending（仅GM可见），GM 许可后才广播给玩家；
+    // 单机（无房间）直接 normal 显示。GM 触发 AI 时本端为 GM。
+    var inRoom = !!(Network && Network.isConnected && Network.isConnected() && Network.getRoomCode && Network.getRoomCode());
+    var item = { id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), time: time, sender: 'AI', message: content, type: 'ai', channelId: targetChannel, author: 'ai', status: inRoom && targetChannel !== 'system' ? 'pending' : 'normal', reasoning: keepReasoning ? (reasoningText || '') : '' };
     _chatHistory.push(item);
     var cont = _el('chat-messages');
     if (cont && item.channelId === _activeChannelId) {
@@ -714,8 +1090,9 @@ const UIManager = (() => {
     var max = _settings.maxChat || 200;
     while (_chatHistory.length > max) _chatHistory.shift();
     while (cont && cont.children.length > max) { if (cont.firstChild) cont.removeChild(cont.firstChild); }
-    if (Network && Network.isConnected && Network.isConnected() && isGMUser()) {
-      Network.sendAIChat(content, targetChannel);
+    // 联机：pending 不广播，等待 GM 点「✅ 许可」；系统频道消息直接广播（开发流程）
+    if (Network && Network.isConnected && Network.isConnected() && isGMUser() && item.status === 'normal') {
+      Network.sendAIChat(content, targetChannel, item.id);
     }
     _persistChatLog();
   }
@@ -723,15 +1100,29 @@ const UIManager = (() => {
   function appendAIElementWithReasoning(cont, msg) {
     var div = document.createElement('div');
     div.className = 'chat-message ai';
+    div.setAttribute('data-msgid', msg.id || '');
     var reasoningHtml = '';
     if (msg.reasoning) {
       var summary = reasoningSummaryText(msg.reasoning);
       reasoningHtml = '<div class="chat-reasoning" title="点击展开/收起思考内容">💭 ' + _esc(summary) +
         '<div class="chat-reasoning-body" style="display:none;">' + _esc(msg.reasoning) + '</div></div>';
     }
+    // 2026-08-05：AI 消息操作区（GM 可编辑/撤回；pending 显示许可/拒绝）
+    var ops = '';
+    var isGM = typeof isGMUser === 'function' && isGMUser();
+    if (msg.status === 'pending' && isGM && Network && Network.isConnected && Network.isConnected() && Network.getRoomCode && Network.getRoomCode()) {
+      ops = '<span class="msg-op msg-op-approve" title="许可：广播给所有玩家">✅ 许可</span>' +
+            '<span class="msg-op msg-op-reject" title="拒绝：不广播并移除">↩ 拒绝</span>';
+    } else if (isGM) {
+      ops = '<span class="msg-op msg-op-edit" title="编辑">✎</span>' +
+            '<span class="msg-op msg-op-retract" title="撤回">↩</span>';
+    }
+    var pendingBadge = (msg.status === 'pending') ? '<span class="msg-pending-badge">📋 待许可</span>' : '';
+    var editedMark = msg.edited ? ' <span class="msg-edited-mark" title="已编辑">(已编辑)</span>' : '';
     div.innerHTML = '<span class="msg-time">' + _esc(msg.time) + '</span>' +
-      '<span class="msg-sender">AI:</span>' + reasoningHtml +
-      '<span class="msg-text">' + simpleMarkdown(msg.message) + '</span>';
+      '<span class="msg-sender">AI:</span>' + pendingBadge + reasoningHtml +
+      '<span class="msg-text">' + simpleMarkdown(msg.message) + editedMark + '</span>' +
+      (ops ? '<span class="msg-ops">' + ops + '</span>' : '');
     var reasonHead = div.querySelector('.chat-reasoning');
     if (reasonHead) {
       reasonHead.addEventListener('click', function() {
@@ -739,6 +1130,10 @@ const UIManager = (() => {
         if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
       });
     }
+    if (div.querySelector('.msg-op-approve')) div.querySelector('.msg-op-approve').addEventListener('click', function() { approveAIMessage(msg); });
+    if (div.querySelector('.msg-op-reject')) div.querySelector('.msg-op-reject').addEventListener('click', function() { rejectAIMessage(msg); });
+    if (div.querySelector('.msg-op-edit')) div.querySelector('.msg-op-edit').addEventListener('click', function() { startEditMessage(div, msg); });
+    if (div.querySelector('.msg-op-retract')) div.querySelector('.msg-op-retract').addEventListener('click', function() { retractMessage(msg); });
     cont.appendChild(div);
   }
 
@@ -750,6 +1145,140 @@ const UIManager = (() => {
     inp.style.height = 'auto';
     inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
     try { localStorage.setItem('trpg_chat_draft', msg); } catch (e) {}
+  }
+
+  // ── 条目化操作（2026-08-05）：编辑/撤回/许可 ──
+  // 权限：作者本人可编辑/撤回自己的消息；GM 可撤回任何消息（不可编辑玩家的）；AI 消息归属 GM。
+
+  // 编辑：原地变输入框 → 保存 → 更新本地+服务端 jsonl+广播
+  function startEditMessage(div, msg) {
+    if (!div || !msg) return;
+    var textEl = div.querySelector('.msg-text');
+    if (!textEl) return;
+    var old = msg.message;
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'msg-edit-input';
+    input.value = old;
+    input.style.width = '100%';
+    var done = function(save) {
+      var newText = input.value;
+      if (save && newText && newText !== old) {
+        msg.message = newText;
+        msg.edited = true;
+        _persistChatLog();
+        // 服务端 jsonl 更新
+        updateSessionMessage(msg, newText);
+        // 联机广播编辑（服务端校验作者后转发）
+        if (Network && Network.isConnected && Network.isConnected() && msg.id) {
+          Network.sendChatEdit(msg.id, newText, msg.channelId);
+        }
+        textEl.innerHTML = simpleMarkdown(newText) + ' <span class="msg-edited-mark" title="已编辑">(已编辑)</span>';
+      }
+      if (input.parentNode) input.parentNode.replaceChild(textEl, input);
+    };
+    textEl.parentNode.replaceChild(input, textEl);
+    input.focus();
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') done(true);
+      if (e.key === 'Escape') done(false);
+    });
+    input.addEventListener('blur', function() { done(true); });
+  }
+
+  // 撤回：确认 → 本地移除（显示占位）+ 服务端 jsonl 删除 + 广播（作者/GM 均可）
+  function retractMessage(msg) {
+    if (!msg || !msg.id) return;
+    if (!confirm('撤回这条消息？（所有端将移除该消息）')) return;
+    var by = (typeof isGMUser === 'function' && isGMUser()) ? 'GM' : '你';
+    // 本地：标记为撤回占位（不直接删除条目——占位显示"XX撤回了一条消息"）
+    msg.status = 'retracted';
+    msg.retractedBy = by;
+    msg.message = '';
+    _persistChatLog();
+    renderChatMessages();
+    // 服务端 jsonl 删除该条
+    removeSessionMessage(msg);
+    // 联机广播撤回（服务端校验作者/GM后转发）
+    if (Network && Network.isConnected && Network.isConnected()) {
+      Network.sendChatRetract(msg.id, msg.channelId);
+    }
+  }
+
+  // 联机 GM 许可：AI 消息从 pending → approved 并广播给玩家
+  function approveAIMessage(msg) {
+    if (!msg) return;
+    msg.status = 'approved';
+    _persistChatLog();
+    renderChatMessages();
+    if (Network && Network.isConnected && Network.isConnected()) {
+      Network.sendAIChat(msg.message, msg.channelId, msg.id);
+    }
+  }
+
+  // 联机 GM 拒绝：pending AI 消息不广播，本地移除
+  function rejectAIMessage(msg) {
+    if (!msg) return;
+    msg.status = 'retracted';
+    msg.retractedBy = 'GM';
+    msg.message = '';
+    _persistChatLog();
+    renderChatMessages();
+    removeSessionMessage(msg);
+  }
+
+  // 服务端 jsonl：删除指定 id 的消息
+  function removeSessionMessage(msg) {
+    if (!_selectedRuleSystem) return;
+    fetch('/api/sessions/remove', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: _selectedRuleSystem, adventure: _currentAdventure || '默认', channel: msg.channelId || 'story', id: msg.id })
+    }).catch(function() {});
+  }
+
+  // 服务端 jsonl：更新指定 id 的消息内容
+  function updateSessionMessage(msg, newText) {
+    if (!_selectedRuleSystem) return;
+    fetch('/api/sessions/edit', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: _selectedRuleSystem, adventure: _currentAdventure || '默认', channel: msg.channelId || 'story', id: msg.id, content: newText })
+    }).catch(function() {});
+  }
+
+  // 玩家端同步处理：其他端编辑了消息 → 本地原地更新
+  function handleRemoteChatEdited(data) {
+    var id = data && data.id;
+    if (!id) return;
+    var hit = _chatHistory.filter(function(m) { return m.id === id; });
+    if (!hit.length) return;
+    hit.forEach(function(m) {
+      m.message = data.newText;
+      m.edited = true;
+    });
+    _persistChatLog();
+    if (data.channelId === _activeChannelId) renderChatMessages();
+  }
+
+  // 玩家端同步处理：其他端撤回了消息 → 本地标记占位
+  function handleRemoteChatRetracted(data) {
+    var id = data && data.id;
+    if (!id) return;
+    var hit = _chatHistory.filter(function(m) { return m.id === id; });
+    if (!hit.length) return;
+    hit.forEach(function(m) {
+      m.status = 'retracted';
+      m.retractedBy = data.by || '有人';
+      m.message = '';
+    });
+    _persistChatLog();
+    if (data.channelId === _activeChannelId) renderChatMessages();
+  }
+
+  // 玩家端收到 AI 广播（GM 许可后）：正常显示（无操作按钮——非作者非GM）
+  function handleRemoteAIChat(data) {
+    addChatMessage('ai', 'AI', data.text || '', data.channelId || _activeChannelId || 'story');
+    // 远端消息不带操作权限（author 非本地）——addChatMessage 已给 author:'ai'，
+    // 但远端玩家 isGMUser()=false 时按钮自然不渲染；GM 主机收到自己广播不回显（broadcast 不含自己）
   }
 
   // ── AI 开发状态框（2026-08-05）：系统频道工具调用/进度/用量摘要，对标opencode reasoningSummary ──
@@ -942,33 +1471,10 @@ const UIManager = (() => {
     var ch = getActiveChannel(); if (!ch) return;
     var sys = _selectedRuleSystem || '';
     var adv = _currentAdventure || '默认';
-    fetch('/api/sessions/read?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv) + '&channel=' + encodeURIComponent(ch.id))
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(data) {
-        if (!data || !data.messages || !data.messages.length) {
-          alert('该频道暂无持久化会话记录（历史在本地保留，删除频道不影响查阅）。');
-          return;
-        }
-        var win = window.open('', '_blank');
-        if (!win) { alert('请允许弹出窗口以查看历史。'); return; }
-        var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>会话历史：' + _esc(ch.name) + '（' + _esc(adv) + '）</title>' +
-          '<style>body{background:#14141d;color:#ddd;font-family:Consolas,monospace;padding:16px;max-width:900px;margin:auto}' +
-          '.m{border:1px solid #2a2a3a;border-radius:6px;padding:8px 12px;margin:6px 0;white-space:pre-wrap;word-break:break-all}' +
-          '.user{border-left:3px solid #6cb2ff}.assistant{border-left:3px solid #6ae08a}.tool{border-left:3px solid #c9a86a;color:#bbb;font-size:12px}' +
-          '.h{margin-bottom:12px;color:#888}.h b{color:#fff}</style></head><body>' +
-          '<div class="h"><b>规则书：</b>' + _esc(sys) + ' | <b>冒险：</b>' + _esc(adv) + ' | <b>频道：</b>' + _esc(ch.name) + ' | 共 ' + data.total + ' 条记录（只读）</div>';
-        data.messages.forEach(function(m) {
-          var role = m.role === 'user' ? 'user' : (m.role === 'assistant' ? 'assistant' : 'tool');
-          var label = role === 'user' ? '👤 用户' : (role === 'assistant' ? '🤖 AI' : '🔧 工具');
-          var content = String(m.content || '');
-          if (content.length > 4000) content = content.substring(0, 4000) + '\n…（已截断显示）';
-          if (m.tool_calls) content = '工具调用: ' + m.tool_calls.map(function(tc) { return tc.function && tc.function.name; }).join(', ') + '\n' + content;
-          html += '<div class="m ' + role + '"><b>' + label + '</b><br>' + _esc(content) + '</div>';
-        });
-        html += '</body></html>';
-        win.document.write(html); win.document.close();
-      })
-      .catch(function(e) { alert('读取历史失败: ' + (e.message || e)); });
+    // 2026-08-05：改用独立页面（app/history.html）打开历史——window.open 带 URL 不触发弹窗拦截提示，
+    // 页面自行 fetch 渲染（不再 document.write，避免 WebView2 渲染时序问题导致全黑）
+    var url = 'history.html?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv) + '&channel=' + encodeURIComponent(ch.id) + '&name=' + encodeURIComponent(ch.name || ch.id);
+    window.open(url, '_blank');
   }
 
   function sendToAI(msg) {
@@ -1020,14 +1526,13 @@ const UIManager = (() => {
     } else {
       prompt = (AI_MODE_PROMPTS[_settings.aiMode] || AI_MODE_PROMPTS.full) + '\n\n当前频道：' + (ch.name || '') + '\n频道提示词：' + (ch.prompt || '');
     }
-    // 系统频道：授予规则系统管理工具（AI可直接输出标记，系统执行并回传结果）
+    // 系统频道使用最小基础提示词，并按任务动态加载 SKILL。
     if (ch.id === 'system') {
-      prompt += '你处于系统频道，负责让规则书专用功能真正可用。你可以使用插件文件工具直接读取、修改和创建 Ruler/<系统>/plugins/ 下的插件，也可以检查宿主渲染文件。\n' +
-        '开工先调用 skill {"name":"agent-guide"} 加载工作方法（任务流程/设计审核/工具选择/需求澄清/空转检查/插件质量要求）；编写或修改规则书插件前必须调用 skill {"name":"plugin-authoring"}；涉及带团体验/判定/数据管理设计时必须调用 skill {"name":"gm-protocol"}。\n' +
-        '本工具定位：动态解析TRPG规则书→自动生成配套角色卡与工具→AI作为GM带团。核心追求：TRPG的自由+电脑游戏的精准——AI以结构化标记输出判定与状态，系统渲染界面；角色血量等游戏数据以变量精确管理，AI可读可写，前端实时联动。\n' +
-        '主动举一反三（强制）：唯一验收标准=最佳玩家游戏体验。收到需求先想"这个页面按游戏体验应该是什么样"，按正确内容组织编写（而非机械拆分旧结构）；主动发现并优化相关页面/同类问题，总结中列出主动优化项。\n' +
-        '最高验收标准（唯一验收标准）：最佳玩家用户体验——真实玩家能否按规则书走完真实流程并顺畅完成每一步；程序写完/控件齐全永远不算完成。每个功能必须实际验证（正例命中+空例为空+点击可展开+数据来自规则书）。\n' +
-        '在回复中直接输出标记：删除规则系统 [[rules:delete:规则系统名]]；重新解析规则系统 [[rules:reparse:规则系统名]]。';
+      var skillNames = Array.isArray(ch.skills) && ch.skills.length ? ch.skills : ['agent-guide'];
+      prompt += (ch.prompt || '') + '\n\n按任务真实内容动态加载 SKILL，而不是把全部规范永久塞进上下文。当前频道建议先加载：' +
+        skillNames.map(function(n) { return 'skill {"name":"' + n + '"}'; }).join('、') + '。' +
+        '\n涉及规则书解析与规则模块：rulebook-development；角色卡、背包、标签、权限与版本：character-system；界面交互与真实玩家流程：gameplay-ux；插件接口：plugin-authoring；带团规则调用：gm-protocol。' +
+        '\n规则系统操作标记：删除 [[rules:delete:规则系统名]]；重新解析 [[rules:reparse:规则系统名]]。';
     }
     var cont = _el('chat-messages');
     var time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
@@ -1094,7 +1599,14 @@ const UIManager = (() => {
           channel: sendChannelId,
           signal: devCtrl.signal,
           onStream: function(update) {
-            if (update.type === 'reasoning') updatePlaceholder(update.text, true);
+            if (update.type === 'reasoning') {
+              // 2026-08-05：非系统频道思考不显示内容，只显示"AI思考中"（沉浸感）
+              if (sendChannelId === 'system') updatePlaceholder(update.text, true);
+              else {
+                var textEl = placeholder ? placeholder.querySelector('.msg-text') : null;
+                if (textEl) { textEl.className = 'msg-text thinking-text'; textEl.innerHTML = '💭 AI思考中…'; }
+              }
+            }
             else if (update.type === 'content') updatePlaceholder(update.text, false);
           }
         });
@@ -1257,39 +1769,189 @@ const UIManager = (() => {
     }
   }
 
-  function refreshRulesList() {
-    var listEl = _el('rules-system-list'); if (!listEl) return;
-    return AIClient.getRuleSystems().then(function(sys) {
-      if (!sys || sys.length === 0) {
-        listEl.innerHTML = '<div class="rules-empty">尚未加载规则书。<br>上传PDF/CHM/TXT/MD后，系统会拆解为本地Markdown和资产文件。</div>';
+// ── 模组管理（GM页签内：导入文件夹/文件 → 树状浏览 → 预览/删除） ──
+function setupModuleManager() {
+var folderBtn = _el('btn-module-folder');
+var fileBtn = _el('btn-module-file');
+var folderInput = _el('module-folder-input');
+var fileInput = _el('module-file-input');
+// 2026-08-05：模组是 GM/主机功能——非 GM 隐藏入口（联机时普通玩家不可见不可操作）
+if (typeof isGMUser === 'function' && !isGMUser()) {
+if (folderBtn) folderBtn.style.display = 'none';
+if (fileBtn) fileBtn.style.display = 'none';
+return;
+}
+    if (folderBtn && folderInput) {
+      folderBtn.addEventListener('click', function() { folderInput.click(); });
+      folderInput.addEventListener('change', function() {
+        if (this.files && this.files.length) uploadModuleFiles(this.files, true);
+        this.value = '';
+      });
+    }
+    if (fileBtn && fileInput) {
+      fileBtn.addEventListener('click', function() { fileInput.click(); });
+      fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length) uploadModuleFiles(this.files, false);
+        this.value = '';
+      });
+    }
+  }
+
+  function _moduleSystem() {
+    var sys = _selectedRuleSystem || '';
+    return sys;
+  }
+
+  // 上传模组：isFolder=true 时用 webkitRelativePath 保留完整目录结构
+  function uploadModuleFiles(fileList, isFolder) {
+    // 2026-08-05：模组导入仅 GM/主机可操作
+    if (typeof isGMUser === 'function' && !isGMUser()) {
+      addChatMessage('system', '模组', '模组管理是 GM/主机功能，普通玩家不可操作。');
+      return;
+    }
+    var sys = _moduleSystem();
+    if (!sys) {
+      addChatMessage('system', '模组', '请先在「📚 规则书」列表中选择规则系统，再导入模组。');
+      return;
+    }
+    var arr = Array.prototype.slice.call(fileList);
+    var fd = new FormData();
+    fd.append('system', sys);
+    arr.forEach(function(f) {
+      fd.append('files', f);
+      var rel = isFolder && f.webkitRelativePath ? f.webkitRelativePath : f.name;
+      fd.append('relPath', rel);
+    });
+    var ce = _el('module-tree');
+    if (ce) ce.innerHTML = '<div class="rules-empty">正在导入模组：' + arr.length + ' 个文件…</div>';
+    fetch('/api/module/upload', { method: 'POST', body: fd }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data.success) {
+        addChatMessage('system', '模组', '已导入 ' + data.total + ' 个文件 → ' + sys + ' 的模组目录');
+      } else {
+        addChatMessage('system', '错误', '模组导入失败: ' + ((data && data.error) || '未知错误'));
+      }
+      refreshModuleList();
+    }).catch(function(e) {
+      addChatMessage('system', '错误', '模组导入失败: ' + (e.message || '与世界的联络中断'));
+      refreshModuleList();
+    });
+  }
+
+  function refreshModuleList() {
+    var treeEl = _el('module-tree'); if (!treeEl) return;
+    var sys = _moduleSystem();
+    if (!sys) {
+      treeEl.innerHTML = '<div class="rules-empty">尚未选择规则系统。<br>模组将导入到所选规则系统目录下，<br>请先在「📚 规则书」页选择系统。</div>';
+      return;
+    }
+    fetch('/api/module/list?system=' + encodeURIComponent(sys)).then(function(r) { return r.ok ? r.json() : { tree: [] }; }).then(function(data) {
+      var tree = (data && data.tree) || [];
+      if (!tree.length) {
+        treeEl.innerHTML = '<div class="rules-empty">尚未导入模组。<br>点击上方「📂 导入文件夹」选择模组目录，<br>或「📄 导入文件」选择模组文档。</div>';
         return;
       }
-      var html = '';
-      sys.forEach(function(s) {
-        var count = s.settings && s.settings.fileCount !== undefined ? s.settings.fileCount : ((s.files && s.files.length) || 0);
-        // 显示来源母本（玩家视角），不显示"AI检索源数"技术指标
-        var origin = s.settings && s.settings.originalFiles && s.settings.originalFiles.length
-          ? s.settings.originalFiles.join('、')
-          : (count + ' 个内容文件');
-        html += '<div class="rule-system-item" data-system="' + _esc(s.name || s.system) + '">' +
-          '<span class="rule-system-name">' + _esc(s.name || s.system) + '</span>' +
-          '<div class="rule-system-meta">' + _esc(origin) + '</div></div>';
-      });
-      listEl.innerHTML = html;
-      listEl.querySelectorAll('.rule-system-item').forEach(function(item) {
-        var sn = item.getAttribute('data-system');
-        item.addEventListener('click', function() {
-          listEl.querySelectorAll('.rule-system-item').forEach(function(el) { el.classList.remove('active'); });
-          this.classList.add('active');
-          _selectedRuleSystem = sn;
-          loadRuleSystemSettings(sn);
-          updateRuleActionButton();
-          if (typeof loadAdventureList === 'function') loadAdventureList(); // 切换规则书后刷新冒险列表
-          if (typeof _saveLastEntry === 'function') _saveLastEntry();
-        });
-      });
-      updateRuleActionButton();
+      treeEl.innerHTML = renderModuleTree(tree, '');
+      bindModuleTreeEvents(treeEl);
+    }).catch(function(e) {
+      treeEl.innerHTML = '<div class="rules-empty">模组列表加载失败：' + _esc(e.message || '') + '</div>';
     });
+  }
+
+  function renderModuleTree(items, prefix) {
+    var html = '';
+    items.forEach(function(item) {
+      var rel = prefix + item.name;
+      if (item.type === 'dir') {
+        html += '<div class="module-node module-dir" data-path="' + _esc(rel) + '">' +
+          '<span class="module-caret">▼</span><span class="module-icon">📁</span>' +
+          '<span class="module-name">' + _esc(item.name) + '</span>' +
+          '<span class="module-del" title="删除整个文件夹">🗑</span></div>';
+        if (item.children && item.children.length) {
+          html += '<div class="module-children" data-parent="' + _esc(rel) + '">' + renderModuleTree(item.children, rel + '/') + '</div>';
+        }
+      } else {
+        var sizeTxt = item.size > 1024 ? (item.size / 1024).toFixed(1) + ' KB' : item.size + ' B';
+        html += '<div class="module-node module-file" data-path="' + _esc(rel) + '">' +
+          '<span class="module-icon">📄</span>' +
+          '<span class="module-name">' + _esc(item.name) + '</span>' +
+          '<span class="module-size">' + sizeTxt + '</span>' +
+          '<span class="module-del" title="删除文件">🗑</span></div>';
+      }
+    });
+    return html;
+  }
+
+  function bindModuleTreeEvents(container) {
+    container.querySelectorAll('.module-dir').forEach(function(dir) {
+      dir.addEventListener('click', function(e) {
+        if (e.target.classList.contains('module-del')) {
+          deleteModuleItem(this.getAttribute('data-path'));
+          e.stopPropagation();
+          return;
+        }
+        var rel = this.getAttribute('data-path');
+        var kids = null;
+        container.querySelectorAll('.module-children').forEach(function(k) {
+          if (k.getAttribute('data-parent') === rel) kids = k;
+        });
+        var caret = this.querySelector('.module-caret');
+        if (kids) {
+          var hidden = kids.style.display === 'none';
+          kids.style.display = hidden ? '' : 'none';
+          if (caret) caret.textContent = hidden ? '▼' : '▶';
+        }
+      });
+    });
+    container.querySelectorAll('.module-file').forEach(function(file) {
+      file.addEventListener('click', function(e) {
+        if (e.target.classList.contains('module-del')) {
+          deleteModuleItem(this.getAttribute('data-path'));
+          e.stopPropagation();
+          return;
+        }
+        previewModuleFile(this.getAttribute('data-path'));
+      });
+    });
+  }
+
+  function deleteModuleItem(rel) {
+    var sys = _moduleSystem();
+    if (!sys || !rel) return;
+    if (!confirm('确定删除模组项「' + rel + '」？此操作不可恢复。')) return;
+    fetch('/api/module/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: sys, path: rel }) })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data && data.success) { addChatMessage('system', '模组', '已删除: ' + rel); refreshModuleList(); }
+        else addChatMessage('system', '错误', '删除失败: ' + ((data && data.error) || '未知错误'));
+      }).catch(function(e) { addChatMessage('system', '错误', '删除失败: ' + (e.message || '')); });
+  }
+
+  function previewModuleFile(rel) {
+    var sys = _moduleSystem();
+    var ce = _el('module-preview'); if (!ce || !sys) return;
+    ce.innerHTML = '<div class="rules-placeholder">加载中：' + _esc(rel) + '</div>';
+    fetch('/api/module/read?system=' + encodeURIComponent(sys) + '&path=' + encodeURIComponent(rel)).then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data.error) { ce.innerHTML = '<div class="rules-placeholder">加载失败：' + _esc(data.error) + '</div>'; return; }
+      if (data.binary) {
+        ce.innerHTML = '<div class="rules-placeholder">📦 二进制文件：' + _esc(data.name) + '<br>大小：' + (data.size > 1024 ? (data.size / 1024).toFixed(1) + ' KB' : data.size + ' B') + '<br>请在系统资源管理器中查看。</div>';
+        return;
+      }
+      var html = '<div class="module-preview-head">' + _esc(rel) + (data.truncated ? '<span style="color:#ffa;margin-left:6px;">（已截断，仅前 20000 字符）</span>' : '') + '</div>';
+      var content = data.content || '';
+      if (/\.(md|markdown|txt|htm|html)$/i.test(rel)) html += simpleMarkdown(content);
+      else html += '<pre class="module-preview-pre">' + _esc(content) + '</pre>';
+      ce.innerHTML = html;
+    }).catch(function(e) { ce.innerHTML = '<div class="rules-placeholder">加载失败：' + _esc(e.message || '') + '</div>'; });
+  }
+
+  // 2026-08-05 翻新：规则速查不再有"选择规则书"列表（选择在开始界面完成）；
+  // 本函数保留兼容接口——确保规则速查区渲染当前规则书内容（无内容时才重新加载）
+  function refreshRulesList() {
+    var ce = _el('rules-content-view');
+    if (ce && _selectedRuleSystem && (!ce.innerHTML || ce.innerHTML.indexOf('rules-placeholder') >= 0)) {
+      loadRuleSystemSettings(_selectedRuleSystem);
+    }
+    return Promise.resolve();
   }
 
   // ── 开始界面（全局入口：规则书→冒险，2026-08-05） ──
@@ -1425,17 +2087,19 @@ const UIManager = (() => {
   }
 
   // 进入内部界面（隐藏开始界面，加载规则书配置）
-  function enterMainInterface() {
-    var screen = _el('start-screen'); if (screen) screen.style.display = 'none';
-    _startRuleStep = false;
-    if (_selectedRuleSystem) {
-      loadRuleSystemSettings(_selectedRuleSystem);
-      updateRuleActionButton();
-      if (typeof loadAdventureList === 'function') loadAdventureList();
-      refreshRulesList();
-      renderChannelTabs();
-    }
-  }
+function enterMainInterface() {
+var screen = _el('start-screen'); if (screen) screen.style.display = 'none';
+_startRuleStep = false;
+if (_selectedRuleSystem) {
+loadRuleSystemSettings(_selectedRuleSystem);
+updateRuleActionButton();
+if (typeof loadAdventureList === 'function') loadAdventureList();
+refreshRulesList();
+renderChannelTabs();
+// 2026-08-05：进入主界面后从服务端加载当前频道历史（聊天区与历史窗口同源）
+setTimeout(function() { loadChannelHistoryFromServer(_activeChannelId, true); }, 300);
+}
+}
 
   // 全局侧边栏（抽屉式：左侧滑出 + 右侧遮罩）
   function openGlobalSidebar() {
@@ -1753,11 +2417,17 @@ const UIManager = (() => {
     updateRuleActionButton();
   }
 
-  function loadRuleSystemSettings(system, uploadSummary) {
-    var ce = _el('rules-content-view'); if (!ce) return;
-    _ruleTaskViewSystem = null;
-    _selectedRuleSystem = system;
-    updateRuleActionButton();
+function loadRuleSystemSettings(system, uploadSummary) {
+var ce = _el('rules-content-view'); if (!ce) return;
+_ruleTaskViewSystem = null;
+_selectedRuleSystem = system;
+// 2026-08-05 引擎化：应用该规则书的界面框架（无 ui/manifest.json 则用默认框架）
+applyUiManifest(system);
+// GM 面板 iframe（引擎化：加载规则书 ui/panels/gm.html，带 system 参数）
+var gmFrame = _el('gm-panel-frame');
+if (gmFrame) gmFrame.src = '/api/ui-panel?system=' + encodeURIComponent(system) + '&panel=gm';
+updateRuleActionButton();
+refreshModuleList();
     ce.innerHTML = '<div class="rules-placeholder">正在解析规则设置...</div>';
     AIClient.getRuleSystems().then(function(sys) {
       var item = (sys || []).find(function(s) { return (s.name || s.system) === system; });
@@ -1850,7 +2520,14 @@ const UIManager = (() => {
       });
     }
     var bn = _el('btn-new-character'); if (bn) bn.addEventListener('click', function() { openCharacterModal(); });
+    // 2026-08-06 入口统一：修改角色卡入口已移入角色卡页面内部（sheet.html 内"✏️ 编辑"按钮，按权限显示），
+    // 宿主右上角/角色面板不再出现"修改角色卡"切换按钮。
+    var be = _el('btn-edit-character');
+    if (be) be.style.display = 'none';
   }
+
+  // 2026-08-06：入口统一后不再切换新建/修改按钮，保留函数名避免遗漏调用点，行为=无操作
+  function updateCharacterActionButton() { }
 
   // ── 规则专属角色卡（动态链接：角色界面按当前规则系统加载 character-sheet 插件） ──
 
@@ -1914,11 +2591,32 @@ const UIManager = (() => {
           gridX: t.gridX, gridY: t.gridY,
           hp: t.hp, maxHp: t.maxHp, ac: t.ac,
           avatarUrl: t.avatarUrl,
+          category: getTokenCategory(t), // 2026-08-06：角色分类持久化
+          owner: t.owner || null, // 2026-08-06：角色归属（创建者玩家名）持久化
           data: t.data || null
         };
       });
       localStorage.setItem(CHARACTER_STORE_KEY, JSON.stringify(arr));
+      scheduleCharacterArchive(arr); // 2026-08-06：GM 原始版本备份（服务端存档）
     } catch (e) { /* 存储不可用时静默，不打断游戏 */ }
+  }
+
+  // ── GM 原始版本备份（2026-08-06）：角色保存后防抖同步到服务端存档 ──
+  // 服务端保留 current.json + versions/ 历史，GM 可对比/恢复（/api/characters/*）
+  var _archiveTimer = null;
+  function scheduleCharacterArchive(arr) {
+    if (!arr || !arr.length) return;
+    if (_archiveTimer) clearTimeout(_archiveTimer);
+    _archiveTimer = setTimeout(function() {
+      _archiveTimer = null;
+      var sys = _selectedRuleSystem || '';
+      var adv = _currentAdventure || '默认';
+      fetch('/api/characters/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: sys, adventure: adv, characters: arr })
+      }).catch(function() { /* 后端不可用不阻塞界面 */ });
+    }, 2500);
   }
 
   function restoreCharacters() {
@@ -1931,10 +2629,14 @@ const UIManager = (() => {
       var tok = null;
       try {
         tok = MapEngine.addToken({
+          id: s.id,
           name: s.name,
           displayName: s.displayName || s.name,
           color: s.color || '#4ecdc4',
           gridX: s.gridX || 0, gridY: s.gridY || 0,
+          hp: s.hp, maxHp: s.maxHp, ac: s.ac,
+          avatarUrl: s.avatarUrl || '', category: s.category || '玩家',
+          conditions: s.conditions || [], owner: s.owner || null,
           data: s.data || {}
         });
       } catch (e) { return; }
@@ -1946,6 +2648,8 @@ const UIManager = (() => {
       if (s.maxHp !== undefined) patch.maxHp = s.maxHp;
       if (s.ac !== undefined) patch.ac = s.ac;
       if (s.avatarUrl) patch.avatarUrl = s.avatarUrl;
+      if (s.category) patch.category = s.category;
+      if (s.owner) patch.owner = s.owner; // 2026-08-06：恢复角色归属
       if (Object.keys(patch).length) {
         try { MapEngine.updateToken(newId, patch); } catch (e2) {}
       }
@@ -1962,62 +2666,209 @@ const UIManager = (() => {
     }
   }
 
-  function refreshCharacterList() {
-    var listEl = _el('character-list'); if (!listEl) return;
-    var tokens = MapEngine.getAllTokens(); var html = '';
-    tokens.forEach(function(t) {
-      var hpStr = '?';
-      if (t.hp !== undefined && t.maxHp !== undefined) {
-        var pct = t.maxHp > 0 ? Math.round(t.hp / t.maxHp * 100) : 0;
-        hpStr = 'HP: ' + t.hp + '/' + t.maxHp + ' <span class="hp-bar-mini" style="width:' + pct + 'px"></span>';
-      }
-      html += '<div class="character-list-item" onclick="window.UIManager.selectCharacter(\'' + t.id + '\')">' +
-        getTokenAvatarHtml(t, 'char-list-avatar') +
-        '<div class="char-list-info"><div class="char-list-name">' + _esc(t.displayName || t.name) + '</div><div class="char-list-hp">' + hpStr + '</div></div>' +
-        '<button class="btn-small danger" onclick="event.stopPropagation();window.UIManager.deleteCharacter(\'' + t.id + '\')" title="删除">\u2715</button>' +
-        '</div>';
+  // ── 角色分类分页（2026-08-06）：玩家/友方/敌人/NPC + 动态自定义分类 ──
+  var DEFAULT_CHAR_CATEGORIES = ['玩家', '友方', '敌人', 'NPC'];
+  var CHAR_CAT_STORE_KEY = 'trpg_char_categories';
+  var _charCategoryFilter = null; // null=未初始化，首次渲染默认选中「玩家」
+
+  function getCharCategories() {
+    var cats = null;
+    try { cats = JSON.parse(localStorage.getItem(CHAR_CAT_STORE_KEY)); } catch (e) {}
+    if (!Array.isArray(cats) || !cats.length) cats = DEFAULT_CHAR_CATEGORIES.slice();
+    return cats;
+  }
+  function saveCharCategories(cats) {
+    try { localStorage.setItem(CHAR_CAT_STORE_KEY, JSON.stringify(cats)); } catch (e) {}
+  }
+  function getTokenCategory(t) {
+    if (!t) return '玩家';
+    var c = t.category || (t.data && t.data.category) || '玩家';
+    return c || '玩家';
+  }
+  function setTokenCategory(t, cat) {
+    t.category = cat;
+    try { MapEngine.updateToken(t.id, { category: cat, data: Object.assign({}, t.data || {}, { category: cat }) }); } catch (e) {}
+    persistCharacters();
+  }
+
+  function renderCharacterCategoryTabs() {
+    var tabsEl = _el('char-category-tabs'); if (!tabsEl) return;
+    if (_charCategoryFilter === null) _charCategoryFilter = '玩家';
+    var cats = getCharCategories();
+    var counts = {};
+    MapEngine.getAllTokens().forEach(function(t) { var c = getTokenCategory(t); counts[c] = (counts[c] || 0) + 1; });
+    tabsEl.innerHTML = '';
+    cats.forEach(function(cat) {
+      var btn = document.createElement('button');
+      btn.className = 'char-category-tab' + (cat === _charCategoryFilter ? ' active' : '');
+      btn.textContent = cat + ' (' + (counts[cat] || 0) + ')';
+      btn.title = '点击查看；把角色条目拖到这里即可调整分类';
+      btn.dataset.category = cat;
+      btn.addEventListener('click', function() { _charCategoryFilter = cat; renderCharacterCategoryTabs(); refreshCharacterList(); });
+      btn.addEventListener('dragover', function(e) { if (e.dataTransfer.types.indexOf('text/trpg-character') >= 0 || e.dataTransfer.types.indexOf('text/plain') >= 0) { e.preventDefault(); btn.classList.add('drag-over'); } });
+      btn.addEventListener('dragleave', function() { btn.classList.remove('drag-over'); });
+      btn.addEventListener('drop', function(e) {
+        e.preventDefault(); btn.classList.remove('drag-over');
+        var id = e.dataTransfer.getData('text/trpg-character') || e.dataTransfer.getData('text/plain');
+        var t = MapEngine.getTokenById(id);
+        if (!t || !canEditCharacter(id)) return;
+        setTokenCategory(t, cat); _charCategoryFilter = cat; renderCharacterCategoryTabs(); refreshCharacterList();
+      });
+      tabsEl.appendChild(btn);
     });
-    if (!tokens.length) html = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">暂无角色<br><br>点击「＋ 新建」创建角色，或「📥 导入卡」导入XLSX角色卡</div>';
-    listEl.innerHTML = html;
+    var addBtn = document.createElement('button'); addBtn.className = 'char-category-tab char-category-add'; addBtn.textContent = '＋'; addBtn.title = '添加自定义分类';
+    addBtn.addEventListener('click', function() { var name = prompt('新分类名称'); if (!name || !name.trim()) return; name = name.trim(); if (cats.indexOf(name) < 0) { cats.push(name); saveCharCategories(cats); } _charCategoryFilter = name; renderCharacterCategoryTabs(); refreshCharacterList(); });
+    tabsEl.appendChild(addBtn);
   }
 
-  function selectCharacter(id) {
-    var token = MapEngine.getTokenById(id);
-    if (token) {
-      // 独立窗口标准：角色卡在操作系统级新窗口打开（宿主 WebView2 接管 window.open）
-      try { localStorage.setItem('trpg_sheet_' + id, JSON.stringify(token)); } catch (e) {}
-      var sys = _selectedRuleSystem || '';
-      window.open('/sheet.html?id=' + encodeURIComponent(id) + '&system=' + encodeURIComponent(sys), '_blank');
-      showCharacterDetail(id);
-    }
+
+  // ── 2026-08-06 联机权限（模块级，角色列表/钩子/独立窗口共用） ──
+  // 角色修改权限——单机全权；联机=创建者（owner 玩家名）或 GM
+  function canEditCharacter(tokenId) {
+    if (!Network || !Network.isConnected || !Network.isConnected()) return true;
+    if (isGMUser()) return true;
+    var t = MapEngine.getTokenById(tokenId);
+    if (!t) return true;
+    var myName = (Network.getMyName && Network.getMyName()) || '';
+    return !t.owner || t.owner === myName; // owner 缺失视为旧数据/自己创建
+  }
+  // 当前绑定的"我的角色"名（聊天显示"角色名（玩家名）"）
+  function getMyCharacterName() {
+    try {
+      var cid = localStorage.getItem('trpg_my_character') || '';
+      if (!cid) return '';
+      var t = MapEngine.getTokenById(cid);
+      return t ? (t.displayName || t.name || '') : '';
+    } catch (e) { return ''; }
+  }
+  // 权限快照（独立窗口 sheet.html/character-create.html 读取）
+  function writePermSnapshot(tokenId) {
+    try {
+      var t = MapEngine.getTokenById(tokenId);
+      if (!t) return;
+      localStorage.setItem('trpg_perm_' + tokenId, JSON.stringify({
+        canEdit: canEditCharacter(tokenId),
+        isGM: isGMUser(),
+        owner: t.owner || ''
+      }));
+    } catch (e) {}
+  }
+  function writeAllPermSnapshots() {
+    MapEngine.getAllTokens().forEach(function (t) { writePermSnapshot(t.id); });
   }
 
-  function showCharacterDetail(tokenId) {
-    var de = _el('character-detail'); var le = _el('character-list');
-    if (!de || !le) return;
-    le.querySelectorAll('.character-list-item').forEach(function(i) { i.classList.remove('selected'); });
-    var item = le.querySelector('[onclick*="' + tokenId + '"]');
-    if (item) item.classList.add('selected');
-    var token = MapEngine.getTokenById(tokenId);
-    if (!token) { de.style.display = 'none'; return; }
-    // 规则专属角色卡优先：当前规则系统提供 character-sheet 插件时由插件渲染详情
-    var handler = getSheetHandler();
-    if (handler && typeof handler.renderDetail === 'function') {
-      de.innerHTML = '';
-      try {
-        handler.renderDetail(de, token, makeSheetContext(token));
-      } catch (err) {
-        de.innerHTML = '<div style="color:#ff7b7b;">角色卡渲染错误: ' + _esc(err.message) + '</div>';
+  function refreshCharacterList() {
+    setupCharacterListEvents();
+    var listEl = _el('character-list'); if (!listEl) return;
+    renderCharacterCategoryTabs();
+    var tokens = MapEngine.getAllTokens(); listEl.innerHTML = '';
+    if (!tokens.length) { listEl.innerHTML = '<div class="char-list-empty">暂无角色<br><br>点击「＋ 新建」创建角色，或导入已有角色卡</div>'; return; }
+    var cat = _charCategoryFilter || '玩家';
+    var filtered = tokens.filter(function(t) { return getTokenCategory(t) === cat; });
+    if (!filtered.length) { listEl.innerHTML = '<div class="char-list-empty">分类「' + _esc(cat) + '」暂无角色<br><span>可把其他分类的角色条目拖到此分页</span></div>'; return; }
+    var myCharId = ''; try { myCharId = localStorage.getItem('trpg_my_character') || ''; } catch (e) {}
+    filtered.forEach(function(t) {
+      writePermSnapshot(t.id);
+      var canEdit = canEditCharacter(t.id), isMyChar = t.id === myCharId, d = t.data || {};
+      var item = document.createElement('div'); item.className = 'character-list-item' + (isMyChar ? ' my-char' : '') + (t.id === _lastDetailTokenId ? ' selected' : ''); item.dataset.id = t.id; item.draggable = !!canEdit;
+      var lv = d.level !== undefined ? d.level : (d.Level !== undefined ? d.Level : '');
+      var cls = d.class || d.Class || '', race = d.race || t.race || '', bg = d.background || t.background || '';
+      var infoBits = [(lv !== '' ? 'Lv' + lv : ''), race, cls].filter(Boolean).join(' · ');
+      var hp = t.hp !== undefined ? t.hp : (d.HP && d.HP.current), maxHp = t.maxHp !== undefined ? t.maxHp : (d.HP && d.HP.max);
+      var ac = t.ac !== undefined ? t.ac : (d.AC !== undefined ? d.AC : '');
+      var pct = maxHp > 0 ? Math.max(0, Math.min(100, Math.round(hp / maxHp * 100))) : 0;
+      var tip = '<b>' + _esc(t.displayName || t.name) + '</b><br>' + _esc(infoBits || '未填写角色概况');
+      if (bg) tip += '<br>背景：' + _esc(bg); if (ac !== '') tip += '<br>护甲等级：' + _esc(ac); if (hp !== undefined) tip += '<br>生命值：' + _esc(hp) + '/' + _esc(maxHp || '?');
+      if (t.owner) tip += '<br>控制者：' + _esc(t.owner); if (canEdit) tip += '<br><span style="color:var(--text-muted)">拖到上方分页可改变分类</span>';
+      item.dataset.tooltip = tip;
+      item.innerHTML = getTokenAvatarHtml(t, 'char-list-avatar') +
+        '<div class="char-list-info"><div class="char-list-name">' + _esc(t.displayName || t.name) + (isMyChar ? ' <span class="my-char-mark">⭐</span>' : '') + '</div>' +
+        '<div class="char-list-sub">' + _esc(infoBits) + (ac !== '' ? ' · AC ' + _esc(ac) : '') + '</div>' +
+        '<div class="char-list-hp"><span>HP ' + _esc(hp === undefined ? '?' : hp) + '/' + _esc(maxHp || '?') + '</span><i class="hp-bar-mini-track"><i style="width:' + pct + '%"></i></i></div></div>' +
+        '<button class="btn-small char-open-btn" data-act="open-sheet" data-id="' + t.id + '" title="打开角色卡">角色卡</button>' +
+        '<button class="btn-small my-char-btn' + (isMyChar ? ' accent' : '') + '" data-act="set-my-char" data-id="' + t.id + '" title="设为我的角色">' + (isMyChar ? '⭐' : '☆') + '</button>' +
+        (isGMUser() && Network.isConnected() ? '<button class="btn-small transfer-btn" data-act="char-transfer" data-id="' + t.id + '" title="转交控制权">⇄</button>' : '') +
+        (canEdit ? '<button class="btn-small danger char-del-btn" data-id="' + t.id + '" title="删除角色">✕</button>' : '<span class="char-readonly" title="只读">🔒</span>');
+      item.addEventListener('dragstart', function(e) { if (!canEdit) { e.preventDefault(); return; } e.dataTransfer.setData('text/trpg-character', t.id); e.dataTransfer.setData('text/plain', t.id); e.dataTransfer.effectAllowed = 'move'; item.classList.add('dragging'); });
+      item.addEventListener('dragend', function() { item.classList.remove('dragging'); document.querySelectorAll('.char-category-tab').forEach(function(x){x.classList.remove('drag-over');}); });
+      item.addEventListener('mouseenter', showCharacterFloatTip); item.addEventListener('mousemove', moveCharacterFloatTip); item.addEventListener('mouseleave', hideCharacterFloatTip);
+      listEl.appendChild(item);
+    });
+  }
+
+  var _charFloatTip = null;
+  function showCharacterFloatTip(e) { var html = e.currentTarget && e.currentTarget.dataset.tooltip; if (!html) return; hideCharacterFloatTip(); _charFloatTip = document.createElement('div'); _charFloatTip.className = 'char-float-tip'; _charFloatTip.innerHTML = html; document.body.appendChild(_charFloatTip); moveCharacterFloatTip(e); }
+  function moveCharacterFloatTip(e) { if (!_charFloatTip) return; var x = e.clientX + 16, y = e.clientY + 14; var r = _charFloatTip.getBoundingClientRect(); if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = innerHeight - r.height - 8; _charFloatTip.style.left = Math.max(8,x) + 'px'; _charFloatTip.style.top = Math.max(8,y) + 'px'; }
+  function hideCharacterFloatTip() { if (_charFloatTip) _charFloatTip.remove(); _charFloatTip = null; }
+
+  // 2026-08-06：绑定"我的角色"（聊天以角色名发言；默认自己创建的即自动绑定）
+  function setMyCharacter(tokenId) {
+    try { localStorage.setItem('trpg_my_character', tokenId); } catch (e) {}
+    refreshCharacterList();
+    var t = MapEngine.getTokenById(tokenId);
+    if (t) addChatMessage('system', '角色', '已把「' + (t.displayName || t.name) + '」设为你的人物（聊天将以该角色名义发言）。');
+  }
+  // 2026-08-06：GM 转交角色控制权
+  function transferCharacter(tokenId) {
+    var t = MapEngine.getTokenById(tokenId); if (!t) return;
+    var to = prompt('把「' + (t.displayName || t.name) + '」的控制权转交给哪位玩家？（输入玩家名）', '');
+    if (!to || !to.trim()) return;
+    if (Network.isConnected()) Network.sendTokenTransfer(tokenId, to.trim());
+    else { t.owner = to.trim(); refreshCharacterList(); addChatMessage('system', '权限', '已把控制权转交给「' + to.trim() + '」（单机本地记录）。'); }
+  }
+
+  // 角色列表事件委托（绑定一次，动态列表项全部生效；幂等：重复调用无副作用）
+  function setupCharacterListEvents() {
+    if (_charListEventsBound) return;
+    var listEl = _el('character-list'); if (!listEl) return; _charListEventsBound = true;
+    listEl.addEventListener('click', function(e) {
+      var action = e.target.closest ? e.target.closest('[data-act]') : null;
+      if (action) {
+        e.stopPropagation(); var id = action.getAttribute('data-id'), act = action.getAttribute('data-act');
+        if (act === 'open-sheet') openCharacterSheet(id);
+        else if (act === 'set-my-char') setMyCharacter(id);
+        else if (act === 'char-transfer') transferCharacter(id);
+        return;
       }
-      de.style.display = 'block';
-      return;
+      var del = e.target.closest ? e.target.closest('.char-del-btn') : null; if (del) { e.stopPropagation(); deleteCharacter(del.dataset.id); return; }
+      var item = e.target.closest ? e.target.closest('.character-list-item') : null; if (item) selectCharacter(item.dataset.id);
+    });
+  }
+
+  // 2026-08-06：角色详情一律在操作系统级独立窗口（sheet.html）显示。
+  // 主窗口角色面板不内嵌长详情（曾与聊天栏同级框造成层级遮挡）；此处只做选中高亮 + 快照写入 + 开窗。
+  function selectCharacter(id) {
+    var token = MapEngine.getTokenById(id); if (!token) return;
+    _lastDetailTokenId = id;
+    var category = getTokenCategory(token);
+    if (_charCategoryFilter !== category) { _charCategoryFilter = category; renderCharacterCategoryTabs(); refreshCharacterList(); }
+    var le = _el('character-list'); if (le) { le.querySelectorAll('.character-list-item').forEach(function(i){ i.classList.toggle('selected', i.dataset.id === id); }); var item = Array.prototype.find.call(le.querySelectorAll('.character-list-item'), function(i){ return i.dataset.id === id; }); if (item) item.scrollIntoView({ block: 'nearest' }); }
+    try { localStorage.setItem('trpg_sheet_' + id, JSON.stringify(token)); } catch (e) {}
+  }
+
+  function openCharacterSheet(id) {
+    var token = MapEngine.getTokenById(id); if (!token) return;
+    selectCharacter(id); writePermSnapshot(id);
+    try { localStorage.setItem('trpg_sheet_' + id, JSON.stringify(token)); } catch (e) {}
+    var sys = _selectedRuleSystem || '';
+    try { window.open('/sheet.html?id=' + encodeURIComponent(id) + '&system=' + encodeURIComponent(sys), '_blank'); } catch (e) { addChatMessage('system','角色卡','无法打开角色卡窗口：'+e.message); }
+  }
+
+  // 2026-08-06：不再渲染内嵌详情；改为同步角色卡快照并通知已打开的独立窗口刷新（storage 事件）。
+  // 保留函数名与调用点（UpdateVariable 回写/图片保存/地图点选后刷新），行为改为"数据快照同步"。
+  function showCharacterDetail(tokenId) {
+    var token = MapEngine.getTokenById(tokenId);
+    if (!token) return;
+    _lastDetailTokenId = tokenId;
+    var le = _el('character-list');
+    if (le) {
+      le.querySelectorAll('.character-list-item').forEach(function(i) { i.classList.remove('selected'); });
+      var item = le.querySelector('.character-list-item[data-id="' + tokenId + '"]');
+      if (item) item.classList.add('selected');
     }
-    var tpl = TemplateRenderer.getActiveTemplate();
-    var data = token.data || {};
-    var html = '<div class="char-sheet-header">' + getTokenAvatarHtml(token, 'char-sheet-avatar') +
-      '<div class="char-sheet-title"><h3>' + _esc(token.displayName || token.name) + '</h3><span>' + _esc(token.name) + '</span></div></div>';
-    html += TemplateRenderer.renderCharacterSheet(tpl, data, tokenId);
-    de.innerHTML = html; de.style.display = 'block';
+    try {
+      localStorage.setItem('trpg_sheet_' + tokenId, JSON.stringify(token));
+    } catch (e) {}
   }
 
   function damageCharacter(tokenId) {
@@ -2047,16 +2898,36 @@ const UIManager = (() => {
   }
 
   function openCharacterModalForEdit(tokenId) {
-    var token = MapEngine.getTokenById(tokenId); if (!token) return;
-    // 独立窗口标准：编辑角色卡同样在独立窗口打开
+    var token = MapEngine.getTokenById(tokenId); if (!token || !canEditCharacter(tokenId)) return;
     try { localStorage.setItem('trpg_sheet_' + tokenId, JSON.stringify(token)); } catch (e) {}
     var sys = _selectedRuleSystem || '';
-    window.open('/character-create.html?system=' + encodeURIComponent(sys) + '&id=' + encodeURIComponent(tokenId), '_blank');
+    window.open('/sheet.html?id=' + encodeURIComponent(tokenId) + '&system=' + encodeURIComponent(sys) + '&edit=1', '_blank');
   }
 
   // 独立窗口标准：接收角色卡创建窗口（character-create.html）的保存结果
   function setupPendingCharacterListener() {
     window.addEventListener('storage', function(e) {
+      // 2026-08-06：角色卡独立窗口恢复历史版本 → 主窗口应用恢复数据
+      if (e.key && e.key.indexOf('trpg_char_restore_') === 0 && e.newValue) {
+        var rId = e.key.substring('trpg_char_restore_'.length);
+        try {
+          var rch = JSON.parse(e.newValue);
+          var rTok = MapEngine.getTokenById(rId);
+          if (rTok && rch) {
+            var up = { data: rch.data || rTok.data || {} };
+            if (rch.hp !== undefined) up.hp = rch.hp;
+            if (rch.maxHp !== undefined) up.maxHp = rch.maxHp;
+            if (rch.ac !== undefined) up.ac = rch.ac;
+            if (rch.category) up.category = rch.category;
+            MapEngine.updateToken(rId, up);
+            persistCharacters();
+            refreshCharacterList();
+            addChatMessage('system', '角色卡', '已从历史版本恢复角色: ' + ((rch.displayName) || rch.name || ''));
+          }
+        } catch (err) {}
+        try { localStorage.removeItem(e.key); } catch (err) {}
+        return;
+      }
       if (e.key !== 'trpg_pending_character') return;
       var val = null;
       try { val = JSON.parse(e.newValue); } catch (err) {}
@@ -2065,6 +2936,8 @@ const UIManager = (() => {
       var data = val.data || {};
       if (val.action === 'update' && val.id) {
         var up = { name: val.name, displayName: val.displayName, color: val.color, data: data };
+        if (data.assets && (data.assets.avatarFramed || data.assets.avatar)) up.avatarUrl = data.assets.avatarFramed || data.assets.avatar;
+        if (val.category) up.category = val.category;
         var hpV = data.HP || data.HP_current;
         if (hpV && typeof hpV === 'object') { up.hp = hpV.current; up.maxHp = hpV.max; }
         if (data.AC !== undefined) up.ac = parseInt(data.AC) || data.AC;
@@ -2072,6 +2945,8 @@ const UIManager = (() => {
         try { localStorage.setItem('trpg_sheet_' + val.id, JSON.stringify(MapEngine.getTokenById(val.id))); } catch (err) {}
       } else {
         var tok = MapEngine.addToken({ name: val.name, displayName: val.displayName, color: val.color, gridX: 0, gridY: 0, data: data });
+        if (data.assets && (data.assets.avatarFramed || data.assets.avatar)) MapEngine.updateToken(tok.id, { avatarUrl: data.assets.avatarFramed || data.assets.avatar });
+        if (val.category) MapEngine.updateToken(tok.id, { category: val.category });
         var hpV = data.HP || data.HP_current;
         if (hpV && typeof hpV === 'object') MapEngine.updateToken(tok.id, { hp: hpV.current, maxHp: hpV.max });
         if (data.AC !== undefined) MapEngine.updateToken(tok.id, { ac: parseInt(data.AC) || data.AC });
@@ -2151,7 +3026,7 @@ const UIManager = (() => {
     var name = (_el('char-name') || {}).value || (_el('char-display') || {}).value || '未命名角色';
     var nameInput = _el('char-image-name'); if (nameInput) nameInput.value = name.trim() || '未命名角色';
     var fileInput = _el('char-image-file'); if (fileInput) fileInput.value = '';
-    _imageTool = { image: null, originalDataUrl: '', cropPortrait: null, cropAvatar: null, crop: { x: 110, y: 40, w: 300, h: 225 }, dragging: false, dragOffsetX: 0, dragOffsetY: 0, zoom: 1 };
+    _imageTool = { image: null, originalDataUrl: '', cropPortrait: null, cropAvatar: null, target: 'portrait', crop: { x: 110, y: 40, w: 300, h: 225 }, dragging: false, dragOffsetX: 0, dragOffsetY: 0, zoom: 1 };
     var zoom = _el('char-image-zoom'); if (zoom) zoom.value = '1';
     fillCharacterImageSystems();
     clearImagePreviews();
@@ -2188,11 +3063,18 @@ const UIManager = (() => {
 
   function resetImageCropForTarget(target) {
     var canvas = _el('char-image-canvas'); if (!canvas) return;
-    var ratio = target === 'avatar' ? 1 : 4 / 3;
-    var h = Math.min(canvas.height - 60, target === 'avatar' ? 260 : 270);
-    var w = h * ratio;
-    if (w > canvas.width - 60) { w = canvas.width - 60; h = w / ratio; }
-    _imageTool.crop = { x: (canvas.width - w) / 2, y: (canvas.height - h) / 2, w: w, h: h };
+    _imageTool.target = target || 'portrait';
+    if (target === 'avatar') {
+      // 圆形裁剪：圆心 + 半径（用户拖动圆框控制剪切范围，形成圆形头像）
+      var r = Math.min(canvas.width, canvas.height) * 0.32;
+      _imageTool.crop = { x: canvas.width / 2, y: canvas.height / 2, r: r };
+    } else {
+      var ratio = 3 / 4;
+      var h = Math.min(canvas.height - 50, 330);
+      var w = h * ratio;
+      if (w > canvas.width - 50) { w = canvas.width - 50; h = w / ratio; }
+      _imageTool.crop = { x: (canvas.width - w) / 2, y: (canvas.height - h) / 2, w: w, h: h };
+    }
   }
 
   function drawCharacterImageTool() {
@@ -2210,13 +3092,34 @@ const UIManager = (() => {
     var dw = img.width * fit, dh = img.height * fit;
     var dx = (canvas.width - dw) / 2, dy = (canvas.height - dh) / 2;
     _imageTool.draw = { dx: dx, dy: dy, dw: dw, dh: dh, scale: fit };
-    ctx.drawImage(img, dx, dy, dw, dh);
     var c = _imageTool.crop;
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.fillRect(0, 0, canvas.width, c.y); ctx.fillRect(0, c.y + c.h, canvas.width, canvas.height - c.y - c.h);
-    ctx.fillRect(0, c.y, c.x, c.h); ctx.fillRect(c.x + c.w, c.y, canvas.width - c.x - c.w, c.h);
-    ctx.strokeStyle = '#e0c870'; ctx.lineWidth = 2; ctx.strokeRect(c.x, c.y, c.w, c.h);
-    ctx.fillStyle = '#e0c870'; ctx.fillRect(c.x + c.w - 10, c.y + c.h - 10, 10, 10);
+    var isCircle = _imageTool.target === 'avatar';
+    if (isCircle) {
+      // 圆形裁剪：圆外半透明遮罩 + 金色圆环 + 右下角缩放手柄
+      ctx.drawImage(img, dx, dy, dw, dh);
+      var mask = document.createElement('canvas');
+      mask.width = canvas.width; mask.height = canvas.height;
+      var mctx = mask.getContext('2d');
+      mctx.fillStyle = 'rgba(0,0,0,0.5)'; mctx.fillRect(0, 0, mask.width, mask.height);
+      mctx.globalCompositeOperation = 'destination-out';
+      mctx.beginPath(); mctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); mctx.fill();
+      ctx.drawImage(mask, 0, 0);
+      ctx.strokeStyle = '#e0c870'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2); ctx.stroke();
+      // 缩放手柄（右下角）
+      var hx = c.x + c.r * 0.7, hy = c.y + c.r * 0.7;
+      ctx.fillStyle = '#e0c870'; ctx.beginPath(); ctx.arc(hx, hy, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1a1a2e'; ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#8a8ab0'; ctx.textAlign = 'left'; ctx.font = '12px sans-serif';
+      ctx.fillText('拖动圆框移动 · 右下角手柄缩放 · 圆形头像', 12, canvas.height - 10);
+    } else {
+      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(0, 0, canvas.width, c.y); ctx.fillRect(0, c.y + c.h, canvas.width, canvas.height - c.y - c.h);
+      ctx.fillRect(0, c.y, c.x, c.h); ctx.fillRect(c.x + c.w, c.y, canvas.width - c.x - c.w, c.h);
+      ctx.strokeStyle = '#e0c870'; ctx.lineWidth = 2; ctx.strokeRect(c.x, c.y, c.w, c.h);
+      ctx.fillStyle = '#e0c870'; ctx.fillRect(c.x + c.w - 10, c.y + c.h - 10, 10, 10);
+    }
   }
 
   function startImageCropDrag(e) {
@@ -2224,8 +3127,27 @@ const UIManager = (() => {
     var rect = this.getBoundingClientRect();
     var x = e.clientX - rect.left, y = e.clientY - rect.top;
     var c = _imageTool.crop;
-    if (x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.h) {
-      _imageTool.dragging = true;
+    var isCircle = _imageTool.target === 'avatar';
+    if (isCircle) {
+      // 手柄：右下角 40px 内 → 缩放；圆内 → 拖动
+      var hx = c.x + c.r * 0.7, hy = c.y + c.r * 0.7;
+      if (Math.hypot(x - hx, y - hy) <= 18) {
+        _imageTool.dragging = 'resize';
+        _imageTool.dragStartDist = Math.hypot(x - c.x, y - c.y);
+        _imageTool.dragStartR = c.r;
+      } else if (Math.hypot(x - c.x, y - c.y) <= c.r) {
+        _imageTool.dragging = 'move';
+        _imageTool.dragOffsetX = x - c.x;
+        _imageTool.dragOffsetY = y - c.y;
+      }
+      return;
+    }
+    if (x >= c.x + c.w - 16 && y >= c.y + c.h - 16) {
+      _imageTool.dragging = 'resize';
+      _imageTool.dragStartW = c.w; _imageTool.dragStartH = c.h;
+      _imageTool.dragStartX = x; _imageTool.dragStartY = y;
+    } else if (x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.h) {
+      _imageTool.dragging = 'move';
       _imageTool.dragOffsetX = x - c.x;
       _imageTool.dragOffsetY = y - c.y;
     }
@@ -2236,8 +3158,26 @@ const UIManager = (() => {
     var rect = this.getBoundingClientRect();
     var x = e.clientX - rect.left, y = e.clientY - rect.top;
     var c = _imageTool.crop;
-    c.x = Math.max(0, Math.min(this.width - c.w, x - _imageTool.dragOffsetX));
-    c.y = Math.max(0, Math.min(this.height - c.h, y - _imageTool.dragOffsetY));
+    if (_imageTool.target === 'avatar') {
+      if (_imageTool.dragging === 'resize') {
+        var dist = Math.max(24, Math.hypot(x - c.x, y - c.y));
+        c.r = Math.min(this.width / 2, Math.min(this.height / 2, dist));
+      } else if (_imageTool.dragging === 'move') {
+        c.x = Math.max(c.r, Math.min(this.width - c.r, x - _imageTool.dragOffsetX));
+        c.y = Math.max(c.r, Math.min(this.height - c.r, y - _imageTool.dragOffsetY));
+      }
+    } else {
+      if (_imageTool.dragging === 'resize') {
+        var ratio = 3 / 4;
+        var nw = Math.max(40, x - c.x);
+        var nh = Math.max(54, y - c.y);
+        c.w = Math.min(this.width - c.x, Math.max(nw, nh * ratio));
+        c.h = c.w / ratio;
+      } else if (_imageTool.dragging === 'move') {
+        c.x = Math.max(0, Math.min(this.width - c.w, x - _imageTool.dragOffsetX));
+        c.y = Math.max(0, Math.min(this.height - c.h, y - _imageTool.dragOffsetY));
+      }
+    }
     drawCharacterImageTool();
   }
 
@@ -2247,11 +3187,30 @@ const UIManager = (() => {
     var canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
     var ctx = canvas.getContext('2d');
     var d = _imageTool.draw;
-    var sx = Math.max(0, (crop.x - d.dx) / d.scale);
-    var sy = Math.max(0, (crop.y - d.dy) / d.scale);
-    var sw = Math.min(_imageTool.image.width - sx, crop.w / d.scale);
-    var sh = Math.min(_imageTool.image.height - sy, crop.h / d.scale);
-    ctx.drawImage(_imageTool.image, sx, sy, sw, sh, 0, 0, width, height);
+    var isCircle = _imageTool.target === 'avatar';
+    if (isCircle) {
+      // 圆形裁切：源图按圆心/半径取样，clip 圆形，输出透明底 PNG
+      var sx = Math.max(0, (crop.x - d.dx) / d.scale - (crop.r / d.scale));
+      var sy = Math.max(0, (crop.y - d.dy) / d.scale - (crop.r / d.scale));
+      var sw = Math.min(_imageTool.image.width - sx, (crop.r * 2) / d.scale);
+      var sh = Math.min(_imageTool.image.height - sy, (crop.r * 2) / d.scale);
+      var cx = width / 2, cy = height / 2;
+      var radius = Math.min(width, height) / 2;
+      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.clip();
+      ctx.drawImage(_imageTool.image, sx, sy, sw, sh, 0, 0, width, height);
+      if (framed) {
+        ctx.beginPath(); ctx.arc(cx, cy, radius - 6, 0, Math.PI * 2);
+        ctx.lineWidth = Math.max(10, width * 0.05); ctx.strokeStyle = '#c9a84c'; ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, radius - 14, 0, Math.PI * 2);
+        ctx.lineWidth = Math.max(3, width * 0.015); ctx.strokeStyle = '#1a1a2e'; ctx.stroke();
+      }
+      return canvas.toDataURL('image/png');
+    }
+    var sx2 = Math.max(0, (crop.x - d.dx) / d.scale);
+    var sy2 = Math.max(0, (crop.y - d.dy) / d.scale);
+    var sw2 = Math.min(_imageTool.image.width - sx2, crop.w / d.scale);
+    var sh2 = Math.min(_imageTool.image.height - sy2, crop.h / d.scale);
+    ctx.drawImage(_imageTool.image, sx2, sy2, sw2, sh2, 0, 0, width, height);
     if (framed) {
       ctx.lineWidth = Math.max(12, width * 0.045);
       ctx.strokeStyle = '#c9a84c'; ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, width - ctx.lineWidth, height - ctx.lineWidth);
@@ -2263,18 +3222,21 @@ const UIManager = (() => {
 
   function recordCurrentCrop(target) {
     if (!_imageTool.image) { addChatMessage('system', '角色图片', '请先选择图片。'); return; }
+    // 按目标对齐裁剪形状：portrait→矩形3:4，avatar→圆形（用户手动控制剪切范围形成圆形头像）
+    var needShape = target === 'avatar' ? (_imageTool.target !== 'avatar') : (_imageTool.target === 'avatar');
+    if (needShape) resetImageCropForTarget(target);
     if (target === 'portrait') {
       _imageTool.cropPortrait = Object.assign({}, _imageTool.crop);
-      var p = cropToDataUrl(_imageTool.cropPortrait, 800, 600, false);
+      var p = cropToDataUrl(_imageTool.cropPortrait, 768, 1024, false);
       var pi = _el('char-image-portrait-preview'); if (pi) pi.src = p;
-      addChatMessage('system', '角色图片', '已记录4:3立绘裁剪。');
+      addChatMessage('system', '角色图片', '已记录3:4垂直立绘裁剪。');
     } else {
       _imageTool.cropAvatar = Object.assign({}, _imageTool.crop);
       var a = cropToDataUrl(_imageTool.cropAvatar, 512, 512, false);
       var f = cropToDataUrl(_imageTool.cropAvatar, 512, 512, true);
       var ai = _el('char-image-avatar-preview'); if (ai) ai.src = a;
       var fi = _el('char-image-framed-preview'); if (fi) fi.src = f;
-      addChatMessage('system', '角色图片', '已记录1:1头像裁剪。');
+      addChatMessage('system', '角色图片', '已记录圆形头像裁剪。');
     }
   }
 
@@ -2293,7 +3255,7 @@ const UIManager = (() => {
       characterName: characterName,
       images: {
         original: _imageTool.originalDataUrl,
-        portrait: cropToDataUrl(_imageTool.cropPortrait, 800, 600, false),
+        portrait: cropToDataUrl(_imageTool.cropPortrait, 768, 1024, false),
         avatar: cropToDataUrl(_imageTool.cropAvatar, 512, 512, false),
         avatarFramed: cropToDataUrl(_imageTool.cropAvatar, 512, 512, true)
       }
@@ -2326,11 +3288,13 @@ const UIManager = (() => {
   function deleteCharacter(tokenId) {
     var token = MapEngine.getTokenById(tokenId); if (!token) return;
     var name = token.displayName || token.name;
-    MapEngine.removeToken(tokenId); refreshCharacterList();
+    // 加固：任何一步异常（地图重绘/网络同步/存储）都不阻断删除完成
+    try { MapEngine.removeToken(tokenId); } catch (e) {}
     try { localStorage.removeItem('trpg_sheet_' + tokenId); } catch (e) {}
-    persistCharacters();
-    var de = _el('character-detail'); if (de) de.style.display = 'none';
+    refreshCharacterList();
+    try { persistCharacters(); } catch (e) {}
     if (_editingCharId === tokenId) _editingCharId = null;
+    if (_lastDetailTokenId === tokenId) { _lastDetailTokenId = null; }
     addChatMessage('system', '删除', '已删除角色: ' + _esc(name));
   }
 
@@ -2786,6 +3750,13 @@ const UIManager = (() => {
       }
       addChatMessage('system', '房间', '房间已创建！码: ' + data.code + '。点击顶部房间码复制链接发给朋友。');
       updateAIControls();
+      // 2026-08-06：GM 创建房间后把本地已有角色全量同步到房间（玩家加入即见）
+      if (Network.isConnected() && MapEngine.getAllTokens().length) {
+        setTimeout(function () { Network.sendTokenSyncAll(); }, 300);
+      }
+      // 我的名字按钮（GM 名）
+      var mn = _el('btn-my-name');
+      if (mn) { mn.style.display = ''; mn.textContent = '👤 ' + ((Network.getMyName && Network.getMyName()) || data.myName || '房主'); }
     };
 
     Network.onRoomJoined = function(data) {
@@ -2796,10 +3767,41 @@ const UIManager = (() => {
       }
       addChatMessage('system', '房间', '已加入房间: ' + data.code);
       updateAIControls();
+      // 2026-08-06：我的名字按钮（玩家名=身份）
+      var mn2 = _el('btn-my-name');
+      if (mn2) { mn2.style.display = ''; mn2.textContent = '👤 ' + ((Network.getMyName && Network.getMyName()) || data.myName || '未命名'); }
+      // 2026-08-05：接入房间自动载入 GM 的开发内容（规则书+插件+界面框架）
+      // 本地校验：当前已加载同一规则书且内容未变则跳过（不重复下载）
+      if (data.system) {
+        if (_selectedRuleSystem === data.system && _currentAdventure === (data.adventure || '默认')) {
+          addChatMessage('system', '房间', '规则书「' + data.system + '」已在本地，无需重复载入。');
+        } else {
+          _selectedRuleSystem = data.system;
+          _currentAdventure = data.adventure || '默认';
+          try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {}
+          _saveLastEntry();
+          enterMainInterface();
+          addChatMessage('system', '房间', '已载入房主的内容：' + data.system + '（' + _currentAdventure + '）');
+        }
+      }
     };
 
     Network.onRoomError = function(msg) {
       alert(msg);
+    };
+
+    // 2026-08-05：GM 内容更新 → 玩家端全量重载（本地校验：未变化的文件不重复下载，见 plugins.js 缓存）
+    Network.onContentUpdated = function(data) {
+      addChatMessage('system', '房间', '房主更新了内容，正在同步最新版本…');
+      if (_selectedRuleSystem) {
+        // 重新加载插件（带哈希缓存校验）+ 重新应用界面框架
+        if (window.PluginRuntime && typeof PluginRuntime.reloadSystemPlugins === 'function') {
+          PluginRuntime.reloadSystemPlugins(_selectedRuleSystem);
+        }
+        applyUiManifest(_selectedRuleSystem);
+        refreshRulesList();
+        addChatMessage('system', '房间', '内容已同步到最新版本。');
+      }
     };
 
     Network.onPlayersUpdate = function(players, host) {
@@ -2810,15 +3812,66 @@ const UIManager = (() => {
         disp.innerHTML = '<span class="room-code">' + code + '</span><span class="room-url-hint">' + count + '人在线</span>';
         disp.className = 'room-info active';
       }
+      // 2026-08-06：联机时显示"我的名字"按钮（玩家名=身份，可改名）
+      var mn = _el('btn-my-name');
+      if (mn) {
+        var my = (Network.getMyName && Network.getMyName()) || '';
+        mn.style.display = code ? '' : 'none';
+        mn.textContent = '👤 ' + (my || '未命名');
+        mn.title = '我的玩家名：' + (my || '未命名') + '（同名进入房间=同一玩家；点击改名）';
+      }
       updateAIControls();
     };
 
+    // 2026-08-06：改名（身份变更——旧名创建的角色归属自动转给新名，GM 可再转交）
+    var myNameBtn = _el('btn-my-name');
+    if (myNameBtn) myNameBtn.addEventListener('click', function() {
+      var cur = (Network.getMyName && Network.getMyName()) || '';
+      var nn = prompt('你的玩家名（身份标识，同名进入=同一玩家）', cur);
+      if (nn === null) return;
+      nn = nn.trim();
+      if (!nn || nn === cur) return;
+      Network.renameMe(nn);
+      addChatMessage('system', '房间', '已改名为「' + nn + '」（你创建的角色归属将转给新名字）。');
+    });
+
     Network.onChat = function(data) {
-      addChatMessage('user', data.sender || '玩家', data.text);
+      // 2026-08-06：聊天显示"角色名（玩家名）"
+      var sender = (data.characterName && data.characterName !== data.sender)
+        ? data.characterName + '（' + (data.sender || '玩家') + '）'
+        : (data.sender || '玩家');
+      addChatMessage('user', sender, data.text);
     };
 
     Network.onAIChat = function(data) {
-      addChatMessage('ai', 'AI', data.text || '', data.channelId || _activeChannelId || 'story');
+      handleRemoteAIChat(data);
+    };
+
+    // 2026-08-05 条目化：远端编辑/撤回同步
+    Network.onChatEdited = function(data) { handleRemoteChatEdited(data); };
+    Network.onChatRetracted = function(data) { handleRemoteChatRetracted(data); };
+
+    // 2026-08-06 联机权限：服务端拒绝（角色被他人/GM 修改权限拦截）→ 提示 + 回滚本地为合法镜像
+    Network.onPermDenied = function(data) {
+      addChatMessage('system', '权限', (data && data.message) || '无权限修改该角色（只读）。');
+      if (data && data.token) {
+        var t = data.token;
+        _suppressNet = true;
+        try { MapEngine.updateToken(t.id, t); } catch (e) {}
+        _suppressNet = false;
+        refreshCharacterList();
+        writeAllPermSnapshots();
+      }
+    };
+    // 2026-08-06：角色控制权转交广播（GM 转交 owner）
+    Network.onTokenUpdated = function(data) {
+      if (data && data.id) {
+        var t = MapEngine.getTokenById(data.id);
+        if (t && data.owner !== undefined) t.owner = data.owner;
+        refreshCharacterList();
+        writeAllPermSnapshots();
+        addChatMessage('system', '权限', (data.by || 'GM') + ' 将角色控制权转交给了「' + (data.owner || '?') + '」');
+      }
     };
 
     Network.onDiceRoll = function(data) {
@@ -2827,16 +3880,54 @@ const UIManager = (() => {
     };
 
     // 房间按钮
-    _el('btn-create-room').addEventListener('click', function() {
-      if (!Network.isConnected()) {
-        addChatMessage('system', '房间', 'SoloTrpg后端未连接。请运行 start.bat 或 SoloTrpg.exe。');
-        return;
-      }
-      Network.createRoom();
-    });
+_el('btn-create-room').addEventListener('click', function() {
+if (!Network.isConnected()) {
+addChatMessage('system', '房间', 'SoloTrpg后端未连接。请运行 start.bat 或 SoloTrpg.exe。');
+return;
+}
+// 2026-08-06：GM 玩家名（房主身份=玩家名；持久于本机，同名重进=同一 GM）
+var gmName = prompt('你的玩家名（房主/GM，可在角色面板改名）', (Network.getMyName && Network.getMyName()) || '房主');
+if (gmName === null) return;
+gmName = (gmName || '').trim() || '房主';
+// 2026-08-05：房间绑定 GM 当前规则书+冒险
+Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmName);
+});
 
     _el('btn-join-room').addEventListener('click', function() {
+      // 2026-08-06：预填已有玩家名（玩家名=身份，同名进入=同一玩家）；加载注册表（离线玩家下拉 + 输入匹配）
+      var nameEl = _el('join-room-name');
+      if (nameEl) {
+        var saved = (Network.getMyName && Network.getMyName()) || '';
+        if (!nameEl.value) nameEl.value = saved;
+      }
+      loadPlayerNameOptions();
       openModal('join-room-modal');
+    });
+
+    // 2026-08-06：加载玩家名注册表——"当前无人的玩家"下拉 + 输入自动匹配（方便本人重进）
+    function loadPlayerNameOptions() {
+      fetch(getServerUrl() + '/api/players/names').then(function (r) { return r.json(); })
+        .then(function (data) {
+          var list = (data && data.players) || [];
+          // 输入匹配（datalist）
+          var dl = _el('join-room-name-list');
+          if (dl) dl.innerHTML = list.map(function (p) { return '<option value="' + _esc(p.name) + '">' + (p.online ? '（在线）' : '（离线可接入）') + '</option>'; }).join('');
+          // 离线玩家下拉（当前无人 = 已注册且不在线）
+          var off = _el('join-room-offline');
+          if (off) {
+            var offline = list.filter(function (p) { return !p.online; });
+            off.innerHTML = '<option value="">— 选择当前无人的玩家名（本人重进用）—</option>' +
+              offline.map(function (p) { return '<option value="' + _esc(p.name) + '">' + _esc(p.name) + '（可接入）</option>'; }).join('');
+            if (!offline.length) off.innerHTML = '<option value="">— 暂无离线玩家名（输入新名字创建）—</option>';
+          }
+        })
+        .catch(function () { /* 后端不可用：仅保留自输入 */ });
+    }
+    // 选择离线玩家 → 填入名字输入框
+    var offSel = _el('join-room-offline');
+    if (offSel) offSel.addEventListener('change', function() {
+      var nameEl = _el('join-room-name');
+      if (nameEl && this.value) nameEl.value = this.value;
     });
 
     _el('btn-join-confirm').addEventListener('click', function() {
@@ -2882,22 +3973,47 @@ const UIManager = (() => {
       });
     });
 
-    // 钩子：标记操作时同步到网络
+    // 钩子：标记操作时同步到网络（2026-08-06：角色归属=创建者玩家名；本地预检只读，服务端校验兜底；
+    // canEditCharacter/getMyCharacterName/writePermSnapshot 为模块级函数，见角色列表区）
+    var _suppressNet = false; // 回滚/远端应用时跳过网络广播
+
     var origAddToken = MapEngine.addToken;
     MapEngine.addToken = function(opts) {
       var token = origAddToken(opts);
-      if (Network.isConnected()) Network.sendTokenAdd(token);
+      // 2026-08-06：归属=创建者玩家名；新建角色自动成为"我的角色"
+      if (Network.isConnected()) {
+        if (!token.owner) token.owner = (Network.getMyName && Network.getMyName()) || '';
+        try { localStorage.setItem('trpg_my_character', token.id); } catch (e) {}
+        Network.sendTokenAdd(token);
+      }
       return token;
     };
     var origRemoveToken = MapEngine.removeToken;
     MapEngine.removeToken = function(id) {
+      // 2026-08-06：删除角色本地预检（只读角色不可删；服务端校验兜底）
+      if (!_suppressNet && Network.isConnected() && !canEditCharacter(id)) {
+        var td = MapEngine.getTokenById(id);
+        addChatMessage('system', '权限', '该角色由「' + (td && td.owner ? td.owner : '其他玩家') + '」创建，只有创建者或 GM 可删除（当前为只读）。');
+        return;
+      }
       origRemoveToken(id);
-      if (Network.isConnected()) Network.sendTokenRemove(id);
+      if (Network.isConnected() && !_suppressNet) Network.sendTokenRemove(id);
     };
     var origUpdateToken = MapEngine.updateToken;
     MapEngine.updateToken = function(id, updates) {
+      if (!_suppressNet && Network.isConnected()) {
+        var isMove = (updates && (updates.gridX !== undefined || updates.gridY !== undefined));
+        // 数据修改（非地图位置）预检权限：只读角色直接拦截并提示
+        if (!isMove) {
+          var t0 = MapEngine.getTokenById(id);
+          if (t0 && !canEditCharacter(id)) {
+            addChatMessage('system', '权限', '该角色由「' + (t0.owner || '其他玩家') + '」创建，只有创建者或 GM 可修改（当前为只读）。');
+            return t0;
+          }
+        }
+      }
       var result = origUpdateToken(id, updates);
-      if (Network.isConnected()) {
+      if (Network.isConnected() && !_suppressNet) {
         if (updates.gridX !== undefined || updates.gridY !== undefined) {
           Network.sendTokenMove(id, updates.gridX, updates.gridY);
         } else {
@@ -2908,12 +4024,12 @@ const UIManager = (() => {
     };
   }
 
-  // 覆写addChatMessage以同步到网络
+  // 覆写addChatMessage以同步到网络（2026-08-06：聊天携带当前绑定角色名，远端显示"角色名（玩家名）"；骰子走 sendDiceRoll 专用通道）
   var _origAddChat = addChatMessage;
   addChatMessage = function(type, sender, text, channelId) {
     _origAddChat(type, sender, text, channelId);
-    if (Network.isConnected() && type !== 'system' && type !== 'ai') {
-      Network.sendChat(text);
+    if (Network.isConnected() && type !== 'system' && type !== 'ai' && type !== 'dice') {
+      Network.sendChat(text, channelId || _activeChannelId || 'story', '', getMyCharacterName());
     }
     if (Network.isConnected() && type === 'ai' && isGMUser()) {
       Network.sendAIChat(text, channelId || _activeChannelId || 'story');
@@ -2969,13 +4085,16 @@ const UIManager = (() => {
   var checkItems = [];
 
   function setupCheckTool() {
-    _el('btn-check-tool').addEventListener('click', function() {
+    // 2026-08-05 引擎化：检定工具入口已迁移到 GM 面板（规则书 ui/panels/gm.html，经 parent.UIManager.openDiceModal 调用）；
+    // 宿主仅保留模态框本体逻辑，入口按钮绑定做 null 安全（旧布局残留时仍可用）
+    var btn = _el('btn-check-tool');
+    if (btn) btn.addEventListener('click', function() {
       openModal('check-modal');
       if (checkItems.length === 0) addCheckItem(); // 默认加一个空项
     });
-    _el('btn-add-check').addEventListener('click', addCheckItem);
-    _el('btn-check-close').addEventListener('click', function() { closeModal('check-modal'); });
-    _el('btn-check-send-ai').addEventListener('click', sendChecksToAI);
+    var addBtn = _el('btn-add-check'); if (addBtn) addBtn.addEventListener('click', addCheckItem);
+    var closeBtn = _el('btn-check-close'); if (closeBtn) closeBtn.addEventListener('click', function() { closeModal('check-modal'); });
+    var sendBtn = _el('btn-check-send-ai'); if (sendBtn) sendBtn.addEventListener('click', sendChecksToAI);
   }
 
   function addCheckItem() {
@@ -3070,18 +4189,217 @@ const UIManager = (() => {
 
   function onMapTokenSelected(token) {
     if (token) {
-      showCharacterDetail(token.id);
+      var rightTab = document.querySelector('.panel-tab[data-tab="characters"]');
+      if (rightTab && typeof rightTab.click === 'function') rightTab.click();
+      selectCharacter(token.id);
     } else {
-      var de = _el('character-detail');
-      if (de) de.style.display = 'none';
-      var le = _el('character-list');
-      if (le) le.querySelectorAll('.character-list-item').forEach(function(i) { i.classList.remove('selected'); });
+      _lastDetailTokenId = null;
+      var le = _el('character-list'); if (le) le.querySelectorAll('.character-list-item').forEach(function(i) { i.classList.remove('selected'); });
     }
   }
 
   function onMapCoordUpdate(gx, gy) {
     var cd = _el('coord-display');
     if (cd) cd.innerHTML = 'X: ' + Math.round(gx) + ' &nbsp; Y: ' + Math.round(gy);
+  }
+
+  // ── AVG 双人立绘舞台（2026-08-05 全站重构）──
+  // 规则：开始对话的角色出现在左侧，第二个不同角色出现在右侧；
+  // 当前发言者立绘正常高亮，另一方压暗（filter: brightness）；<portrait clear> 清空舞台。
+  // 频道需标记 avg（剧情频道默认开启；创建频道时可勾选"显示发言立绘"）。
+  var _avgStage = { left: null, right: null, speaking: null }; // 每个: { name, url, color }
+
+  // 当前频道是否启用 AVG 立绘
+  function avgEnabledFor(channelId) {
+    var ch = _chatChannels.find(function (c) { return c.id === (channelId || _activeChannelId); });
+    return !!(ch && ch.avg);
+  }
+
+  function extractPortraitDirective(text) {
+    var s = String(text || '');
+    // 独立闭合标签 </portrait> = 关闭立绘（无正文）
+    if (/<\/portrait>/i.test(s) && !/<portrait\b[^>]*name=/i.test(s)) {
+      var cleanClose = s.replace(/<portrait\b[^>]*>/gi, '').replace(/<\/portrait>/gi, '').trim();
+      return { clear: true, name: '', text: cleanClose };
+    }
+    var m = s.match(/<portrait\b([^>]*)>/i);
+    if (!m) return null;
+    var attrs = m[1] || '';
+    var clear = /clear/i.test(attrs);
+    var name = '';
+    var nm = attrs.match(/name=["']([^"']+)["']/i);
+    if (nm) name = nm[1].trim();
+    var clean = s.replace(/<portrait\b[^>]*>/gi, '').replace(/<\/portrait>/gi, '').trim();
+    return { clear: clear, name: name, text: clean };
+  }
+
+  // 按角色名在当前角色卡中找到立绘/头像源（精确匹配 → 包含匹配）
+  function findPortraitSource(name) {
+    var tokens = MapEngine.getAllTokens() || [];
+    var t = null;
+    for (var i = 0; i < tokens.length; i++) {
+      var n = tokens[i].displayName || tokens[i].name || '';
+      if (n === name) { t = tokens[i]; break; }
+    }
+    if (!t) {
+      for (var j = 0; j < tokens.length; j++) {
+        var n2 = tokens[j].displayName || tokens[j].name || '';
+        if ((n2 && name && n2.indexOf(name) >= 0) || (n2 && name && name.indexOf(n2) >= 0)) { t = tokens[j]; break; }
+      }
+    }
+    if (!t) return null;
+    var d = t.data || {};
+    var assets = d.assets || {};
+    var url = assets.portrait || assets.avatarFramed || assets.avatar || t.avatarUrl || '';
+    return { token: t, url: url, color: t.color || '#4ecdc4' };
+  }
+
+  // 解析角色立绘源（含查找失败时的占位）→ { name, url, color }
+  function resolvePortraitActor(name) {
+    var src = findPortraitSource(name);
+    if (src) return { name: src.token.displayName || src.token.name || name, url: src.url, color: src.color };
+    return { name: name || '？', url: '', color: '#4ecdc4' };
+  }
+
+  // 把某角色设为当前发言者：上舞台（左空→左；右空→右；已有→原位）+ 高亮
+  function stageSpeak(actor) {
+    if (!actor || !actor.name) return;
+    var hasLeft = _avgStage.left && _avgStage.left.name === actor.name;
+    var hasRight = _avgStage.right && _avgStage.right.name === actor.name;
+    if (!hasLeft && !hasRight) {
+      if (!_avgStage.left) _avgStage.left = actor;
+      else if (!_avgStage.right) _avgStage.right = actor;
+      else {
+        // 两人已满：新发言者替换"非当前发言"侧（保持一人常驻一侧的 AVG 惯例）
+        if (_avgStage.speaking && _avgStage.speaking.name === _avgStage.left.name) _avgStage.right = actor;
+        else _avgStage.left = actor;
+      }
+    }
+    _avgStage.speaking = actor;
+  }
+
+  // 舞台横条（聊天区顶部常驻：展示当前对话双方 + 当前发言高亮）
+  function renderAvgStageBar() {
+    var bar = _el('avg-stage-bar');
+    if (!bar) return;
+    if (!avgEnabledFor(_activeChannelId) || (!_avgStage.left && !_avgStage.right)) {
+      bar.style.display = 'none';
+      bar.innerHTML = '';
+      return;
+    }
+    bar.style.display = 'flex';
+    var html = '<span class="avg-bar-label">🎭 对话</span>';
+    [_avgStage.left, _avgStage.right].forEach(function (a) {
+      if (!a) return;
+      var spk = _avgStage.speaking && _avgStage.speaking.name === a.name;
+      html += '<span class="avg-bar-token' + (spk ? ' speaking' : ' dim') + '" title="' + _esc(a.name) + (spk ? '（正在发言）' : '') + '">' +
+        (a.url ? '<img src="' + _esc(a.url) + '">' : '<span class="ph" style="background:' + _esc(a.color) + '">' + _esc(a.name.charAt(0)) + '</span>') +
+        _esc(a.name) + '</span>';
+    });
+    html += '<button type="button" class="avg-bar-clear" title="关闭立绘舞台">✕ 关闭</button>';
+    bar.innerHTML = html;
+    var clearBtn = bar.querySelector('.avg-bar-clear');
+    if (clearBtn) clearBtn.addEventListener('click', function () { _avgStage = { left: null, right: null, speaking: null }; renderAvgStageBar(); });
+  }
+
+  // 渲染单条 AVG 消息：双人舞台 + 文本（stage 参数 = 该消息时刻的舞台快照，历史回看时传入）
+  function renderAVGMessage(cont, msg, avg, stageSnapshot) {
+    var div = document.createElement('div');
+    div.className = 'chat-message ai avg-msg';
+    if (avg.clear) {
+      _avgStage = { left: null, right: null, speaking: null };
+      renderAvgStageBar();
+      div.innerHTML = '<span class="msg-time">' + _esc(msg.time) + '</span><span class="msg-sender">AI:</span><span class="msg-text">' + simpleMarkdown(avg.text || '（立绘已关闭）') + '</span>';
+      cont.appendChild(div);
+      return;
+    }
+    // 更新舞台：发言角色（仅实时消息更新全局舞台；历史快照渲染不改全局）
+    if (avg.name) {
+      var actor = resolvePortraitActor(avg.name);
+      if (!stageSnapshot) {
+        stageSpeak(actor);
+        renderAvgStageBar();
+      }
+    }
+    var stage = stageSnapshot || { left: _avgStage.left, right: _avgStage.right, speaking: _avgStage.speaking };
+    var p = stage.speaking;
+    var displayName = p ? p.name : (avg.name || 'AI');
+    // 双人舞台：左/右立绘，发言者高亮，另一方压暗
+    var stageHtml = '';
+    var sides = [{ k: 'left', v: stage.left }, { k: 'right', v: stage.right }];
+    var visible = sides.filter(function (s) { return s.v; });
+    if (visible.length) {
+      stageHtml = '<div class="avg-stage' + (visible.length === 1 ? ' single' : '') + '">' +
+        visible.map(function (s) {
+          var a = s.v;
+          var spk = stage.speaking && stage.speaking.name === a.name;
+          var inner = a.url
+            ? '<img src="' + _esc(a.url) + '" alt="' + _esc(a.name) + '">'
+            : '<div class="avg-portrait avg-portrait-placeholder" style="background:' + _esc(a.color) + '"><div class="avg-placeholder-char">' + _esc((a.name || '?').charAt(0)) + '</div></div>';
+          return '<div class="avg-portrait' + (spk ? ' speaking' : '') + '" title="' + _esc(a.name) + (spk ? '（正在发言）' : '') + '">' + inner +
+            '<div class="avg-portrait-name">' + _esc(a.name) + '</div></div>';
+        }).join('') + '</div>';
+    }
+    div.innerHTML = stageHtml +
+      '<div class="avg-text"><span class="msg-time">' + _esc(msg.time) + '</span><span class="msg-sender">' + _esc(displayName) + ':</span><span class="msg-text">' + simpleMarkdown(avg.text) + '</span></div>';
+    cont.appendChild(div);
+  }
+
+  // ── 插图系统（2026-08-05）：GM/AI 以插图临时代替地图（过场/无需移动的场景）──
+  // AI 指令：<illustration src="URL或模组路径" caption="标题">...</illustration> 或 <illustration clear>
+  // GM 工具：UIManager.showIllustration(url, caption) / hideIllustration()
+  function showIllustration(url, caption) {
+    try {
+      hideIllustration();
+      var ov = document.createElement('div');
+      ov.id = 'illustration-overlay';
+      ov.className = 'illustration-overlay';
+      var src = String(url || '').trim();
+      // 模组路径自动转资源 URL（module: 前缀 → /api/module/file）
+      if (src.indexOf('module:') === 0) {
+        src = '/api/module/file?system=' + encodeURIComponent(_selectedRuleSystem || '') + '&path=' + encodeURIComponent(src.slice(7).replace(/^\/+/, ''));
+      }
+      ov.innerHTML = '<button type="button" class="ill-close">⏹ 结束插图（恢复地图）</button>' +
+        '<img src="' + _esc(src) + '" alt="插图" onerror="this.outerHTML=\'<div style=&quot;color:#ff7b7b;padding:20px;&quot;>插图加载失败：' + _esc(src) + '</div>\'">' +
+        (caption ? '<div class="ill-caption">' + _esc(caption) + '</div>' : '');
+      ov.addEventListener('click', function (e) {
+        if (e.target === ov || e.target.classList.contains('ill-close')) hideIllustration();
+      });
+      document.body.appendChild(ov);
+      // 地图作为最底层暂时隐藏（插图层 z-index 15 已盖住；再隐藏地图本体避免透出）
+      var mc = _el('map-container');
+      if (mc) mc.classList.add('map-hidden');
+      addChatMessage('system', 'GM', '📖 已展示插图' + (caption ? '：' + caption : ''));
+    } catch (e) { /* 静默 */ }
+  }
+  function hideIllustration() {
+    var ov = document.getElementById('illustration-overlay');
+    if (ov) ov.remove();
+    var mc = _el('map-container');
+    if (mc) mc.classList.remove('map-hidden');
+  }
+  function extractIllustrationDirective(text) {
+    var s = String(text || '');
+    // 完整块优先：<illustration src="..." caption="...">正文</illustration>
+    var m = s.match(/<illustration\b([^>]*)>([\s\S]*?)<\/illustration>/i);
+    if (m) {
+      var attrs = m[1] || '';
+      var src = attrs.match(/src=["']([^"']+)["']/i);
+      var cap = attrs.match(/caption=["']([^"']+)["']/i);
+      return {
+        clear: /clear/i.test(attrs),
+        url: src ? src[1].trim() : String(m[2] || '').trim(),
+        caption: cap ? cap[1].trim() : ''
+      };
+    }
+    // 独立 clear 指令
+    if (/<illustration\s+clear\s*\/?>/i.test(s) || /<\/illustration>/i.test(s)) {
+      return { clear: true, url: '', caption: '' };
+    }
+    return null;
+  }
+  function stripIllustrationTags(text) {
+    return String(text || '').replace(/<illustration\b[^>]*>[\s\S]*?<\/illustration>/gi, '').replace(/<illustration\s+clear\s*\/?>/gi, '');
   }
 
   function simpleMarkdown(text) {
@@ -3100,9 +4418,9 @@ const UIManager = (() => {
     html = html.replace(/&lt;char_info&gt;([\s\S]*?)&lt;\/char_info&gt;/gi, function(m, body) {
       return renderCharInfoCard(body);
     });
-    // 4) <UpdateVariable> 数据更新折叠卡片
+    // 4) <UpdateVariable> 数据更新折叠卡片（解析 JSONPatch 并实际写入角色数据）
     html = html.replace(/&lt;UpdateVariable&gt;([\s\S]*?)&lt;\/UpdateVariable&gt;/gi, function(m, body) {
-      return '<div class="gm-update-card"><details class="gm-update-details"><summary class="gm-update-summary">📊 数据更新 <small style="margin-left:auto;font-size:.85em;color:#999;">点击查看/隐藏 ▼</small></summary><div class="gm-update-content">' + body.replace(/&lt;/g, '&lt;').replace(/&gt;/g, '&gt;').replace(/&amp;/g, '&amp;') + '</div></details></div>';
+      return renderUpdateVariableCard(body);
     });
     // 5) <battle> 战斗地图原始块（隐藏元数据，显示时保持纯文本）
     html = html.replace(/&lt;battle&gt;([\s\S]*?)&lt;\/battle&gt;/gi, function(m, body) {
@@ -3113,9 +4431,211 @@ const UIManager = (() => {
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/(?<!\w)\*(.+?)\*(?!\w)/g, '<em>$1</em>');
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // 2026-08-05：图片语法 ![alt](url) → <img>（AI 引用模组/规则资源时动态加载显示，如 /api/module/file?...）
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:6px 0;" loading="lazy">');
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
     html = html.replace(/\n/g, '<br>');
     return html;
+  }
+
+  // ── <UpdateVariable> 数据回写：解析 JSONPatch 并实际应用（RFC6902）──
+  // 反转义 <UpdateVariable> 块内的 HTML 实体，还原原始 JSON
+  function _unescapeXml(s) {
+    return String(s || '')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'")
+      .replace(/&amp;/g, '&');
+  }
+  // 解析 JSONPatch（容错：容忍前后空白、Markdown 代码块围栏、多余逗号）
+  function _parseJsonPatch(str) {
+    str = String(str || '').trim();
+    str = str.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+    str = str.replace(/,\s*([\]}])/g, '$1'); // 容忍尾逗号
+    var arr = null;
+    try { arr = JSON.parse(str); } catch (e1) { /* 首次失败 */ }
+    if (!Array.isArray(arr)) {
+      // 可能被 <Analysis> 与 JSONPatch 混在一起：提取首个 [ ... ] 数组
+      var m = str.match(/\[[\s\S]*\]/);
+      if (m) { try { arr = JSON.parse(m[0].replace(/,\s*([\]}])/g, '$1')); } catch (e2) { arr = null; } }
+    }
+    return Array.isArray(arr) ? arr : null;
+  }
+  // RFC6902 指针求值：/a/b/c → 逐层取字段（含数组下标）
+  function _resolvePointer(root, path) {
+    if (!path) return { found: true, parent: null, key: null, value: root };
+    if (path === '/') return { found: true, parent: null, key: null, value: root };
+    var parts = path.replace(/^\//, '').split('/').map(function(p) { return p.replace(/~1/g, '/').replace(/~0/g, '~'); });
+    var cur = root, parent = null, key = null;
+    for (var i = 0; i < parts.length; i++) {
+      var k = parts[i];
+      if (cur == null || typeof cur !== 'object' || !(k in cur)) {
+        return { found: false, parent: parent, key: key, value: undefined };
+      }
+      parent = cur; key = k; cur = cur[k];
+    }
+    return { found: true, parent: parent, key: key, value: cur };
+  }
+  // 对 obj 应用单个 patch 操作（支持 replace/delta/insert/remove/move，RFC6902）
+  function _applyPatchOp(obj, op) {
+    if (!op || typeof op !== 'object') return { ok: false, reason: '无效操作' };
+    var o = String(op.op || '').toLowerCase();
+    var path = String(op.path || '');
+    if (!path) return { ok: false, reason: '缺少path' };
+    if (path.split('/').some(function(p) { return /^_/.test(p); })) {
+      return { ok: false, reason: '_开头字段只读，拒绝修改 ' + path };
+    }
+    var keys = path.replace(/^\//, '').split('/').filter(Boolean).map(function(p) { return p.replace(/~1/g, '/').replace(/~0/g, '~'); });
+    if (keys.length === 0) return { ok: false, reason: '无效路径' };
+    if (o === 'move') return _movePatchOp(obj, op);
+    if (o === 'remove') {
+      if (keys.length === 1) { delete obj[keys[0]]; return { ok: true }; }
+      var cur = obj;
+      for (var i = 0; i < keys.length - 1; i++) {
+        if (cur == null || typeof cur !== 'object' || cur[keys[i]] == null) return { ok: false, reason: 'remove 目标不存在: ' + path };
+        cur = cur[keys[i]];
+      }
+      var rk = keys[keys.length - 1];
+      if (Array.isArray(cur)) cur.splice(Number(rk), 1);
+      else delete cur[rk];
+      return { ok: true };
+    }
+    // replace / delta / insert：定位父容器（自动创建中间对象，容错 AI 写新字段）
+    var cur2 = obj;
+    for (var j = 0; j < keys.length - 1; j++) {
+      if (cur2[keys[j]] == null || typeof cur2[keys[j]] !== 'object') cur2[keys[j]] = {};
+      cur2 = cur2[keys[j]];
+    }
+    var last = keys[keys.length - 1];
+    if (o === 'replace') { cur2[last] = op.value; return { ok: true }; }
+    if (o === 'delta') {
+      var base = cur2[last];
+      if (typeof base !== 'number' && base !== undefined && base !== null && isNaN(Number(base))) {
+        return { ok: false, reason: 'delta 目标不是数字: ' + path };
+      }
+      cur2[last] = (Number(base) || 0) + (Number(op.value) || 0);
+      return { ok: true, delta: true };
+    }
+    if (o === 'insert') {
+      if (Array.isArray(cur2[last])) cur2[last].push(op.value);
+      else cur2[last] = op.value;
+      return { ok: true };
+    }
+    return { ok: false, reason: '不支持的操作: ' + o };
+  }
+
+  // RFC6902 move：from=源路径，path=目标路径
+  function _movePatchOp(obj, op) {
+    var from = String(op.from || '').replace(/^\//, '').split('/').filter(Boolean).map(function(p) { return p.replace(/~1/g, '/').replace(/~0/g, '~'); });
+    if (from.length === 0) return { ok: false, reason: 'move 缺少from' };
+    if (from.some(function(p) { return /^_/.test(p); })) return { ok: false, reason: '_开头字段只读' };
+    var cur = obj;
+    for (var i = 0; i < from.length - 1; i++) {
+      if (cur == null || typeof cur !== 'object' || cur[from[i]] == null) return { ok: false, reason: 'move 源不存在: ' + op.from };
+      cur = cur[from[i]];
+    }
+    var srcKey = from[from.length - 1];
+    if (cur == null || typeof cur !== 'object' || !(srcKey in cur)) return { ok: false, reason: 'move 源不存在: ' + op.from };
+    var val = cur[srcKey];
+    if (Array.isArray(cur)) cur.splice(Number(srcKey), 1);
+    else delete cur[srcKey];
+    // 写入目标 path
+    var path = String(op.path || '');
+    if (!path) return { ok: false, reason: 'move 缺少目标path' };
+    var toKeys = path.replace(/^\//, '').split('/').filter(Boolean).map(function(p) { return p.replace(/~1/g, '/').replace(/~0/g, '~'); });
+    if (toKeys.length === 0) { obj = val; return { ok: true }; }
+    var c2 = obj;
+    for (var j = 0; j < toKeys.length - 1; j++) {
+      if (c2[toKeys[j]] == null || typeof c2[toKeys[j]] !== 'object') c2[toKeys[j]] = {};
+      c2 = c2[toKeys[j]];
+    }
+    var toKey = toKeys[toKeys.length - 1];
+    if (Array.isArray(c2[toKey])) c2[toKey].push(val);
+    else c2[toKey] = val;
+    return { ok: true };
+  }
+
+  // 提取 <UpdateVariable> 块内的 JSONPatch 数组并应用
+  function applyUpdateVariable(body, token) {
+    if (!token || !token.data) return { applied: 0, ops: [], errors: [] };
+    var raw = _unescapeXml(body);
+    // 提取 Analysis（英文）与 JSONPatch 数组
+    var analysis = '';
+    var am = raw.match(/<Analysis>([\s\S]*?)<\/Analysis>/i);
+    if (am) analysis = am[1].trim();
+    var patchStr = '';
+    var pm = raw.match(/<JSONPatch>([\s\S]*?)<\/JSONPatch>/i);
+    if (pm) patchStr = pm[1];
+    else {
+      var arrM = raw.match(/\[[\s\S]*\]/);
+      if (arrM) patchStr = arrM[0];
+    }
+    var ops = _parseJsonPatch(patchStr);
+    if (!ops) return { applied: 0, ops: [], errors: ['无法解析 JSONPatch'] };
+    // 防重复应用：同一 JSONPatch 指纹只应用一次（历史消息重渲染时跳过）
+    var fingerprint = JSON.stringify(ops);
+    if (!token.data.__patchSeen) token.data.__patchSeen = [];
+    if (token.data.__patchSeen.indexOf(fingerprint) !== -1) {
+      return { applied: 0, ops: ops, errors: [], analysis: analysis, skipped: true };
+    }
+    var applied = 0, errors = [];
+    for (var i = 0; i < ops.length; i++) {
+      var res = _applyPatchOp(token.data, ops[i]);
+      if (res.ok) applied++;
+      else errors.push((ops[i].op || '?') + ' ' + (ops[i].path || '') + ': ' + res.reason);
+    }
+    if (applied > 0) token.data.__patchSeen.push(fingerprint);
+    return { applied: applied, ops: ops, errors: errors, analysis: analysis };
+  }
+
+  // 渲染 <UpdateVariable> 卡片 + 应用数据
+  function renderUpdateVariableCard(body) {
+    // 先尝试应用（即使渲染失败也尝试数据更新）
+    var targetToken = null;
+    if (_lastDetailTokenId) targetToken = MapEngine.getTokenById(_lastDetailTokenId);
+    var result = null;
+    if (targetToken) {
+      result = applyUpdateVariable(body, targetToken);
+      if (result && result.applied > 0) {
+        // 已实际修改 token.data —— 持久化 + 刷新 UI + 广播
+        persistCharacters();
+        MapEngine.updateToken(targetToken.id, { data: targetToken.data });
+        if (_lastDetailTokenId) {
+          try { showCharacterDetail(_lastDetailTokenId); } catch (e) {}
+        }
+      }
+    } else {
+      // 无当前选中角色：尝试从 token 集合中找第一个
+      var all = MapEngine.getAllTokens();
+      if (all && all.length === 1) {
+        targetToken = all[0];
+        result = applyUpdateVariable(body, targetToken);
+        if (result && result.applied > 0) {
+          persistCharacters(); MapEngine.updateToken(targetToken.id, { data: targetToken.data });
+        }
+      }
+    }
+    // 渲染折叠卡片
+    var card = '<div class="gm-update-card"><details class="gm-update-details"><summary class="gm-update-summary">📊 数据更新';
+    if (result) card += ' <span class="gm-update-badge">' + (result.skipped ? '已应用过' : ('已应用 ' + result.applied + ' 项')) + '</span>';
+    card += ' <small style="margin-left:auto;font-size:.85em;color:#999;">点击查看/隐藏 ▼</small></summary><div class="gm-update-content">';
+    if (result) {
+      if (result.skipped) {
+        card += '<div style="color:#888;margin-bottom:6px;">⏭ 此数据更新已应用过，未重复写入</div>';
+      } else if (result.applied > 0) {
+        card += '<div style="color:#7dd87d;margin-bottom:6px;">✓ 已应用 ' + result.applied + ' 项变更</div>';
+      }
+      if (result.errors && result.errors.length) {
+        card += '<div style="color:#ffb86b;margin-bottom:6px;">⚠ ' + _esc(result.errors.join('；')) + '</div>';
+      }
+      if (result.analysis) card += '<div style="color:#888;font-size:.9em;margin-bottom:6px;">' + _esc(result.analysis) + '</div>';
+      if (result.ops && result.ops.length) {
+        card += '<pre style="margin:4px 0;padding:8px;background:#1a1d24;border-radius:6px;font-size:.85em;color:#9fe0ff;overflow-x:auto;">' + _esc(JSON.stringify(result.ops, null, 1)) + '</pre>';
+      }
+    } else {
+      card += '<div style="color:#888;">未找到可更新的角色数据</div>';
+    }
+    card += '</div></details></div>';
+    return card;
   }
 
   // 解析 <dice> 6行固定字段（字段名可中英：发动技能/目标/情境/检定细节/判定结果/结果描述）
@@ -3230,12 +4750,16 @@ const UIManager = (() => {
     setupCharacterImport: setupCharacterImport,
     refreshCharacterList: refreshCharacterList,
     selectCharacter: selectCharacter,
+    openCharacterSheet: openCharacterSheet,
     showCharacterDetail: showCharacterDetail,
     damageCharacter: damageCharacter,
     healCharacter: healCharacter,
     applyHPChange: applyHPChange,
     openCharacterModal: openCharacterModal,
     openCharacterModalForEdit: openCharacterModalForEdit,
+    canEditCharacter: canEditCharacter, // 2026-08-06：联机权限（创建者或 GM 可编辑）
+    setMyCharacter: setMyCharacter,
+    transferCharacter: transferCharacter,
     saveCharacter: saveCharacter,
     deleteCharacter: deleteCharacter,
     rollAllInitiative: rollAllInitiative,
@@ -3257,7 +4781,14 @@ const UIManager = (() => {
     onMapTokenSelected: onMapTokenSelected,
     onMapCoordUpdate: onMapCoordUpdate,
     addChatMessage: addChatMessage,
-    simpleMarkdown: simpleMarkdown
+    simpleMarkdown: simpleMarkdown,
+    // 2026-08-05 全站重构：AVG 舞台与插图系统（GM 面板/规则插件/系统频道 AI 通用）
+    showIllustration: showIllustration,
+    hideIllustration: hideIllustration,
+    renderAvgStageBar: renderAvgStageBar,
+    stageSpeak: stageSpeak,
+    resolvePortraitActor: resolvePortraitActor,
+    avgEnabledFor: avgEnabledFor
   };
 })();
 

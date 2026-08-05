@@ -1,146 +1,66 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<title>角色卡</title>
-<link rel="stylesheet" href="/css/style.css">
-<style>
-  /* 覆盖全局 style.css 的 body 锁死：独立窗口页面必须可滚动 */
-  html, body { height: auto !important; overflow: auto !important; }
-  body { background: #1a1a2e; color: #eee; margin: 0; padding: 20px; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .sheet-wrap { max-width: 900px; margin: 0 auto; }
-  .sheet-head { display: flex; align-items: center; gap: 16px; padding: 16px; background: #232345; border: 1px solid #3a3a5c; border-radius: 10px; margin-bottom: 14px; }
-  .sheet-avatar { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; background: #4ecdc4; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; }
-  .sheet-name { font-size: 22px; font-weight: 800; color: #fff; }
-  .sheet-sub { color: #9a9abf; font-size: 13px; margin-top: 4px; }
-  .sheet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-  .sheet-card { background: #232345; border: 1px solid #3a3a5c; border-radius: 10px; padding: 12px 14px; }
-  .sheet-card h3 { margin: 0 0 8px; font-size: 13px; color: #ffd479; border-bottom: 1px solid #3a3a5c; padding-bottom: 5px; }
-  .sheet-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed #2e2e4f; }
-  .sheet-row span:first-child { color: #9a9abf; }
-  .sheet-abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-  .sheet-ability { background: #2a2a50; border: 1px solid #3a3a5c; border-radius: 8px; text-align: center; padding: 8px 4px; }
-  .sheet-ability .a-name { font-size: 11px; color: #9a9abf; }
-  .sheet-ability .a-val { font-size: 22px; font-weight: 800; color: #fff; }
-  .sheet-ability .a-mod { font-size: 13px; font-weight: 700; color: #ffd479; }
-  .sheet-pill { display: inline-block; background: #2a2a50; border: 1px solid #3a3a5c; border-radius: 14px; padding: 3px 12px; font-size: 12px; color: #cfcfe8; margin: 2px 4px 2px 0; }
-  .sheet-pill b { color: #ffd479; }
-  .sheet-list { margin: 0; padding-left: 18px; font-size: 13px; }
-  .sheet-list li { margin: 2px 0; }
-  .sheet-missing { text-align: center; color: #9a9abf; padding: 60px 20px; }
-  .sheet-missing h2 { color: #fff; }
-</style>
-</head>
-<body>
-<div class="sheet-wrap" id="wrap"></div>
-<script>
-(function () {
-  'use strict';
-  var params = new URLSearchParams(location.search);
-  var id = params.get('id') || '';
-  var esc = function (s) {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  };
-  var ABILITIES = [['str', '力量'], ['dex', '敏捷'], ['con', '体质'], ['int', '智力'], ['wis', '感知'], ['cha', '魅力']];
-
-  function render() {
-    var token = null;
-    try { token = JSON.parse(localStorage.getItem('trpg_sheet_' + id)); } catch (e) {}
-    var wrap = document.getElementById('wrap');
-    if (!token) {
-      document.title = '角色卡（未找到）';
-      wrap.innerHTML = '<div class="sheet-missing"><h2>未找到角色数据</h2><div>请回到主窗口点击角色后重试（角色数据由主窗口写入本地存储）。</div></div>';
-      return;
-    }
-    var d = token.data || {};
-    var name = token.displayName || d.name || token.name || '未命名角色';
-    document.title = name + ' - 角色卡';
-
-    // 头像
-    var avatar = token.avatarUrl || (d.assets && (d.assets.avatarFramed || d.assets.avatar)) || '';
-    var avatarHtml = avatar
-      ? '<img class="sheet-avatar" src="' + esc(avatar) + '">'
-      : '<div class="sheet-avatar">' + esc(name.charAt(0)) + '</div>';
-
-    // 基础信息行
-    var metaParts = [d.race, d.class, d.background, d.level ? 'Lv' + d.level : '', d.hitDice ? '生命骰 ' + d.hitDice : ''].filter(Boolean);
-    var meta = metaParts.length ? metaParts.join(' · ') : (token.name || '');
-
-    // 属性六格
-    var scores = d.abilityScores || {};
-    var mods = d.abilityMods || {};
-    var abHtml = ABILITIES.map(function (a) {
-      return '<div class="sheet-ability"><div class="a-name">' + a[1] + '</div>' +
-        '<div class="a-val">' + (scores[a[0]] != null ? scores[a[0]] : '-') + '</div>' +
-        '<div class="a-mod">' + (mods[a[0]] != null ? (mods[a[0]] >= 0 ? '+' : '') + mods[a[0]] : '') + '</div></div>';
-    }).join('');
-
-    // 关键数值徽章
-    var hp = d.HP || {};
-    var pills = [];
-    if (hp.current != null || hp.max != null) pills.push('HP <b>' + esc(hp.current != null ? hp.current : '?') + '/' + esc(hp.max != null ? hp.max : '?') + '</b>');
-    if (d.AC != null) pills.push('AC <b>' + esc(d.AC) + '</b>');
-    if (d.proficiency != null) pills.push('熟练加值 <b>' + (d.proficiency >= 0 ? '+' : '') + d.proficiency + '</b>');
-    if (d.attackBonus != null) pills.push('攻击加值 <b>' + (d.attackBonus >= 0 ? '+' : '') + d.attackBonus + '</b>');
-    var pillHtml = pills.length ? '<div style="margin-bottom:10px;">' + pills.map(function (p) { return '<span class="sheet-pill">' + p + '</span>'; }).join('') + '</div>' : '';
-
-    // 技能
-    var skillsHtml = '';
-    var skills = d.skills || {};
-    var skillKeys = Object.keys(skills);
-    if (skillKeys.length) {
-      var rows = skillKeys.map(function (k) {
-        var st = skills[k] || {};
-        var mod = (mods[st.ability] != null ? mods[st.ability] : 0);
-        var prof = Number(d.proficiency) || 0;
-        var bonus = st.trained === '专精' ? mod + prof * 2 : (st.trained === '熟练' ? mod + prof : mod);
-        var mark = st.trained === '熟练' ? '●' : (st.trained === '专精' ? '◎' : '');
-        return '<div class="sheet-row"><span>' + esc(k) + ' <small style="color:#7a7aa0;">' + esc(mark) + '</small></span><span>' + (bonus >= 0 ? '+' : '') + bonus + '</span></div>';
-      }).join('');
-      skillsHtml = '<div class="sheet-card" style="grid-column:span 2;"><h3>技能</h3>' + rows + '</div>';
-    }
-
-    // 法术 / 装备
-    function lines(v) { return String(v || '').split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean); }
-    var spells = lines(d.spells);
-    var equip = lines(d.equipment);
-    var spellsHtml = '<div class="sheet-card"><h3>法术</h3>' +
-      (spells.length ? '<ul class="sheet-list">' + spells.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '<div style="color:#7a7aa0;font-size:12px;">无</div>') + '</div>';
-    var equipHtml = '<div class="sheet-card"><h3>装备</h3>' +
-      (equip.length ? '<ul class="sheet-list">' + equip.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '<div style="color:#7a7aa0;font-size:12px;">无</div>') + '</div>';
-
-    // 其他字段（通用规则数据）
-    var KNOWN = ['name', 'race', 'class', 'background', 'level', 'hitDice', 'HP', 'AC', 'proficiency', 'attackBonus', 'abilityScores', 'abilityMods', 'skills', 'spells', 'equipment', 'assets'];
-    var otherRows = [];
-    Object.keys(d).forEach(function (k) {
-      if (KNOWN.indexOf(k) >= 0) return;
-      var v = d[k];
-      if (v == null || v === '') return;
-      if (typeof v === 'object') v = JSON.stringify(v);
-      otherRows.push('<div class="sheet-row"><span>' + esc(k) + '</span><span>' + esc(v) + '</span></div>');
-    });
-    var otherHtml = otherRows.length
-      ? '<div class="sheet-card" style="grid-column:span 2;"><h3>其他资料</h3>' + otherRows.join('') + '</div>'
-      : '';
-
-    wrap.innerHTML =
-      '<div class="sheet-head">' + avatarHtml +
-      '<div><div class="sheet-name">' + esc(name) + '</div><div class="sheet-sub">' + esc(meta) + '</div></div></div>' +
-      pillHtml +
-      '<div class="sheet-grid">' +
-      '<div class="sheet-card"><h3>属性</h3><div class="sheet-abilities">' + abHtml + '</div></div>' +
-      skillsHtml + spellsHtml + equipHtml + otherHtml +
-      '</div>';
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>角色卡</title><link rel="stylesheet" href="/css/style.css"><style>
+html,body{height:auto!important;overflow:auto!important}body{margin:0;background:radial-gradient(circle at 20% 0,#27305a 0,#171a31 38%,#101325 100%);color:#f4f5ff;font-family:system-ui,"Microsoft YaHei",sans-serif}.shell{max-width:1420px;margin:auto;padding:18px}.command{position:sticky;top:0;z-index:200;display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:12px;background:#171b32ed;border:1px solid #3d476e;border-radius:12px;backdrop-filter:blur(14px);box-shadow:0 10px 32px #0005}.brand{display:flex;align-items:center;gap:9px;font-weight:800}.brand small{display:block;color:#99a4ca;font-weight:400}.spacer{flex:1}.cmd-btn{border:1px solid #46527e;background:#293155;color:#eef1ff;border-radius:9px;padding:8px 12px;cursor:pointer}.cmd-btn:hover{border-color:#7b8fd0}.cmd-btn.primary{background:#55d7d2;color:#101628;border-color:#55d7d2;font-weight:800}.cmd-btn.gold{background:#cba53e;color:#15172a;border-color:#e3c467;font-weight:800}.cmd-btn.danger{color:#ff8d94}.mode-badge{border:1px solid #53618f;border-radius:999px;padding:5px 10px;color:#b8c3e8;font-size:12px}.host{min-height:620px}.loading,.empty{display:grid;place-items:center;min-height:460px;color:#9aa5c8;background:#1d223f;border:1px solid #3a446b;border-radius:14px}.editor-actions{position:sticky;bottom:10px;z-index:210;display:none;justify-content:flex-end;gap:8px;margin-top:12px;padding:10px;background:#171b32ed;border:1px solid #3d476e;border-radius:12px;backdrop-filter:blur(14px)}.editor-actions.show{display:flex}.version-drawer{position:fixed;inset:0;z-index:500;background:#060812a8;display:none;align-items:center;justify-content:center;padding:20px}.version-drawer.show{display:flex}.version-box{width:min(920px,96vw);max-height:86vh;overflow:auto;background:#1d223f;border:1px solid #46527e;border-radius:16px;padding:16px;box-shadow:0 28px 80px #000b}.version-head{display:flex;align-items:center;gap:10px}.version-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin:14px 0}.version{border:1px solid #3d476e;background:#252c4d;border-radius:10px;padding:10px;cursor:pointer}.version.selected{border-color:#e0bc58;box-shadow:0 0 0 2px #e0bc5827}.version b{display:block}.version small{color:#99a4ca}.diff{font:12px/1.6 ui-monospace,Consolas,monospace;background:#111529;border:1px solid #333d63;border-radius:10px;padding:12px;max-height:300px;overflow:auto}.toast{position:fixed;right:18px;bottom:18px;z-index:800;background:#202744;border:1px solid #50608f;border-radius:10px;padding:10px 14px;box-shadow:0 12px 34px #0008;display:none}.toast.show{display:block}@media(max-width:720px){.shell{padding:8px}.command{flex-wrap:wrap}.brand{width:100%}.spacer{display:none}}
+</style></head><body>
+<div class="shell"><div class="command"><div class="brand"><span>◆</span><div>角色档案<small id="subtitle">读取中</small></div></div><span class="mode-badge" id="mode">只读查看</span><span class="spacer"></span><button class="cmd-btn" id="versions">历史与对比</button><button class="cmd-btn" id="refresh">刷新</button><button class="cmd-btn gold" id="edit">进入编辑</button></div><main id="host" class="host"><div class="loading">正在加载规则角色卡……</div></main><div class="editor-actions" id="editor-actions"><button class="cmd-btn" id="cancel-edit">取消修改</button><button class="cmd-btn primary" id="save-edit">保存现行角色卡</button></div></div>
+<div class="version-drawer" id="version-drawer"><section class="version-box"><div class="version-head"><h2 style="margin:0">角色历史与 GM 备份</h2><span class="spacer"></span><button class="cmd-btn" id="close-versions">关闭</button></div><p style="color:#9aa5c8">每次保存会先保留上一版本。选择一个版本可恢复；选择两个版本可查看字段差异。</p><div class="version-list" id="version-list"></div><div class="diff" id="diff">选择版本后显示对比结果。</div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="cmd-btn" id="compare">对比所选</button><button class="cmd-btn danger" id="restore">恢复第一个所选版本</button></div></section></div><div class="toast" id="toast"></div>
+<script src="/js/plugins.js"></script><script src="/js/tags.js"></script><script>
+(function(){'use strict';
+var q=new URLSearchParams(location.search),id=q.get('id')||'',system=q.get('system')||'',adventure=localStorage.getItem('trpg_current_adventure')||'默认';
+var host=document.getElementById('host'),collector=null,handler=null,editing=false,selectedVersions=[],detailCtx=null;
+function token(){try{return JSON.parse(localStorage.getItem('trpg_sheet_'+id)||'null')}catch(e){return null}}
+function permission(){try{return JSON.parse(localStorage.getItem('trpg_perm_'+id)||'{}')}catch(e){return{}}}
+function toast(t,err){var el=document.getElementById('toast');el.textContent=t;el.style.borderColor=err?'#a94d57':'#50608f';el.classList.add('show');setTimeout(function(){el.classList.remove('show')},2200)}
+window.UIManager={
+  canEditCharacter:function(){return permission().canEdit!==false},
+  openCharacterModalForEdit:function(){enterEdit()},
+  showCharacterDetail:function(tokenId){
+    if(tokenId&&tokenId!==id){location.href='/sheet.html?id='+encodeURIComponent(tokenId)+'&system='+encodeURIComponent(system);return}
+    renderView()
+  },
+  openCharacterSheet:function(tokenId){
+    if(tokenId&&tokenId!==id){location.href='/sheet.html?id='+encodeURIComponent(tokenId)+'&system='+encodeURIComponent(system);return}
+    renderView()
   }
-
-  render();
-  // 主窗口数据变化时自动刷新（如伤害/治疗）
-  setInterval(function () {
-    var cur = null;
-    try { cur = localStorage.getItem('trpg_sheet_' + id); } catch (e) {}
-    if (cur !== window.__sheetLast) { window.__sheetLast = cur; render(); }
-  }, 1200);
+};
+// 独立角色卡与主窗口共享同一份角色数据。规则插件可照常调用 MapEngine，
+// 但这里的桥接会更新完整角色列表，绝不会用单个角色覆盖其他角色。
+function allCharacters(){try{var a=JSON.parse(localStorage.getItem('trpg_characters')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function publishCharacter(updated){
+  var list=allCharacters(),found=false;
+  list=list.map(function(c){if(c&&c.id===id){found=true;return updated}return c});
+  if(!found)list.push(updated);
+  localStorage.setItem('trpg_characters',JSON.stringify(list));
+  localStorage.setItem('trpg_sheet_'+id,JSON.stringify(updated));
+  localStorage.setItem('trpg_pending_character',JSON.stringify({action:'update',id:id,name:updated.name,displayName:updated.displayName,color:updated.color,data:updated.data||{},category:updated.category,avatarUrl:updated.avatarUrl}));
+  return updated;
+}
+window.MapEngine={
+  getTokenById:function(tokenId){return tokenId===id?token():allCharacters().find(function(c){return c&&c.id===tokenId})||null},
+  getAllTokens:function(){var current=token(),list=allCharacters(),found=false;list=list.map(function(c){if(c&&c.id===id&&current){found=true;return current}return c});if(current&&!found)list.push(current);return list},
+  updateToken:function(tokenId,patch){
+    if(tokenId!==id)return null;
+    var old=token();if(!old)return null;patch=patch||{};
+    var updated=Object.assign({},old,patch);
+    if(patch.data)updated.data=Object.assign({},old.data||{},patch.data||{});
+    var d=updated.data||{};
+    if(d.assets&&(d.assets.avatarFramed||d.assets.avatar))updated.avatarUrl=d.assets.avatarFramed||d.assets.avatar;
+    publishCharacter(updated);return updated;
+  }
+};
+var api={system:system,manifest:{id:'sheet-view',name:'角色卡',version:'2.0.0',type:'character-sheet'},registerCharacterSheet:function(h){handler=h},fetch:function(u,o){return fetch(u,o)},log:function(){console.log.apply(console,arguments)},warn:function(){console.warn.apply(console,arguments)},openRuleFile:function(file){window.open('/view.html?system='+encodeURIComponent(system)+'&file='+encodeURIComponent(file),'_blank')},bindTermTips:function(el){if(window.TrpgTag)window.TrpgTag.bindTips(el)}};
+detailCtx={system:system,token:null,fetch:fetch,openRuleFile:api.openRuleFile,_cbTab:q.get('tab')||'bio'};
+function loadPlugin(){return fetch('/api/plugins/list?system='+encodeURIComponent(system)).then(r=>r.json()).then(function(list){var m=(list||[]).find(x=>x.type==='character-sheet');if(!m)return null;return fetch('/api/plugins/entry?system='+encodeURIComponent(system)+'&id='+encodeURIComponent(m.id)).then(r=>r.text()).then(function(code){var module={exports:{}};var fn=new Function('module','exports','PluginAPI',code+'\n;return module.exports;');var ex=fn(module,module.exports,api);if(ex&&ex.register)ex.register(api);return handler})}).catch(function(e){console.error(e);return null})}
+function setHeader(t){var d=(t&&t.data)||{};document.title=(t?(t.displayName||d.name||t.name):'未找到')+' - 角色卡';document.getElementById('subtitle').textContent=t?[(d.race||''),(d.class||''),(d.level?'Lv'+d.level:'')].filter(Boolean).join(' · '):'未找到角色';var can=permission().canEdit!==false;document.getElementById('edit').style.display=can&&!editing?'':'none';document.getElementById('mode').textContent=editing?'编辑现行角色卡':(can?'可编辑角色卡':'只读角色卡');document.getElementById('editor-actions').classList.toggle('show',editing)}
+function renderView(){editing=false;collector=null;var t=token();setHeader(t);if(!t){host.innerHTML='<div class="empty">未找到角色数据，请从主界面的角色条目打开。</div>';return}host.innerHTML='';if(handler&&handler.renderDetail){try{detailCtx.token=t;handler.renderDetail(host,t,detailCtx);if(window.TrpgTag)window.TrpgTag.bindTips(host);return}catch(e){console.error(e)}}host.innerHTML='<div class="empty">当前规则模块没有可用的角色卡渲染器。</div>'}
+function enterEdit(){if(permission().canEdit===false){toast('你没有修改这个角色的权限',true);return}var t=token();if(!t||!handler||!handler.renderCreate)return;editing=true;setHeader(t);host.innerHTML='';try{handler.renderCreate(host,{system:system,token:t,fetch:fetch,openRuleFile:api.openRuleFile},function(c){collector=c});if(window.TrpgTag)window.TrpgTag.bindTips(host);window.scrollTo({top:0,behavior:'smooth'})}catch(e){editing=false;toast('编辑器加载失败：'+e.message,true);renderView()}}
+function normalize(result,old){var d=result.data||result;var out=Object.assign({},old,{name:result.name||d.name||old.name,displayName:result.displayName||result.name||d.name||old.displayName,color:result.color||old.color,data:d});if(d.assets&&(d.assets.avatarFramed||d.assets.avatar))out.avatarUrl=d.assets.avatarFramed||d.assets.avatar;if(d.HP){out.hp=d.HP.current;out.maxHp=d.HP.max}if(d.AC!==undefined)out.ac=d.AC;return out}
+async function saveEdit(){if(!collector){toast('角色卡编辑器尚未就绪',true);return}var result=collector();if(!result)return;var old=token(),updated=normalize(result,old);try{await fetch('/api/characters/archive',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:system,adventure:adventure,characters:[old]})});publishCharacter(updated);await fetch('/api/characters/archive',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:system,adventure:adventure,characters:[updated]})});toast('角色卡已保存，并为 GM 保留修改前版本');renderView()}catch(e){toast('保存失败：'+e.message,true)}}
+function deepDiff(a,b,path,out){path=path||'';out=out||[];if(a===b)return out;var ao=a&&typeof a==='object',bo=b&&typeof b==='object';if(!ao||!bo){out.push(path+': '+JSON.stringify(a)+' → '+JSON.stringify(b));return out}var keys=new Set(Object.keys(a||{}).concat(Object.keys(b||{})));keys.forEach(function(k){deepDiff(a&&a[k],b&&b[k],path?(path+'.'+k):k,out)});return out}
+async function openVersions(){document.getElementById('version-drawer').classList.add('show');selectedVersions=[];var el=document.getElementById('version-list');el.innerHTML='读取中……';try{var r=await fetch('/api/characters/versions?system='+encodeURIComponent(system)+'&adventure='+encodeURIComponent(adventure)+'&id='+encodeURIComponent(id));var data=await r.json();var list=[];if(data.current)list.push(Object.assign({current:true},data.current));(data.versions||[]).forEach(v=>list.push(v));el.innerHTML=list.length?'':'暂无历史版本';list.forEach(function(v,i){var b=document.createElement('button');b.className='version';b.innerHTML='<b>'+(v.current?'当前版本':'历史版本 '+(i))+'</b><small>'+new Date(v.ts).toLocaleString()+'</small>';b.onclick=function(){var idx=selectedVersions.indexOf(v);if(idx>=0)selectedVersions.splice(idx,1);else{if(selectedVersions.length>=2)selectedVersions.shift();selectedVersions.push(v)}renderVersionSelection()};el.appendChild(b);v._el=b})}catch(e){el.textContent='读取失败：'+e.message}}
+function renderVersionSelection(){document.querySelectorAll('.version').forEach(x=>x.classList.remove('selected'));selectedVersions.forEach(v=>v._el&&v._el.classList.add('selected'));var d=document.getElementById('diff');if(selectedVersions.length===1)d.textContent='已选择：'+new Date(selectedVersions[0].ts).toLocaleString()+'。可恢复此版本，或再选一个版本进行对比。';else if(selectedVersions.length===2){var lines=deepDiff(selectedVersions[0].character,selectedVersions[1].character);d.textContent=lines.length?lines.slice(0,500).join('\n'):'两个版本没有字段差异。'}else d.textContent='选择版本后显示对比结果。'}
+async function restore(){var v=selectedVersions[0];if(!v||v.current){toast('请选择一个历史版本',true);return}if(!confirm('恢复该历史版本？当前版本也会先自动备份。'))return;try{var r=await fetch('/api/characters/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:system,adventure:adventure,id:id,ts:v.file.replace(/\.json$/,'')})});var data=await r.json();if(!data.success)throw new Error(data.error||'恢复失败');publishCharacter(data.character);localStorage.setItem('trpg_char_restore_'+id,JSON.stringify(data.character));document.getElementById('version-drawer').classList.remove('show');toast('已恢复历史版本');renderView()}catch(e){toast(e.message,true)}}
+document.getElementById('edit').onclick=enterEdit;document.getElementById('cancel-edit').onclick=renderView;document.getElementById('save-edit').onclick=saveEdit;document.getElementById('refresh').onclick=renderView;document.getElementById('versions').onclick=openVersions;document.getElementById('close-versions').onclick=function(){document.getElementById('version-drawer').classList.remove('show')};document.getElementById('compare').onclick=renderVersionSelection;document.getElementById('restore').onclick=restore;
+window.addEventListener('storage',function(e){if(!editing&&e.key==='trpg_sheet_'+id)renderView()});
+loadPlugin().then(function(){renderView();if(q.get('edit')==='1')enterEdit()});
 })();
-</script>
-</body>
-</html>
+</script></body></html>

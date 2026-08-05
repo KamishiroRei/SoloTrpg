@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>GM 面板</title>
+<style>
+  html, body { height: auto !important; overflow: auto !important; margin: 0; padding: 12px; background: transparent; color: #e0e0f0; font-family: system-ui, sans-serif; }
+  .gm-sec { margin-bottom: 16px; }
+  .gm-sec h4 { margin: 0 0 8px; font-size: 13px; color: #ffd479; border-bottom: 1px solid #2a2a4a; padding-bottom: 5px; }
+  .gm-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #3a3a5c; background: #1e2a4a; color: #e0e0f0; cursor: pointer; font-size: 12px; }
+  .btn:hover { background: #253358; }
+  .btn.accent { background: #c9a84c; color: #1a1a2e; border-color: #c9a84c; }
+  .module-layout { display: flex; gap: 10px; }
+  .module-tree { flex: 1; min-width: 0; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 8px; font-size: 12px; overflow: auto; max-height: 420px; }
+  .module-preview { flex: 1; min-width: 0; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px; font-size: 12px; overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-all; }
+  .rules-empty { color: #6a6a8a; text-align: center; padding: 20px; font-size: 12px; line-height: 1.7; }
+  .module-node { padding: 3px 4px; border-radius: 4px; cursor: pointer; }
+  .module-node:hover { background: #253358; }
+  .module-dir { font-weight: 600; }
+  .module-children { margin-left: 16px; }
+  .module-del { margin-left: 6px; opacity: 0; cursor: pointer; }
+  .module-node:hover .module-del { opacity: 1; }
+</style>
+</head>
+<body>
+  <div class="gm-sec">
+    <h4>GM 工具</h4>
+    <div class="gm-btns">
+      <button class="btn accent" id="btn-check-tool">📋 检定工具</button>
+      <button class="btn" id="btn-gm-ai-gen">🤖 AI生成</button>
+      <button class="btn" id="btn-illustration">🖼 放插图（临时代替地图）</button>
+      <button class="btn" id="btn-illustration-clear">⏹ 结束插图</button>
+    </div>
+  </div>
+  <div class="gm-sec">
+    <h4>模组管理（GM 专属；远端不同步，AI 引用时动态加载资源）</h4>
+    <div class="gm-btns" style="margin-bottom:8px;">
+      <button class="btn" id="btn-module-folder">📂 导入文件夹</button>
+      <button class="btn" id="btn-module-file">📄 导入文件</button>
+    </div>
+    <div class="module-layout">
+      <div class="module-tree" id="module-tree"><div class="rules-empty">尚未导入模组。</div></div>
+      <div class="module-preview" id="module-preview"><div class="rules-empty">← 选择模组文件查看内容</div></div>
+    </div>
+    <input type="file" id="module-folder-input" webkitdirectory directory multiple style="display:none;">
+    <input type="file" id="module-file-input" multiple style="display:none;">
+  </div>
+<script>
+(function() {
+  var parent = window.parent;
+  var api = parent && parent.UIManager ? parent.UIManager : null;
+  var system = new URLSearchParams(location.search).get('system') || '';
+
+  // ── GM 工具 ──
+  var checkBtn = document.getElementById('btn-check-tool');
+  if (checkBtn && api && api.openDiceModal) {
+    checkBtn.addEventListener('click', function() { api.openDiceModal(); });
+  } else if (checkBtn) {
+    checkBtn.addEventListener('click', function() { alert('宿主未提供检定工具（需要刷新主窗口）。'); });
+  }
+  var aiGen = document.getElementById('btn-gm-ai-gen');
+  if (aiGen && api && api.addChatMessage) {
+    aiGen.addEventListener('click', function() {
+      api.addChatMessage('system', 'GM', '在聊天输入框输入 /ai 指令即可让 AI 生成 GM 工具，例如：/ai 生成一个快速查询状态效果的GM工具');
+    });
+  }
+
+  // ── 插图系统（过场：以插图临时代替地图；AI 作为 GM 时也可用 <illustration> 指令） ──
+  var illBtn = document.getElementById('btn-illustration');
+  var illClear = document.getElementById('btn-illustration-clear');
+  if (illBtn) {
+    illBtn.addEventListener('click', function() {
+      var v = prompt('输入插图来源（过场期间以插图临时代替地图）：\n\n· 模组图片：module:图片路径（如 module:场景/酒馆.png）\n· 网络图片：https://...\n· 本机规则书资源：/Ruler/... 相对路径', 'module:');
+      if (!v || !v.trim()) return;
+      var caption = prompt('插图标题/说明（可留空）', '');
+      if (api && api.showIllustration) api.showIllustration(v.trim(), (caption || '').trim());
+      else if (parent && parent.UIManager && parent.UIManager.showIllustration) parent.UIManager.showIllustration(v.trim(), (caption || '').trim());
+      else alert('宿主未提供插图能力（需要刷新主窗口）。');
+    });
+  }
+  if (illClear) {
+    illClear.addEventListener('click', function() {
+      if (api && api.hideIllustration) api.hideIllustration();
+      else if (parent && parent.UIManager && parent.UIManager.hideIllustration) parent.UIManager.hideIllustration();
+    });
+  }
+
+  // ── 模组管理 ──
+  var folderBtn = document.getElementById('btn-module-folder');
+  var fileBtn = document.getElementById('btn-module-file');
+  var folderInput = document.getElementById('module-folder-input');
+  var fileInput = document.getElementById('module-file-input');
+  if (folderBtn && folderInput) {
+    folderBtn.addEventListener('click', function() { folderInput.click(); });
+    folderInput.addEventListener('change', function() {
+      if (this.files && this.files.length) uploadModuleFiles(this.files, true);
+      this.value = '';
+    });
+  }
+  if (fileBtn && fileInput) {
+    fileBtn.addEventListener('click', function() { fileInput.click(); });
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files.length) uploadModuleFiles(this.files, false);
+      this.value = '';
+    });
+  }
+
+  function uploadModuleFiles(fileList, isFolder) {
+    if (!system) { alert('未选择规则系统'); return; }
+    var arr = Array.prototype.slice.call(fileList);
+    var fd = new FormData();
+    fd.append('system', system);
+    arr.forEach(function(f) {
+      fd.append('files', f);
+      var rel = isFolder && f.webkitRelativePath ? f.webkitRelativePath : f.name;
+      fd.append('relPath', rel);
+    });
+    var ce = document.getElementById('module-tree');
+    if (ce) ce.innerHTML = '<div class="rules-empty">正在导入模组：' + arr.length + ' 个文件…</div>';
+    fetch('/api/module/upload', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (api && api.addChatMessage) {
+          api.addChatMessage('system', '模组', (data && data.success) ? '已导入 ' + data.total + ' 个文件 → ' + system : ('模组导入失败: ' + ((data && data.error) || '未知错误')));
+        }
+        refreshModuleList();
+      })
+      .catch(function(e) {
+        if (api && api.addChatMessage) api.addChatMessage('system', '模组', '模组导入失败: ' + (e.message || ''));
+        refreshModuleList();
+      });
+  }
+
+  function refreshModuleList() {
+    var treeEl = document.getElementById('module-tree'); if (!treeEl) return;
+    if (!system) { treeEl.innerHTML = '<div class="rules-empty">尚未选择规则系统。</div>'; return; }
+    fetch('/api/module/list?system=' + encodeURIComponent(system))
+      .then(function(r) { return r.ok ? r.json() : { tree: [] }; })
+      .then(function(data) {
+        var tree = (data && data.tree) || [];
+        if (!tree.length) { treeEl.innerHTML = '<div class="rules-empty">尚未导入模组。<br>点击「📂 导入文件夹」或「📄 导入文件」。</div>'; return; }
+        treeEl.innerHTML = renderTree(tree, '');
+        bindTreeEvents(treeEl);
+      })
+      .catch(function(e) { treeEl.innerHTML = '<div class="rules-empty">模组列表加载失败：' + (e.message || '') + '</div>'; });
+  }
+
+  function renderTree(items, prefix) {
+    var html = '';
+    items.forEach(function(item) {
+      var rel = prefix + item.name;
+      if (item.type === 'dir') {
+        html += '<div class="module-node module-dir" data-path="' + esc(rel) + '">📁 ' + esc(item.name) + '<span class="module-del" data-del="' + esc(rel) + '" title="删除整个文件夹">🗑</span></div>';
+        if (item.children && item.children.length) html += '<div class="module-children">' + renderTree(item.children, rel + '/') + '</div>';
+      } else {
+        html += '<div class="module-node" data-file="' + esc(rel) + '" data-size="' + (item.size || 0) + '">📄 ' + esc(item.name) + '</div>';
+      }
+    });
+    return html;
+  }
+
+  function bindTreeEvents(root) {
+    root.querySelectorAll('[data-file]').forEach(function(el) {
+      el.addEventListener('click', function() { previewModule(el.getAttribute('data-file')); });
+    });
+    root.querySelectorAll('[data-del]').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (!confirm('删除模组「' + el.getAttribute('data-del') + '」？')) return;
+        fetch('/api/module/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: system, path: el.getAttribute('data-del') }) })
+          .then(function(r) { return r.json(); })
+          .then(function(d) { refreshModuleList(); })
+          .catch(function() {});
+      });
+    });
+  }
+
+  function previewModule(rel) {
+    var pv = document.getElementById('module-preview'); if (!pv) return;
+    fetch('/api/module/read?system=' + encodeURIComponent(system) + '&path=' + encodeURIComponent(rel))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data) { pv.innerHTML = '<div class="rules-empty">读取失败</div>'; return; }
+        if (data.binary) { pv.innerHTML = '<div class="rules-empty">二进制文件：' + esc(data.name) + '（' + data.size + ' B）</div>'; return; }
+        pv.innerHTML = '<b>' + esc(data.name) + '</b>' + (data.truncated ? ' <span style="color:#c9a86a;">（已截断）</span>' : '') + '<hr>' + esc(data.content || '');
+      })
+      .catch(function() { pv.innerHTML = '<div class="rules-empty">读取失败</div>'; });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  refreshModuleList();
+})();
+</script>
+</body>
+</html>
