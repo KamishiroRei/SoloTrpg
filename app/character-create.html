@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>新建角色卡</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* 覆盖全局 style.css 的 body 锁死：独立窗口页面必须可滚动 */
+  html, body { height: auto !important; overflow: auto !important; }
+  body { background: #1a1a2e; color: #eee; margin: 0; padding: 18px; font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .head h2 { margin: 0; font-size: 18px; color: #fff; }
+  .head .hint { font-size: 12px; color: #8a8ab0; }
+  .btn-save { background: #4ecdc4; color: #0b0b1a; border: none; border-radius: 6px; padding: 8px 22px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-close { background: #33335c; color: #cfcfe8; border: 1px solid #4a4a78; border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; margin-right: 8px; }
+  .msg { margin-top: 10px; font-size: 13px; color: #4ecdc4; min-height: 18px; }
+  .msg.err { color: #ff7b7b; }
+  .default-form { background: #232345; border: 1px solid #3a3a5c; border-radius: 10px; padding: 16px; }
+  .default-form .form-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .default-form label { width: 90px; color: #9a9abf; font-size: 13px; }
+  .default-form input[type="text"], .default-form textarea, .default-form input[type="color"] {
+    background: #1a1a2e; color: #eee; border: 1px solid #3a3a5c; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: inherit;
+  }
+  .default-form textarea { width: 100%; box-sizing: border-box; overflow-y: auto; min-height: 80px; }
+  #form .cb-sheet { color: #eee; }
+</style>
+</head>
+<body>
+<script src="/js/plugins.js"></script>
+<div class="wrap">
+  <div class="head">
+    <h2 id="title">新建角色卡</h2>
+    <div>
+      <button class="btn-close" onclick="window.close()">取消</button>
+      <button class="btn-save" id="btn-save">保存角色卡</button>
+    </div>
+  </div>
+  <div class="hint" id="hint"></div>
+  <div id="form"><div style="color:#8a8ab0;padding:30px;text-align:center;">加载表单中...</div></div>
+  <div class="msg" id="msg"></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var system = params.get('system') || '';
+  var editId = params.get('id') || '';
+  var titleEl = document.getElementById('title');
+  var hintEl = document.getElementById('hint');
+  var formEl = document.getElementById('form');
+  var msgEl = document.getElementById('msg');
+  var saveCollector = null;
+  var editToken = null;
+
+  if (editId) {
+    titleEl.textContent = '编辑角色卡';
+    try { editToken = JSON.parse(localStorage.getItem('trpg_sheet_' + editId)); } catch (e) {}
+  }
+  if (system) hintEl.textContent = '规则系统：' + system + '（当前规则的专属角色卡表单将自动加载；无专属表单时使用通用表单）';
+
+  var ctx = {
+    system: system,
+    token: editToken,
+    fetch: function (path) { return fetch(path); },
+    openRuleFile: function (file) {
+      window.open('/view.html?system=' + encodeURIComponent(system) + '&file=' + encodeURIComponent(file), '_blank');
+    }
+  };
+
+  // 轻量 PluginAPI：执行规则插件代码，捕获 registerCharacterSheet
+  var sheetHandler = null;
+  function makeApi() {
+    return {
+      system: system,
+      manifest: { id: 'character-create', name: '角色卡', version: '1.0.0', type: 'character-sheet' },
+      registerCharacterSheet: function (h) { sheetHandler = h; },
+      fetch: function (url, opts) { return fetch(url, opts); },
+      log: function () { console.log.apply(console, arguments); },
+      warn: function () { console.warn.apply(console, arguments); },
+      bindTermTips: function (el) { if (window.TrpgTermTip && el) window.TrpgTermTip.bind(el, system); }
+    };
+  }
+
+  function loadPlugin() {
+    return fetch('/api/plugins/list?system=' + encodeURIComponent(system))
+      .then(function (r) { return r.json(); })
+      .then(function (list) {
+        var sheet = (list || []).find(function (m) { return m.type === 'character-sheet'; });
+        if (!sheet) return null;
+        return fetch('/api/plugins/entry?system=' + encodeURIComponent(system) + '&id=' + encodeURIComponent(sheet.id))
+          .then(function (r) { return r.text(); })
+          .then(function (code) {
+            var module = { exports: {} };
+            var api = makeApi();
+            var fn = new Function('module', 'exports', 'PluginAPI', code + '\n;return module.exports;');
+            var exports = fn(module, module.exports, api);
+            if (exports && typeof exports.register === 'function') exports.register(api);
+            return sheetHandler;
+          });
+      })
+      .catch(function () { return null; });
+  }
+
+  function renderDefaultForm() {
+    formEl.innerHTML =
+      '<div class="default-form">' +
+      '<div class="form-row"><label>名称</label><input type="text" id="df-name" placeholder="角色名称"></div>' +
+      '<div class="form-row"><label>显示名</label><input type="text" id="df-display" placeholder="地图标签（留空=名称）"></div>' +
+      '<div class="form-row"><label>颜色</label><input type="color" id="df-color" value="#4ecdc4"></div>' +
+      '<div class="form-row" style="align-items:flex-start;"><label>角色数据（JSON）</label><textarea id="df-data" rows="12" placeholder="{}"></textarea></div>' +
+      '</div>';
+    if (editToken) {
+      document.getElementById('df-name').value = editToken.name || '';
+      document.getElementById('df-display').value = editToken.displayName || '';
+      document.getElementById('df-color').value = editToken.color || '#4ecdc4';
+      document.getElementById('df-data').value = JSON.stringify(editToken.data || {}, null, 2);
+    }
+    saveCollector = function () {
+      var name = document.getElementById('df-name').value.trim();
+      if (!name) { showMsg('角色名不能为空', true); return null; }
+      var data;
+      try { data = JSON.parse(document.getElementById('df-data').value.trim() || '{}'); }
+      catch (e) { showMsg('角色数据 JSON 格式错误', true); return null; }
+      return {
+        name: name,
+        displayName: document.getElementById('df-display').value.trim() || name,
+        color: document.getElementById('df-color').value,
+        data: data
+      };
+    };
+  }
+
+  function showMsg(text, isErr) {
+    msgEl.textContent = text;
+    msgEl.className = 'msg' + (isErr ? ' err' : '');
+  }
+
+  document.getElementById('btn-save').onclick = function () {
+    if (!saveCollector) { showMsg('表单尚未就绪', true); return; }
+    var result = saveCollector();
+    if (!result) return; // 校验失败，插件/默认表单已提示
+    // 通知主窗口创建/更新角色
+    var payload = { action: editId ? 'update' : 'create', name: result.name, displayName: result.displayName, color: result.color, data: result.data };
+    if (editId) payload.id = editId;
+    try { localStorage.setItem('trpg_pending_character', JSON.stringify(payload)); } catch (e) { showMsg('保存失败：无法写入本地存储', true); return; }
+    showMsg('已保存！本窗口即将关闭，主窗口将创建/更新角色。');
+    setTimeout(function () { window.close(); }, 1500);
+  };
+
+  // 优先加载规则专属表单，否则默认表单
+  loadPlugin().then(function (handler) {
+    if (handler && typeof handler.renderCreate === 'function') {
+      sheetHandler = handler;
+      formEl.innerHTML = '';
+      try {
+        handler.renderCreate(formEl, ctx, function (collector) { saveCollector = collector; });
+      } catch (e) {
+        formEl.innerHTML = '<div style="color:#ff7b7b;">表单渲染失败：' + e.message + '</div>';
+        renderDefaultForm();
+      }
+    } else {
+      renderDefaultForm();
+    }
+  });
+})();
+</script>
+</body>
+</html>

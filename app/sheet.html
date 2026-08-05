@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>角色卡</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  /* 覆盖全局 style.css 的 body 锁死：独立窗口页面必须可滚动 */
+  html, body { height: auto !important; overflow: auto !important; }
+  body { background: #1a1a2e; color: #eee; margin: 0; padding: 20px; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .sheet-wrap { max-width: 900px; margin: 0 auto; }
+  .sheet-head { display: flex; align-items: center; gap: 16px; padding: 16px; background: #232345; border: 1px solid #3a3a5c; border-radius: 10px; margin-bottom: 14px; }
+  .sheet-avatar { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; background: #4ecdc4; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; }
+  .sheet-name { font-size: 22px; font-weight: 800; color: #fff; }
+  .sheet-sub { color: #9a9abf; font-size: 13px; margin-top: 4px; }
+  .sheet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .sheet-card { background: #232345; border: 1px solid #3a3a5c; border-radius: 10px; padding: 12px 14px; }
+  .sheet-card h3 { margin: 0 0 8px; font-size: 13px; color: #ffd479; border-bottom: 1px solid #3a3a5c; padding-bottom: 5px; }
+  .sheet-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed #2e2e4f; }
+  .sheet-row span:first-child { color: #9a9abf; }
+  .sheet-abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .sheet-ability { background: #2a2a50; border: 1px solid #3a3a5c; border-radius: 8px; text-align: center; padding: 8px 4px; }
+  .sheet-ability .a-name { font-size: 11px; color: #9a9abf; }
+  .sheet-ability .a-val { font-size: 22px; font-weight: 800; color: #fff; }
+  .sheet-ability .a-mod { font-size: 13px; font-weight: 700; color: #ffd479; }
+  .sheet-pill { display: inline-block; background: #2a2a50; border: 1px solid #3a3a5c; border-radius: 14px; padding: 3px 12px; font-size: 12px; color: #cfcfe8; margin: 2px 4px 2px 0; }
+  .sheet-pill b { color: #ffd479; }
+  .sheet-list { margin: 0; padding-left: 18px; font-size: 13px; }
+  .sheet-list li { margin: 2px 0; }
+  .sheet-missing { text-align: center; color: #9a9abf; padding: 60px 20px; }
+  .sheet-missing h2 { color: #fff; }
+</style>
+</head>
+<body>
+<div class="sheet-wrap" id="wrap"></div>
+<script>
+(function () {
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var id = params.get('id') || '';
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  };
+  var ABILITIES = [['str', '力量'], ['dex', '敏捷'], ['con', '体质'], ['int', '智力'], ['wis', '感知'], ['cha', '魅力']];
+
+  function render() {
+    var token = null;
+    try { token = JSON.parse(localStorage.getItem('trpg_sheet_' + id)); } catch (e) {}
+    var wrap = document.getElementById('wrap');
+    if (!token) {
+      document.title = '角色卡（未找到）';
+      wrap.innerHTML = '<div class="sheet-missing"><h2>未找到角色数据</h2><div>请回到主窗口点击角色后重试（角色数据由主窗口写入本地存储）。</div></div>';
+      return;
+    }
+    var d = token.data || {};
+    var name = token.displayName || d.name || token.name || '未命名角色';
+    document.title = name + ' - 角色卡';
+
+    // 头像
+    var avatar = token.avatarUrl || (d.assets && (d.assets.avatarFramed || d.assets.avatar)) || '';
+    var avatarHtml = avatar
+      ? '<img class="sheet-avatar" src="' + esc(avatar) + '">'
+      : '<div class="sheet-avatar">' + esc(name.charAt(0)) + '</div>';
+
+    // 基础信息行
+    var metaParts = [d.race, d.class, d.background, d.level ? 'Lv' + d.level : '', d.hitDice ? '生命骰 ' + d.hitDice : ''].filter(Boolean);
+    var meta = metaParts.length ? metaParts.join(' · ') : (token.name || '');
+
+    // 属性六格
+    var scores = d.abilityScores || {};
+    var mods = d.abilityMods || {};
+    var abHtml = ABILITIES.map(function (a) {
+      return '<div class="sheet-ability"><div class="a-name">' + a[1] + '</div>' +
+        '<div class="a-val">' + (scores[a[0]] != null ? scores[a[0]] : '-') + '</div>' +
+        '<div class="a-mod">' + (mods[a[0]] != null ? (mods[a[0]] >= 0 ? '+' : '') + mods[a[0]] : '') + '</div></div>';
+    }).join('');
+
+    // 关键数值徽章
+    var hp = d.HP || {};
+    var pills = [];
+    if (hp.current != null || hp.max != null) pills.push('HP <b>' + esc(hp.current != null ? hp.current : '?') + '/' + esc(hp.max != null ? hp.max : '?') + '</b>');
+    if (d.AC != null) pills.push('AC <b>' + esc(d.AC) + '</b>');
+    if (d.proficiency != null) pills.push('熟练加值 <b>' + (d.proficiency >= 0 ? '+' : '') + d.proficiency + '</b>');
+    if (d.attackBonus != null) pills.push('攻击加值 <b>' + (d.attackBonus >= 0 ? '+' : '') + d.attackBonus + '</b>');
+    var pillHtml = pills.length ? '<div style="margin-bottom:10px;">' + pills.map(function (p) { return '<span class="sheet-pill">' + p + '</span>'; }).join('') + '</div>' : '';
+
+    // 技能
+    var skillsHtml = '';
+    var skills = d.skills || {};
+    var skillKeys = Object.keys(skills);
+    if (skillKeys.length) {
+      var rows = skillKeys.map(function (k) {
+        var st = skills[k] || {};
+        var mod = (mods[st.ability] != null ? mods[st.ability] : 0);
+        var prof = Number(d.proficiency) || 0;
+        var bonus = st.trained === '专精' ? mod + prof * 2 : (st.trained === '熟练' ? mod + prof : mod);
+        var mark = st.trained === '熟练' ? '●' : (st.trained === '专精' ? '◎' : '');
+        return '<div class="sheet-row"><span>' + esc(k) + ' <small style="color:#7a7aa0;">' + esc(mark) + '</small></span><span>' + (bonus >= 0 ? '+' : '') + bonus + '</span></div>';
+      }).join('');
+      skillsHtml = '<div class="sheet-card" style="grid-column:span 2;"><h3>技能</h3>' + rows + '</div>';
+    }
+
+    // 法术 / 装备
+    function lines(v) { return String(v || '').split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean); }
+    var spells = lines(d.spells);
+    var equip = lines(d.equipment);
+    var spellsHtml = '<div class="sheet-card"><h3>法术</h3>' +
+      (spells.length ? '<ul class="sheet-list">' + spells.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '<div style="color:#7a7aa0;font-size:12px;">无</div>') + '</div>';
+    var equipHtml = '<div class="sheet-card"><h3>装备</h3>' +
+      (equip.length ? '<ul class="sheet-list">' + equip.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '<div style="color:#7a7aa0;font-size:12px;">无</div>') + '</div>';
+
+    // 其他字段（通用规则数据）
+    var KNOWN = ['name', 'race', 'class', 'background', 'level', 'hitDice', 'HP', 'AC', 'proficiency', 'attackBonus', 'abilityScores', 'abilityMods', 'skills', 'spells', 'equipment', 'assets'];
+    var otherRows = [];
+    Object.keys(d).forEach(function (k) {
+      if (KNOWN.indexOf(k) >= 0) return;
+      var v = d[k];
+      if (v == null || v === '') return;
+      if (typeof v === 'object') v = JSON.stringify(v);
+      otherRows.push('<div class="sheet-row"><span>' + esc(k) + '</span><span>' + esc(v) + '</span></div>');
+    });
+    var otherHtml = otherRows.length
+      ? '<div class="sheet-card" style="grid-column:span 2;"><h3>其他资料</h3>' + otherRows.join('') + '</div>'
+      : '';
+
+    wrap.innerHTML =
+      '<div class="sheet-head">' + avatarHtml +
+      '<div><div class="sheet-name">' + esc(name) + '</div><div class="sheet-sub">' + esc(meta) + '</div></div></div>' +
+      pillHtml +
+      '<div class="sheet-grid">' +
+      '<div class="sheet-card"><h3>属性</h3><div class="sheet-abilities">' + abHtml + '</div></div>' +
+      skillsHtml + spellsHtml + equipHtml + otherHtml +
+      '</div>';
+  }
+
+  render();
+  // 主窗口数据变化时自动刷新（如伤害/治疗）
+  setInterval(function () {
+    var cur = null;
+    try { cur = localStorage.getItem('trpg_sheet_' + id); } catch (e) {}
+    if (cur !== window.__sheetLast) { window.__sheetLast = cur; render(); }
+  }, 1200);
+})();
+</script>
+</body>
+</html>

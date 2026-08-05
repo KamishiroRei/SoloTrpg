@@ -1,0 +1,7 @@
+{
+  "id": "spell-lookup",
+  "name": "法术查询",
+  "version": "1.0.0",
+  "description": "按关键词在全书检索法术条目（含来源书与路径），快速定位法术所在页面",
+  "type": "panel"
+}

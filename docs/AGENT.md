@@ -1,114 +1,46 @@
-# SoloTrpg（TrpgRecode）— AI驱动的通用单人跑团平台
+# TrpgRecode — AI驱动的通用单人TRPG平台
 
-> 因为自己的团鸽了好像一个月于是忍不住捣鼓了这么个东西。  
-> 接入AI后让AI自己部署一套TRPG基类。暂时没考虑联机。
+> 接入AI后让AI自己部署一套TRPG基类：动态解析任意TRPG规则书→自动生成配套角色卡与工具（插件）→AI作为GM带团。
+> 核心追求：TRPG的自由 + 电脑游戏的精准。AI以结构化标记输出判定与状态，系统渲染精美界面；游戏数据以变量精确管理，AI可读可写，前端实时联动。
 
-## 0. 开发铁律
+## 开发铁律
 
-### 用户体验优先
-- 任何BUG修复不得导致已有健全功能丢失
-- 数据兼容性不可破坏：版本升级时自动解析并继承旧存档
-- 默认状态为空框架，不预设任何角色、规则、模组内容
+- 本地快速调试不逐步上传；`SoloTrpg.exe` 是发布包，本地调试用 `start.bat`。
+- 不使用 Git 回档；回档以 `AI任务/<任务名>/backup/` 备份为准。
+- 修改前在 `AI任务/<任务名>/backup/` 备份直接相关文件。
+- 根目录不放AI临时产物；AI产物写入 `AI任务/`，稳定知识写入 `知识库/`。
+- 用户体验优先：BUG修复不得丢失已有健全功能；数据兼容性不可破坏（版本升级自动解析并继承旧存档）；默认空框架，不预设角色/规则/模组。
+- 大部分游戏数据由AI读取规则书后动态生成；存档存AI生成结果；规则书更新后AI识别差异增量更新；模组级自定义通过 override.json 覆盖。
 
-### 存档继承
-- 版本号仅在存档格式发生结构性变化时递增
-- 升级时检测旧版本数据，自动迁移到新格式
-- 测试数据/示例数据不属于用户存档，不应混入持久化
+## 架构
 
-### AI动态生成环境
-- 大部分游戏数据由AI在读取规则书后动态生成
-- 存档存储的是AI已生成的结果，不是原始规则书
-- 规则书更新后，AI应能识别差异并增量更新已生成内容
-- 模组级自定义覆盖标准规则配置（override.json机制）
-
-### 文本规范
-- 功能性描述：写做什么、怎么用
-- 不写对比性、自证性描述
-- 以当前代码真实状态为准
-
-## 1. 架构原则
-
-### 最小注入
-
-每次AI调用只注入：
-1. 核心提示（固定，~300字）：你是GM，遵守规则，不确定时查规则书
-2. 压缩游戏状态（一行式）：角色名+坐标+HP
-3. 最近2-3轮对话
-
-**规则书内容不注入**。AI需要规则时主动搜索（`[[search:关键词]]`）。
-
-### 系统自动记录
-
-对话由系统自动追加到 `Archive/{冒险名}/conversation.txt`。不消耗AI token。未整理内容由系统自动归档，不由AI整理。
-
-### Token流向
-
-```
-玩家输入 → 系统组装最小上下文 → AI响应 → 系统自动存档
-                ↑ 不含规则书        ↑ AI可能包含 [[search:...]]
-                                    → 系统拦截 → 搜索规则 → 注入结果 → AI继续
-```
-
-## 2. 目录结构
-
-```
-Ruler/{系统名}/           # 规则书任务区（AI启动时自动扫描）
-├── SKILL.md             # 核心摘要（AI快速接手用）
-├── compressed/          # AI压缩的标准查表格式
-├── source/              # 原始文本存档
-├── 模组/                # 剧本/设定
-│   ├── *.md             # 文字内容
-│   └── 资源/            # 图片等资源
-└── 存档/                # 按冒险区分
-    └── {冒险名}/
-        ├── conversation.txt   # 完整对话（系统自动记录）
-        └── summary.md         # 压缩事件表（每X轮生成）
-
-Module/                  # 独立模组目录
-Archive/                 # 全局存档
-```
-
-## 3. 核心提示
-
-```
-你是TRPG的GM，严格遵守当前游戏规则，满足用户需求。
-
-GM准则：
-- 融合角色设定与世界观，合理解释一切事件
-- 不盲目吹捧玩家角色，不以玩家角色为世界中心
-- 一切行为符合世界观和模组设定
-- 剧情需要的恶意攻击不应规避
-- 记忆不可靠，不确定时翻查规则书和模组
-
-需要规则时回复：[[search:关键词]]
-需要模组时回复：[[module:关键词]]
-```
-
-## 4. 文件书写原则
-
-1. 功能性描述：写做什么、怎么用，不写对比或自证
-2. 当前事实：以当前代码为准，不写历史差异
-3. 无自证：不出现"AI完成了X"、"经验证Y可行"
-4. 简洁直接：每段首句说清结论，细节在后
-
-## 5. 模块
-
-| 文件 | 作用 |
+| 部分 | 说明 |
 |------|------|
-| `index.html` | 前端入口 |
-| `server.js` | 后端（AI代理、规则扫描、存档、模组搜索） |
-| `js/dice.js` | 骰子系统 |
-| `js/map.js` | 地图引擎 |
-| `js/compressor.js` | 文本压缩器（长文→查表格式） |
-| `js/rulesearch.js` | 规则搜索引擎（AI工具调用模式） |
-| `js/templates.js` | 模板渲染器（AI配置→动态角色卡） |
-| `js/ai.js` | AI集成（极小注入、工具调用、自动存档） |
-| `js/ui.js` | UI管理 |
-| `js/app.js` | 主控制器 |
+| `app/` | 前端（index.html、character-create.html、sheet.html、rule-tree.html、view.html；js/：ui.js、ai.js、plugins.js、dice.js、map.js、network.js、rulesearch.js、templates.js、compressor.js、app.js；css/style.css） |
+| `server/server.js` | 唯一后端入口（AI代理、规则扫描、插件执行、存档、模组搜索、联机） |
+| `Ruler/<系统名>/` | 规则书任务区（source/原始、compressed/查表、original/、plugins/插件、assets/、tasks/、_index.json） |
+| `Ruler/_shared_tools/` | 通用工具与参考材料（含 reference/DND2024角色卡标杆/） |
+| `AI任务/` | AI任务产物（任务手册、backup、report、ref、scripts、AI任务索引.md） |
+| `知识库/` | 稳定知识（工作规范/AI协作手册.md 等） |
+| `docs/` | 长期开发文档（本文件、character-sheet-api.md、AI_MODULE_FIXES.md） |
+| `Logs/` | 运行日志（latest.log、debug-*.log、launcher.log） |
+| `config.json` | 配置（AI端点/模型、上下文限制等） |
 
-## 6. 启动
+## 运行
 
 ```bash
-npm install && node server.js
-# 打开 http://localhost:3000
+start.bat        # 源码调试入口（检查Node、语法检查、启动并写日志）
+# 浏览器打开 http://localhost:3000
 ```
+
+## 系统频道（AI自主迭代入口）
+
+- 前端"系统频道"授予AI规则系统管理权：可读写 `Ruler/<系统>/plugins/` 插件、检查宿主渲染文件。
+- AI工作方法、插件编写规范、GM带团协议由 skill 工具按需加载（agent-guide / plugin-authoring / gm-protocol / gm-standard）。
+- 详细协议见 `server/server.js` 中 GM_PROTOCOL_SKILL / PLUGIN_AUTHORING_SKILL / AGENT_GUIDE_SKILL / GM_STANDARD 常量。
+
+## AI调用与token
+
+- 系统频道：无轮数上限、不硬编码maxTokens、reasoningEffort由配置驱动、思考与正文完整推送、工具结果完整保留、历史超预算自动LLM压缩（compact）、空转分级提醒。
+- DeepSeek上下文缓存自动生效（命中按1/10计费）；历史中仅保留最近2轮assistant完整思考，更早思考置空（省token）。
+- 玩家频道：GM带团标准（GM_STANDARD）固定注入一次，不重复注入。

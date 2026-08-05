@@ -1,0 +1,765 @@
+{
+  "system": "DND五版不全书",
+  "sourceFileName": "DND五版不全书.chm",
+  "kind": "chm",
+  "imageCount": 108,
+  "images": [
+    {
+      "fileName": "template2__btn_next_n.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\template2__btn_next_n.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/template2__btn_next_n.gif",
+      "source": "chm",
+      "originalPath": "template2\\btn_next_n.gif"
+    },
+    {
+      "fileName": "template2__btn_prev_n.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\template2__btn_prev_n.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/template2__btn_prev_n.gif",
+      "source": "chm",
+      "originalPath": "template2\\btn_prev_n.gif"
+    },
+    {
+      "fileName": "万象无常书__pic__balance.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__balance.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__balance.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\balance.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__comet.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__comet.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__comet.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\comet.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__donjon.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__donjon.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__donjon.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\donjon.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__euryale.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__euryale.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__euryale.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\euryale.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__fates.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__fates.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__fates.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\fates.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__flames.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__flames.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__flames.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\flames.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__fool.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__fool.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__fool.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\fool.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__gem.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__gem.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__gem.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\gem.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__jester.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__jester.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__jester.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\jester.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__key.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__key.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__key.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\key.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__knight.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__knight.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__knight.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\knight.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__moon.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__moon.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__moon.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\moon.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__puzzle.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__puzzle.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__puzzle.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\puzzle.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__rogue.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__rogue.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__rogue.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\rogue.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__ruin.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__ruin.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__ruin.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\ruin.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__sage.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__sage.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__sage.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\sage.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__skull.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__skull.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__skull.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\skull.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__star.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__star.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__star.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\star.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__sun.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__sun.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__sun.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\sun.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__talons.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__talons.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__talons.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\talons.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__throne.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__throne.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__throne.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\throne.jpg"
+    },
+    {
+      "fileName": "万象无常书__pic__void.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__pic__void.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__pic__void.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\pic\\void.jpg"
+    },
+    {
+      "fileName": "万象无常书__平衡__continue.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__平衡__continue.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__%E5%B9%B3%E8%A1%A1__continue.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\平衡\\continue.jpg"
+    },
+    {
+      "fileName": "万象无常书__平衡__displacer-beasts.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__平衡__displacer-beasts.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__%E5%B9%B3%E8%A1%A1__displacer-beasts.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\平衡\\displacer-beasts.jpg"
+    },
+    {
+      "fileName": "万象无常书__平衡__first-day.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\万象无常书__平衡__first-day.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E4%B8%87%E8%B1%A1%E6%97%A0%E5%B8%B8%E4%B9%A6__%E5%B9%B3%E8%A1%A1__first-day.jpg",
+      "source": "chm",
+      "originalPath": "万象无常书\\平衡\\first-day.jpg"
+    },
+    {
+      "fileName": "其他__beyond_drops__26.6__Angel_of_Vengeance.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\其他__beyond_drops__26.6__Angel_of_Vengeance.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%85%B6%E4%BB%96__beyond_drops__26.6__Angel_of_Vengeance.jpg",
+      "source": "chm",
+      "originalPath": "其他\\beyond drops\\26.6\\Angel_of_Vengeance.jpg"
+    },
+    {
+      "fileName": "城主指南2024__4.创建冒险__布置背景__common-map-symbols.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\城主指南2024__4.创建冒险__布置背景__common-map-symbols.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%9F%8E%E4%B8%BB%E6%8C%87%E5%8D%972024__4.%E5%88%9B%E5%BB%BA%E5%86%92%E9%99%A9__%E5%B8%83%E7%BD%AE%E8%83%8C%E6%99%AF__common-map-symbols.jpg",
+      "source": "chm",
+      "originalPath": "城主指南2024\\4.创建冒险\\布置背景\\common-map-symbols.jpg"
+    },
+    {
+      "fileName": "城主指南2024__5.创作战役__灰鹰__灰鹰的背景__Greyhawk.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\城主指南2024__5.创作战役__灰鹰__灰鹰的背景__Greyhawk.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%9F%8E%E4%B8%BB%E6%8C%87%E5%8D%972024__5.%E5%88%9B%E4%BD%9C%E6%88%98%E5%BD%B9__%E7%81%B0%E9%B9%B0__%E7%81%B0%E9%B9%B0%E7%9A%84%E8%83%8C%E6%99%AF__Greyhawk.jpg",
+      "source": "chm",
+      "originalPath": "城主指南2024\\5.创作战役\\灰鹰\\灰鹰的背景\\Greyhawk.jpg"
+    },
+    {
+      "fileName": "塔莎的万事坩埚__城主工具__谜题__冒失步伐.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\塔莎的万事坩埚__城主工具__谜题__冒失步伐.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%A1%94%E8%8E%8E%E7%9A%84%E4%B8%87%E4%BA%8B%E5%9D%A9%E5%9F%9A__%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E8%B0%9C%E9%A2%98__%E5%86%92%E5%A4%B1%E6%AD%A5%E4%BC%90.jpg",
+      "source": "chm",
+      "originalPath": "塔莎的万事坩埚\\城主工具\\谜题\\冒失步伐.jpg"
+    },
+    {
+      "fileName": "塔莎的万事坩埚__城主工具__谜题__四乘四.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\塔莎的万事坩埚__城主工具__谜题__四乘四.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%A1%94%E8%8E%8E%E7%9A%84%E4%B8%87%E4%BA%8B%E5%9D%A9%E5%9F%9A__%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E8%B0%9C%E9%A2%98__%E5%9B%9B%E4%B9%98%E5%9B%9B.jpg",
+      "source": "chm",
+      "originalPath": "塔莎的万事坩埚\\城主工具\\谜题\\四乘四.jpg"
+    },
+    {
+      "fileName": "塔莎的万事坩埚__城主工具__谜题__四元素.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\塔莎的万事坩埚__城主工具__谜题__四元素.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%A1%94%E8%8E%8E%E7%9A%84%E4%B8%87%E4%BA%8B%E5%9D%A9%E5%9F%9A__%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E8%B0%9C%E9%A2%98__%E5%9B%9B%E5%85%83%E7%B4%A0.jpg",
+      "source": "chm",
+      "originalPath": "塔莎的万事坩埚\\城主工具\\谜题\\四元素.jpg"
+    },
+    {
+      "fileName": "塔莎的万事坩埚__城主工具__谜题__材料成分.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\塔莎的万事坩埚__城主工具__谜题__材料成分.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%A1%94%E8%8E%8E%E7%9A%84%E4%B8%87%E4%BA%8B%E5%9D%A9%E5%9F%9A__%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E8%B0%9C%E9%A2%98__%E6%9D%90%E6%96%99%E6%88%90%E5%88%86.jpg",
+      "source": "chm",
+      "originalPath": "塔莎的万事坩埚\\城主工具\\谜题\\材料成分.jpg"
+    },
+    {
+      "fileName": "塔莎的万事坩埚__城主工具__谜题__确切零钱.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\塔莎的万事坩埚__城主工具__谜题__确切零钱.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%A1%94%E8%8E%8E%E7%9A%84%E4%B8%87%E4%BA%8B%E5%9D%A9%E5%9F%9A__%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E8%B0%9C%E9%A2%98__%E7%A1%AE%E5%88%87%E9%9B%B6%E9%92%B1.jpg",
+      "source": "chm",
+      "originalPath": "塔莎的万事坩埚\\城主工具\\谜题\\确切零钱.jpg"
+    },
+    {
+      "fileName": "塔莎的万事坩埚__城主工具__谜题__虚幻岛.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\塔莎的万事坩埚__城主工具__谜题__虚幻岛.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%A1%94%E8%8E%8E%E7%9A%84%E4%B8%87%E4%BA%8B%E5%9D%A9%E5%9F%9A__%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E8%B0%9C%E9%A2%98__%E8%99%9A%E5%B9%BB%E5%B2%9B.jpg",
+      "source": "chm",
+      "originalPath": "塔莎的万事坩埚\\城主工具\\谜题\\虚幻岛.jpg"
+    },
+    {
+      "fileName": "塞洛斯之神话奥德赛__生物图鉴__狱犬.files__image001.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\塞洛斯之神话奥德赛__生物图鉴__狱犬.files__image001.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%A1%9E%E6%B4%9B%E6%96%AF%E4%B9%8B%E7%A5%9E%E8%AF%9D%E5%A5%A5%E5%BE%B7%E8%B5%9B__%E7%94%9F%E7%89%A9%E5%9B%BE%E9%89%B4__%E7%8B%B1%E7%8A%AC.files__image001.jpg",
+      "source": "chm",
+      "originalPath": "塞洛斯之神话奥德赛\\生物图鉴\\狱犬.files\\image001.jpg"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__blood-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__blood-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__blood-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\blood-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__cloud-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__cloud-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__cloud-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\cloud-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__death-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__death-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__death-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\death-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__dragon-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__dragon-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__dragon-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\dragon-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__enemy-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__enemy-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__enemy-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\enemy-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__fire-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__fire-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__fire-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\fire-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__friend-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__friend-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__friend-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\friend-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__frost-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__frost-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__frost-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\frost-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__hill-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__hill-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__hill-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\hill-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__journey-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__journey-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__journey-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\journey-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__king-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__king-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__king-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\king-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__life-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__life-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__life-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\life-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__light-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__light-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__light-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\light-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__mountain-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__mountain-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__mountain-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\mountain-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__sacred-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__sacred-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__sacred-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\sacred-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__shield-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__shield-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__shield-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\shield-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__stone-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__stone-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__stone-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\stone-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__storm-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__storm-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__storm-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\storm-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__war-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__war-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__war-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\war-rune.gif"
+    },
+    {
+      "fileName": "巨人之荣耀__符文__wind-rune.gif",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\巨人之荣耀__符文__wind-rune.gif",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E5%B7%A8%E4%BA%BA%E4%B9%8B%E8%8D%A3%E8%80%80__%E7%AC%A6%E6%96%87__wind-rune.gif",
+      "source": "chm",
+      "originalPath": "巨人之荣耀\\符文\\wind-rune.gif"
+    },
+    {
+      "fileName": "怪物图鉴2025__亡灵__死亡骑士__death-knight.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__亡灵__死亡骑士__death-knight.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E4%BA%A1%E7%81%B5__%E6%AD%BB%E4%BA%A1%E9%AA%91%E5%A3%AB__death-knight.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\亡灵\\死亡骑士\\death-knight.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__元素__巨灵__efreeti.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__元素__巨灵__efreeti.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E5%85%83%E7%B4%A0__%E5%B7%A8%E7%81%B5__efreeti.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\元素\\巨灵\\efreeti.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__多类型__泰坦__blob-of-annihilation.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__多类型__泰坦__blob-of-annihilation.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E5%A4%9A%E7%B1%BB%E5%9E%8B__%E6%B3%B0%E5%9D%A6__blob-of-annihilation.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\多类型\\泰坦\\blob-of-annihilation.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__多类型__泰坦__elemental-cataclysm.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__多类型__泰坦__elemental-cataclysm.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E5%A4%9A%E7%B1%BB%E5%9E%8B__%E6%B3%B0%E5%9D%A6__elemental-cataclysm.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\多类型\\泰坦\\elemental-cataclysm.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__多类型__泰坦__landscape.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__多类型__泰坦__landscape.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E5%A4%9A%E7%B1%BB%E5%9E%8B__%E6%B3%B0%E5%9D%A6__landscape.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\多类型\\泰坦\\landscape.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__天族__cuoatl.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__天族__cuoatl.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E5%A4%A9%E6%97%8F__cuoatl.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\天族\\cuoatl.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__天族__斯芬克斯__sphinx-of-wonder.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__天族__斯芬克斯__sphinx-of-wonder.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E5%A4%A9%E6%97%8F__%E6%96%AF%E8%8A%AC%E5%85%8B%E6%96%AF__sphinx-of-wonder.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\天族\\斯芬克斯\\sphinx-of-wonder.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__怪兽__mimic.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__怪兽__mimic.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E6%80%AA%E5%85%BD__mimic.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\怪兽\\mimic.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__构装__helmed-horror.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__构装__helmed-horror.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E6%9E%84%E8%A3%85__helmed-horror.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\构装\\helmed-horror.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__植物__枯萎怪__gulthias-blight.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__植物__枯萎怪__gulthias-blight.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E6%A4%8D%E7%89%A9__%E6%9E%AF%E8%90%8E%E6%80%AA__gulthias-blight.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\植物\\枯萎怪\\gulthias-blight.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__邪魔__魔鬼__erinyes.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__邪魔__魔鬼__erinyes.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E9%82%AA%E9%AD%94__%E9%AD%94%E9%AC%BC__erinyes.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\邪魔\\魔鬼\\erinyes.jpg"
+    },
+    {
+      "fileName": "怪物图鉴2025__龙类__金龙__gold-dragon.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\怪物图鉴2025__龙类__金龙__gold-dragon.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%80%AA%E7%89%A9%E5%9B%BE%E9%89%B42025__%E9%BE%99%E7%B1%BB__%E9%87%91%E9%BE%99__gold-dragon.jpg",
+      "source": "chm",
+      "originalPath": "怪物图鉴2025\\龙类\\金龙\\gold-dragon.jpg"
+    },
+    {
+      "fileName": "斯翠海文：混沌研习__开学正当时__记录卡_汉化_压缩.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\斯翠海文：混沌研习__开学正当时__记录卡_汉化_压缩.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%96%AF%E7%BF%A0%E6%B5%B7%E6%96%87%EF%BC%9A%E6%B7%B7%E6%B2%8C%E7%A0%94%E4%B9%A0__%E5%BC%80%E5%AD%A6%E6%AD%A3%E5%BD%93%E6%97%B6__%E8%AE%B0%E5%BD%95%E5%8D%A1_%E6%B1%89%E5%8C%96_%E5%8E%8B%E7%BC%A9.jpg",
+      "source": "chm",
+      "originalPath": "斯翠海文：混沌研习\\开学正当时\\记录卡_汉化_压缩.jpg"
+    },
+    {
+      "fileName": "星界冒险者指南__images__气囊和重力平面.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\星界冒险者指南__images__气囊和重力平面.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%98%9F%E7%95%8C%E5%86%92%E9%99%A9%E8%80%85%E6%8C%87%E5%8D%97__images__%E6%B0%94%E5%9B%8A%E5%92%8C%E9%87%8D%E5%8A%9B%E5%B9%B3%E9%9D%A2.png",
+      "source": "chm",
+      "originalPath": "星界冒险者指南\\images\\气囊和重力平面.png"
+    },
+    {
+      "fileName": "模组__盐沼幽魂__船舶与海洋__船只数据卡__galley-ship.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\模组__盐沼幽魂__船舶与海洋__船只数据卡__galley-ship.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%A8%A1%E7%BB%84__%E7%9B%90%E6%B2%BC%E5%B9%BD%E9%AD%82__%E8%88%B9%E8%88%B6%E4%B8%8E%E6%B5%B7%E6%B4%8B__%E8%88%B9%E5%8F%AA%E6%95%B0%E6%8D%AE%E5%8D%A1__galley-ship.jpg",
+      "source": "chm",
+      "originalPath": "模组\\盐沼幽魂\\船舶与海洋\\船只数据卡\\galley-ship.jpg"
+    },
+    {
+      "fileName": "模组__盐沼幽魂__船舶与海洋__船只数据卡__sailing-ship.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\模组__盐沼幽魂__船舶与海洋__船只数据卡__sailing-ship.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%A8%A1%E7%BB%84__%E7%9B%90%E6%B2%BC%E5%B9%BD%E9%AD%82__%E8%88%B9%E8%88%B6%E4%B8%8E%E6%B5%B7%E6%B4%8B__%E8%88%B9%E5%8F%AA%E6%95%B0%E6%8D%AE%E5%8D%A1__sailing-ship.jpg",
+      "source": "chm",
+      "originalPath": "模组\\盐沼幽魂\\船舶与海洋\\船只数据卡\\sailing-ship.jpg"
+    },
+    {
+      "fileName": "模组__盐沼幽魂__船舶与海洋__船只数据卡__smaller-ships.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\模组__盐沼幽魂__船舶与海洋__船只数据卡__smaller-ships.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%A8%A1%E7%BB%84__%E7%9B%90%E6%B2%BC%E5%B9%BD%E9%AD%82__%E8%88%B9%E8%88%B6%E4%B8%8E%E6%B5%B7%E6%B4%8B__%E8%88%B9%E5%8F%AA%E6%95%B0%E6%8D%AE%E5%8D%A1__smaller-ships.jpg",
+      "source": "chm",
+      "originalPath": "模组\\盐沼幽魂\\船舶与海洋\\船只数据卡\\smaller-ships.jpg"
+    },
+    {
+      "fileName": "模组__盐沼幽魂__船舶与海洋__船只数据卡__warship.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\模组__盐沼幽魂__船舶与海洋__船只数据卡__warship.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%A8%A1%E7%BB%84__%E7%9B%90%E6%B2%BC%E5%B9%BD%E9%AD%82__%E8%88%B9%E8%88%B6%E4%B8%8E%E6%B5%B7%E6%B4%8B__%E8%88%B9%E5%8F%AA%E6%95%B0%E6%8D%AE%E5%8D%A1__warship.jpg",
+      "source": "chm",
+      "originalPath": "模组\\盐沼幽魂\\船舶与海洋\\船只数据卡\\warship.jpg"
+    },
+    {
+      "fileName": "模组__风暴君王之雷霆__图鉴__风暴巨人.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\模组__风暴君王之雷霆__图鉴__风暴巨人.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E6%A8%A1%E7%BB%84__%E9%A3%8E%E6%9A%B4%E5%90%9B%E7%8E%8B%E4%B9%8B%E9%9B%B7%E9%9C%86__%E5%9B%BE%E9%89%B4__%E9%A3%8E%E6%9A%B4%E5%B7%A8%E4%BA%BA.png",
+      "source": "chm",
+      "originalPath": "模组\\风暴君王之雷霆\\图鉴\\风暴巨人.png"
+    },
+    {
+      "fileName": "玩家手册__The_Planes_of_Existence.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\玩家手册__The_Planes_of_Existence.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8E%A9%E5%AE%B6%E6%89%8B%E5%86%8C__The_Planes_of_Existence.jpg",
+      "source": "chm",
+      "originalPath": "玩家手册\\The Planes of Existence.jpg"
+    },
+    {
+      "fileName": "玩家手册__个性与背景__个性与背景.files__image003.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\玩家手册__个性与背景__个性与背景.files__image003.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8E%A9%E5%AE%B6%E6%89%8B%E5%86%8C__%E4%B8%AA%E6%80%A7%E4%B8%8E%E8%83%8C%E6%99%AF__%E4%B8%AA%E6%80%A7%E4%B8%8E%E8%83%8C%E6%99%AF.files__image003.jpg",
+      "source": "chm",
+      "originalPath": "玩家手册\\个性与背景\\个性与背景.files\\image003.jpg"
+    },
+    {
+      "fileName": "玩家手册__个性与背景__个性与背景.files__image005.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\玩家手册__个性与背景__个性与背景.files__image005.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8E%A9%E5%AE%B6%E6%89%8B%E5%86%8C__%E4%B8%AA%E6%80%A7%E4%B8%8E%E8%83%8C%E6%99%AF__%E4%B8%AA%E6%80%A7%E4%B8%8E%E8%83%8C%E6%99%AF.files__image005.jpg",
+      "source": "chm",
+      "originalPath": "玩家手册\\个性与背景\\个性与背景.files\\image005.jpg"
+    },
+    {
+      "fileName": "玩家手册__个性与背景__个性与背景.files__image009.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\玩家手册__个性与背景__个性与背景.files__image009.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8E%A9%E5%AE%B6%E6%89%8B%E5%86%8C__%E4%B8%AA%E6%80%A7%E4%B8%8E%E8%83%8C%E6%99%AF__%E4%B8%AA%E6%80%A7%E4%B8%8E%E8%83%8C%E6%99%AF.files__image009.jpg",
+      "source": "chm",
+      "originalPath": "玩家手册\\个性与背景\\个性与背景.files\\image009.jpg"
+    },
+    {
+      "fileName": "玩家手册__装备__装备.files__image001.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\玩家手册__装备__装备.files__image001.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8E%A9%E5%AE%B6%E6%89%8B%E5%86%8C__%E8%A3%85%E5%A4%87__%E8%A3%85%E5%A4%87.files__image001.png",
+      "source": "chm",
+      "originalPath": "玩家手册\\装备\\装备.files\\image001.png"
+    },
+    {
+      "fileName": "玩家手册__魔法__效应范围示意图.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\玩家手册__魔法__效应范围示意图.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8E%A9%E5%AE%B6%E6%89%8B%E5%86%8C__%E9%AD%94%E6%B3%95__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4%E7%A4%BA%E6%84%8F%E5%9B%BE.png",
+      "source": "chm",
+      "originalPath": "玩家手册\\魔法\\效应范围示意图.png"
+    },
+    {
+      "fileName": "玩家手册2024__The_Multiverse.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\玩家手册2024__The_Multiverse.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8E%A9%E5%AE%B6%E6%89%8B%E5%86%8C2024__The_Multiverse.jpg",
+      "source": "chm",
+      "originalPath": "玩家手册2024\\The_Multiverse.jpg"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__Xanathar’s_signature.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__Xanathar’s_signature.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__Xanathar%E2%80%99s_signature.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\Xanathar’s signature.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image001.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image001.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image001.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image001.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image002.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image002.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image002.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image002.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image003.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image003.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image003.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image003.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image004.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image004.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image004.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image004.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image006.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image006.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image006.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image006.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image008.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image008.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image008.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image008.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image012.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image012.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image012.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image012.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image013.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image013.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image013.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image013.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image014.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image014.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image014.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image014.png"
+    },
+    {
+      "fileName": "珊娜萨的万事指南__地下城主工具__效应范围__image015.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\珊娜萨的万事指南__地下城主工具__效应范围__image015.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%8F%8A%E5%A8%9C%E8%90%A8%E7%9A%84%E4%B8%87%E4%BA%8B%E6%8C%87%E5%8D%97__%E5%9C%B0%E4%B8%8B%E5%9F%8E%E4%B8%BB%E5%B7%A5%E5%85%B7__%E6%95%88%E5%BA%94%E8%8C%83%E5%9B%B4__image015.png",
+      "source": "chm",
+      "originalPath": "珊娜萨的万事指南\\地下城主工具\\效应范围\\image015.png"
+    },
+    {
+      "fileName": "第三方__歪曲之月__第二章__Gnarlborn.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__歪曲之月__第二章__Gnarlborn.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E6%AD%AA%E6%9B%B2%E4%B9%8B%E6%9C%88__%E7%AC%AC%E4%BA%8C%E7%AB%A0__Gnarlborn.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\歪曲之月\\第二章\\Gnarlborn.jpg"
+    },
+    {
+      "fileName": "第三方__歪曲之月__第二章__Harvestborn.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__歪曲之月__第二章__Harvestborn.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E6%AD%AA%E6%9B%B2%E4%B9%8B%E6%9C%88__%E7%AC%AC%E4%BA%8C%E7%AB%A0__Harvestborn.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\歪曲之月\\第二章\\Harvestborn.jpg"
+    },
+    {
+      "fileName": "第三方__歪曲之月__附录A__魔宠__Dingpot.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__歪曲之月__附录A__魔宠__Dingpot.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E6%AD%AA%E6%9B%B2%E4%B9%8B%E6%9C%88__%E9%99%84%E5%BD%95A__%E9%AD%94%E5%AE%A0__Dingpot.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\歪曲之月\\附录A\\魔宠\\Dingpot.jpg"
+    },
+    {
+      "fileName": "第三方__歪曲之月__附录A__魔宠__Salmon_of_Knowledge.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__歪曲之月__附录A__魔宠__Salmon_of_Knowledge.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E6%AD%AA%E6%9B%B2%E4%B9%8B%E6%9C%88__%E9%99%84%E5%BD%95A__%E9%AD%94%E5%AE%A0__Salmon_of_Knowledge.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\歪曲之月\\附录A\\魔宠\\Salmon_of_Knowledge.jpg"
+    },
+    {
+      "fileName": "第三方__火炬光下的克苏鲁__第三章__neko-warlock.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__火炬光下的克苏鲁__第三章__neko-warlock.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E7%81%AB%E7%82%AC%E5%85%89%E4%B8%8B%E7%9A%84%E5%85%8B%E8%8B%8F%E9%B2%81__%E7%AC%AC%E4%B8%89%E7%AB%A0__neko-warlock.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\火炬光下的克苏鲁\\第三章\\neko-warlock.jpg"
+    },
+    {
+      "fileName": "第三方__瓦尔达的秘密尖塔__种族__geppettin.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__瓦尔达的秘密尖塔__种族__geppettin.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E7%93%A6%E5%B0%94%E8%BE%BE%E7%9A%84%E7%A7%98%E5%AF%86%E5%B0%96%E5%A1%94__%E7%A7%8D%E6%97%8F__geppettin.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\瓦尔达的秘密尖塔\\种族\\geppettin.jpg"
+    },
+    {
+      "fileName": "第三方__胧忆岛__子职__circle-of-the-petal-druid.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__胧忆岛__子职__circle-of-the-petal-druid.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E8%83%A7%E5%BF%86%E5%B2%9B__%E5%AD%90%E8%81%8C__circle-of-the-petal-druid.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\胧忆岛\\子职\\circle-of-the-petal-druid.jpg"
+    },
+    {
+      "fileName": "第三方__胧忆岛__子职__oni-bloodline-sorcerer.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__胧忆岛__子职__oni-bloodline-sorcerer.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E8%83%A7%E5%BF%86%E5%B2%9B__%E5%AD%90%E8%81%8C__oni-bloodline-sorcerer.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\胧忆岛\\子职\\oni-bloodline-sorcerer.jpg"
+    },
+    {
+      "fileName": "第三方__邪狱使__Makima.jpeg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__邪狱使__Makima.jpeg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E9%82%AA%E7%8B%B1%E4%BD%BF__Makima.jpeg",
+      "source": "chm",
+      "originalPath": "第三方\\邪狱使\\Makima.jpeg"
+    },
+    {
+      "fileName": "第三方__鬼魅幽谷__艾弗瑞斯之巢__附录B__Dawndrinker.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\第三方__鬼魅幽谷__艾弗瑞斯之巢__附录B__Dawndrinker.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E7%AC%AC%E4%B8%89%E6%96%B9__%E9%AC%BC%E9%AD%85%E5%B9%BD%E8%B0%B7__%E8%89%BE%E5%BC%97%E7%91%9E%E6%96%AF%E4%B9%8B%E5%B7%A2__%E9%99%84%E5%BD%95B__Dawndrinker.jpg",
+      "source": "chm",
+      "originalPath": "第三方\\鬼魅幽谷\\艾弗瑞斯之巢\\附录B\\Dawndrinker.jpg"
+    },
+    {
+      "fileName": "范·里希腾的鸦阁魔域指南__通灵板.png",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\范·里希腾的鸦阁魔域指南__通灵板.png",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E8%8C%83%C2%B7%E9%87%8C%E5%B8%8C%E8%85%BE%E7%9A%84%E9%B8%A6%E9%98%81%E9%AD%94%E5%9F%9F%E6%8C%87%E5%8D%97__%E9%80%9A%E7%81%B5%E6%9D%BF.png",
+      "source": "chm",
+      "originalPath": "范·里希腾的鸦阁魔域指南\\通灵板.png"
+    },
+    {
+      "fileName": "鸦阁魔域：魔障深藏__第一章__子职__artificer-with-companion.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\鸦阁魔域：魔障深藏__第一章__子职__artificer-with-companion.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E9%B8%A6%E9%98%81%E9%AD%94%E5%9F%9F%EF%BC%9A%E9%AD%94%E9%9A%9C%E6%B7%B1%E8%97%8F__%E7%AC%AC%E4%B8%80%E7%AB%A0__%E5%AD%90%E8%81%8C__artificer-with-companion.jpg",
+      "source": "chm",
+      "originalPath": "鸦阁魔域：魔障深藏\\第一章\\子职\\artificer-with-companion.jpg"
+    },
+    {
+      "fileName": "龙枪：龙后之影__小纸条.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\龙枪：龙后之影__小纸条.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E9%BE%99%E6%9E%AA%EF%BC%9A%E9%BE%99%E5%90%8E%E4%B9%8B%E5%BD%B1__%E5%B0%8F%E7%BA%B8%E6%9D%A1.jpg",
+      "source": "chm",
+      "originalPath": "龙枪：龙后之影\\小纸条.jpg"
+    },
+    {
+      "fileName": "龙枪：龙后之影__边栏纸条.jpg",
+      "path": "C:\\Users\\ASUS\\Desktop\\跑团\\TrpgRecode\\Ruler\\DND五版不全书\\assets\\rules\\images\\龙枪：龙后之影__边栏纸条.jpg",
+      "url": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/assets/rules/images/%E9%BE%99%E6%9E%AA%EF%BC%9A%E9%BE%99%E5%90%8E%E4%B9%8B%E5%BD%B1__%E8%BE%B9%E6%A0%8F%E7%BA%B8%E6%9D%A1.jpg",
+      "source": "chm",
+      "originalPath": "龙枪：龙后之影\\边栏纸条.jpg"
+    }
+  ],
+  "updatedAt": "2026-08-04T07:30:30.936Z"
+}

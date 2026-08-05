@@ -1,0 +1,15 @@
+const path = require('path');
+const base = path.resolve(__dirname, '..');
+const fs = require('fs');
+const ri = JSON.parse(fs.readFileSync(path.join(base, 'Ruler', 'DND五版不全书', 'compressed', 'rule_index.json'), 'utf8'));
+const fb = ri.files.filter(f => String(f.rel || '').includes('火球'));
+console.log('rule_index 火球 files:', fb.length);
+fb.slice(0, 5).forEach(f => console.log(' -', f.rel, '|', f.title));
+const sl = JSON.parse(fs.readFileSync(path.join(base, 'Ruler', 'DND五版不全书', 'compressed', 'rule_spell_lists.json'), 'utf8'));
+console.log('spell_lists keys:', Object.keys(sl));
+const cls = sl.spellLists || {};
+const mage = cls['法师'] || {};
+console.log('法师 法术数:', Object.keys(mage).map(k => k + ':' + (mage[k] || []).length).join(' '));
+console.log('法师3环含火球术:', (mage['3'] || []).includes('火球术'));
+const pal = cls['圣武士'] || {};
+console.log('圣武士 环位:', Object.keys(pal).map(k => k + ':' + (pal[k] || []).length).join(' '));

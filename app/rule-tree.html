@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>规则树导航</title>
+<style>
+  body { background: #1a1a2e; color: #e8e8f0; margin: 0; padding: 14px 18px; font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .head h1 { font-size: 17px; margin: 0; color: #fff; }
+  .head .sys { color: #8a8ab0; font-size: 13px; }
+  .search { flex: 1; min-width: 200px; }
+  .search input { width: 100%; box-sizing: border-box; background: #232345; color: #eee; border: 1px solid #3a3a5c; border-radius: 6px; padding: 7px 12px; font-size: 13px; outline: none; }
+  .tree { margin-top: 6px; }
+  .node { margin: 1px 0; }
+  .node-row { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+  .node-row:hover { background: #2a2a50; }
+  .node-row .tw { width: 14px; text-align: center; color: #8a8ab0; font-size: 11px; flex: 0 0 14px; }
+  .node-row.leaf { cursor: pointer; }
+  .node-row.leaf:hover .nm { color: #4ecdc4; }
+  .node-row .nm { color: #cfcfe8; }
+  .node-row .src { color: #666688; font-size: 11px; margin-left: auto; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 45%; }
+  .node-children { margin-left: 16px; border-left: 1px solid #33335c; padding-left: 6px; }
+  .dim { color: #666688; font-size: 12px; }
+  .status { color: #8a8ab0; font-size: 12px; margin: 8px 0; }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>📚 规则树导航</h1>
+  <span class="sys" id="sys"></span>
+  <div class="search"><input id="q" placeholder="过滤：输入关键词（如 圣武士、火球术）…"></div>
+</div>
+<div class="status" id="status">加载中...</div>
+<div class="tree" id="tree"></div>
+<script>
+(function () {
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var system = params.get('system') || '';
+  document.getElementById('sys').textContent = system ? '系统：' + system : '';
+  if (system) document.title = system + ' - 规则树导航';
+
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  };
+
+  function openView(file) {
+    if (!file) return;
+    window.open('/view.html?system=' + encodeURIComponent(system) + '&file=' + encodeURIComponent(file), '_blank');
+  }
+
+  // 渲染树；filter 非空时只保留匹配分支
+  function renderTree(nodes, filter) {
+    var html = '';
+    var kw = (filter || '').trim().toLowerCase();
+    nodes.forEach(function (node) {
+      var hasChildren = node.children && node.children.length;
+      var nameMatch = !kw || String(node.name || '').toLowerCase().indexOf(kw) >= 0;
+      var childHtml = hasChildren ? renderTree(node.children, kw) : '';
+      if (kw && !nameMatch && !childHtml) return; // 过滤：本节点与子分支都不匹配则隐藏
+      if (kw) {
+        // 过滤模式下展开匹配分支
+        childHtml = hasChildren ? renderTree(node.children, kw) : '';
+      }
+      if (hasChildren) {
+        var open = kw ? 'block' : 'none';
+        html += '<div class="node">' +
+          '<div class="node-row branch" data-open="' + open + '"><span class="tw">▸</span><span class="nm">' + esc(node.name) + '</span><span class="dim">(' + node.children.length + ')</span></div>' +
+          '<div class="node-children" style="display:' + open + ';">' + childHtml + '</div>' +
+          '</div>';
+      } else {
+        html += '<div class="node"><div class="node-row leaf" data-file="' + esc(node.source || '') + '"><span class="tw">·</span><span class="nm">' + esc(node.name) + '</span>' +
+          (node.source ? '<span class="src">' + esc(node.source) + '</span>' : '') + '</div></div>';
+      }
+    });
+    return html;
+  }
+
+  function bind() {
+    var tree = document.getElementById('tree');
+    tree.querySelectorAll('.node-row.branch').forEach(function (row) {
+      row.onclick = function () {
+        var children = row.nextElementSibling;
+        var tw = row.querySelector('.tw');
+        if (!children) return;
+        var isOpen = children.style.display !== 'none';
+        children.style.display = isOpen ? 'none' : 'block';
+        if (tw) tw.textContent = isOpen ? '▸' : '▾';
+      };
+    });
+    tree.querySelectorAll('.node-row.leaf').forEach(function (row) {
+      row.onclick = function () {
+        openView(row.getAttribute('data-file') || '');
+      };
+    });
+  }
+
+  function load() {
+    var status = document.getElementById('status');
+    if (!system) { status.textContent = '缺少 system 参数'; return; }
+    fetch('/Ruler/' + encodeURIComponent(system) + '/compressed/rule_tree.json')
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (data) {
+        var nodes = (data && data.tree) || [];
+        document.getElementById('tree').innerHTML = renderTree(nodes, '');
+        status.textContent = '共 ' + countNodes(nodes) + ' 个节点；点击 ▸ 展开分支，点击条目在新窗口打开原文。';
+        bind();
+      })
+      .catch(function (e) {
+        status.textContent = '加载规则树失败：' + e.message + '（该规则可能尚未生成 compressed/rule_tree.json）';
+      });
+  }
+
+  function countNodes(nodes) {
+    var n = 0;
+    nodes.forEach(function (nd) { n += 1 + (nd.children ? countNodes(nd.children) : 0); });
+    return n;
+  }
+
+  var q = document.getElementById('q');
+  q.addEventListener('input', function () {
+    var nodes = null;
+    var status = document.getElementById('status');
+    var treeEl = document.getElementById('tree');
+    if (this.value.trim()) {
+      // 重新从原始数据过滤（首次保存原始树）
+      if (!window.__treeData) { try { window.__treeData = JSON.parse(localStorage.getItem('trpg_rule_tree_' + system)); } catch (e) {} }
+      if (window.__treeData) {
+        treeEl.innerHTML = renderTree(window.__treeData, this.value);
+        bind();
+      }
+    } else {
+      treeEl.innerHTML = renderTree(window.__treeData || [], '');
+      bind();
+    }
+  });
+
+  // 缓存原始树供过滤使用
+  fetch('/Ruler/' + encodeURIComponent(system) + '/compressed/rule_tree.json')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (data && data.tree) {
+        window.__treeData = data.tree;
+        try { localStorage.setItem('trpg_rule_tree_' + system, JSON.stringify(data.tree)); } catch (e) {}
+      }
+    })
+    .catch(function () {});
+  load();
+})();
+</script>
+</body>
+</html>

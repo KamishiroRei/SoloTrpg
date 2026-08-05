@@ -1,0 +1,7 @@
+{
+  "id": "class-guide",
+  "name": "职业升级速查",
+  "version": "1.0.0",
+  "description": "输入职业名检索全书职业条目与等级表，快速定位职业特性、法术位表所在页面",
+  "type": "panel"
+}

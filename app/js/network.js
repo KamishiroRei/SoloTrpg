@@ -13,6 +13,7 @@ const Network = (() => {
 
   let onPlayersUpdate = null;
   let onChat = null;
+  let onAIChat = null;
   let onDiceRoll = null;
   let onRoomCreated = null;
   let onRoomJoined = null;
@@ -34,7 +35,7 @@ const Network = (() => {
 
     var connectTimer = setTimeout(function() {
       if (!socket.connected) {
-        console.log('[网络] 连接超时（Flask模式不支持联机）');
+        console.log('[网络] SoloTrpg后端连接超时');
         socket.close();
       }
     }, 4000);
@@ -87,6 +88,10 @@ const Network = (() => {
 
     socket.on('chat', (data) => {
       if (onChat) onChat(data);
+    });
+
+    socket.on('ai_chat', (data) => {
+      if (onAIChat) onAIChat(data);
     });
 
     socket.on('dice_roll', (data) => {
@@ -181,6 +186,11 @@ const Network = (() => {
     socket.emit('chat_msg', { text });
   }
 
+  function sendAIChat(text, channelId) {
+    if (!socket) return;
+    socket.emit('ai_chat', { text, channelId });
+  }
+
   function sendSetName(name) {
     if (!socket) return;
     socket.emit('set_name', name);
@@ -197,9 +207,10 @@ const Network = (() => {
     connect, createRoom, joinRoom, getRoomUrl,
     isConnected, getRoomCode, amIHost, getPlayers,
     sendTokenAdd, sendTokenMove, sendTokenUpdate, sendTokenRemove, sendTokenSyncAll,
-    sendDiceRoll, sendChat, sendSetName,
+    sendDiceRoll, sendChat, sendAIChat, sendSetName,
     set onPlayersUpdate(fn) { onPlayersUpdate = fn; },
     set onChat(fn) { onChat = fn; },
+    set onAIChat(fn) { onAIChat = fn; },
     set onDiceRoll(fn) { onDiceRoll = fn; },
     set onRoomCreated(fn) { onRoomCreated = fn; },
     set onRoomJoined(fn) { onRoomJoined = fn; },

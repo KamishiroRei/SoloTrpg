@@ -1,0 +1,74 @@
+{
+  "system": "DND五版不全书",
+  "audience": "上传规则书后启动AI解析，会自动根据AI分析生成配置选项。",
+  "fileCount": 6797,
+  "originalFiles": [
+    "DND五版不全书.chm"
+  ],
+  "topLevelSources": [
+    {
+      "label": "全部规则书",
+      "path": "source"
+    },
+    {
+      "label": "玩家手册",
+      "path": "source/玩家手册"
+    },
+    {
+      "label": "玩家手册2024",
+      "path": "source/玩家手册2024"
+    },
+    {
+      "label": "城主指南",
+      "path": "source/城主指南"
+    },
+    {
+      "label": "城主指南2024",
+      "path": "source/城主指南2024"
+    },
+    {
+      "label": "怪物图鉴",
+      "path": "source/怪物图鉴"
+    },
+    {
+      "label": "怪物图鉴2025",
+      "path": "source/怪物图鉴2025"
+    },
+    {
+      "label": "多元宇宙的怪物",
+      "path": "source/多元宇宙的怪物"
+    },
+    {
+      "label": "第三方",
+      "path": "source/第三方"
+    },
+    {
+      "label": "模组",
+      "path": "source/模组"
+    }
+  ],
+  "actions": [
+    {
+      "id": "compress_to_table",
+      "label": "压缩为查表表格",
+      "desc": "把当前页面的核心数据表压缩为查表表格",
+      "runOn": [
+        "page"
+      ]
+    },
+    {
+      "id": "exclude",
+      "label": "排除此页",
+      "desc": "将当前页面从检索索引中排除（不删除文件）",
+      "runOn": [
+        "page"
+      ]
+    }
+  ],
+  "defaultExcludePatterns": [
+    "目录",
+    "索引",
+    "导航",
+    "空白页模板"
+  ]
+}

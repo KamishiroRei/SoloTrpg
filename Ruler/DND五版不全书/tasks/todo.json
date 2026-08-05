@@ -1,0 +1,29 @@
+{
+  "updatedAt": "2026-08-04T08:14:30.830Z",
+  "todos": [
+    {
+      "content": "压缩速查/法术速查下11个法术表",
+      "status": "in_progress"
+    },
+    {
+      "content": "压缩玩家手册2024职业法术列表页",
+      "status": "pending"
+    },
+    {
+      "content": "压缩旧版玩家手册职业表",
+      "status": "pending"
+    },
+    {
+      "content": "抽样压缩其他大书核心数据（怪物图鉴/魔法物品等）",
+      "status": "pending"
+    },
+    {
+      "content": "排查并排除垃圾页（模板/导航/索引）",
+      "status": "pending"
+    },
+    {
+      "content": "确认settings与总结",
+      "status": "pending"
+    }
+  ]
+}

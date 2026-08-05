@@ -1,0 +1,13 @@
+const path = require('path');
+const base = path.resolve(__dirname, '..');
+const d = require(path.join(base, 'Ruler', 'DND五版不全书', '_index.json'));
+console.log('entries:', d.entries.length);
+const fb = d.entries.filter(e => String(e.title || '').includes('火球'));
+console.log('火球 hits:', fb.length);
+console.log(JSON.stringify(fb[0] || {}, null, 1).slice(0, 700));
+const pal = d.entries.filter(e => String(e.title || '').includes('圣武士'));
+console.log('圣武士 hits:', pal.length);
+console.log(JSON.stringify(pal[0] || {}, null, 1).slice(0, 700));
+const keys = {};
+d.entries.forEach(e => Object.keys(e).forEach(k => keys[k] = (keys[k] || 0) + 1));
+console.log('fields:', JSON.stringify(keys));

@@ -1,0 +1,7 @@
+{
+  "id": "monster-guide",
+  "name": "怪物速查",
+  "version": "1.0.0",
+  "description": "输入怪物名或关键词（如：龙、僵尸、眼魔），在全书怪物条目中检索定位",
+  "type": "panel"
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>规则原文</title>
+<style>
+  body { background: #f2f1ed; color: #222; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .toolbar { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #ddd; padding: 8px 18px; font-size: 13px; color: #666; display: flex; align-items: center; gap: 10px; }
+  .toolbar b { color: #333; }
+  .toolbar .path { color: #888; word-break: break-all; flex: 1; }
+  .toolbar button { background: #333; color: #fff; border: none; border-radius: 5px; padding: 5px 14px; font-size: 13px; cursor: pointer; }
+  .content { max-width: 920px; margin: 16px auto; background: #fff; border: 1px solid #e4e2dc; border-radius: 8px; padding: 20px 26px; }
+  #body { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.75; font-family: inherit; }
+  .loading { color: #999; }
+  .error { color: #c33; }
+  table { border-collapse: collapse; margin: 8px 0; }
+  table td, table th { border: 1px solid #ccc; padding: 4px 8px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <b id="title">规则原文</b>
+  <span class="path" id="path"></span>
+  <button onclick="window.close()">关闭</button>
+</div>
+<div class="content"><div id="body" class="loading">加载中...</div></div>
+<script>
+(function () {
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var system = params.get('system') || '';
+  var file = params.get('file') || '';
+  var titleEl = document.getElementById('title');
+  var pathEl = document.getElementById('path');
+  var bodyEl = document.getElementById('body');
+  document.title = (file.split('/').pop() || '规则原文') + ' - SoloTrpg';
+  if (titleEl) titleEl.textContent = file.split('/').pop() || '规则原文';
+  if (pathEl) pathEl.textContent = (system ? system + ' / ' : '') + file;
+
+  // 简单 Markdown 渲染（标题/粗体/列表/表格/分隔线），其余保持原文
+  function md(text) {
+    var esc = function (s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    };
+    var lines = String(text || '').split(/\r?\n/);
+    var html = '';
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var m;
+      if ((m = line.match(/^(#{1,4})\s+(.*)$/))) {
+        var level = m[1].length;
+        var size = level === 1 ? '22px' : (level === 2 ? '18px' : (level === 3 ? '16px' : '14px'));
+        html += '<div style="font-size:' + size + ';font-weight:700;margin:14px 0 6px;border-bottom:1px solid #eee;padding-bottom:4px;">' + esc(m[2]) + '</div>';
+      } else if ((m = line.match(/^\s*[-*]\s+(.*)$/))) {
+        html += '<div style="padding-left:16px;">• ' + esc(m[1]) + '</div>';
+      } else if ((m = line.match(/^\s*\|.*\|\s*$/))) {
+        html += '<div style="font-size:13px;">' + esc(line) + '</div>';
+      } else if (/^\s*---+\s*$/.test(line)) {
+        html += '<hr style="border:none;border-top:1px solid #ddd;margin:10px 0;">';
+      } else if (line.trim() === '') {
+        html += '<div style="height:8px;"></div>';
+      } else {
+        html += '<div>' + esc(line).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\*([^*]+)\*/g, '<i>$1</i>') + '</div>';
+      }
+    }
+    return html;
+  }
+
+  async function loadAll() {
+    var offset = 0;
+    var total = Infinity;
+    var text = '';
+    var first = true;
+    while (offset < total) {
+      try {
+        var r = await fetch('/api/rules/source?system=' + encodeURIComponent(system) +
+          '&file=' + encodeURIComponent(file) + '&offset=' + offset + '&length=10000');
+        var d = await r.json();
+        if (d.error) {
+          bodyEl.className = 'error';
+          bodyEl.textContent = '加载失败：' + d.error;
+          return;
+        }
+        if (first) { total = d.totalSize; first = false; }
+        text += d.text;
+        offset += d.length;
+        bodyEl.innerHTML = md(text);
+        bodyEl.className = '';
+      } catch (e) {
+        bodyEl.className = 'error';
+        bodyEl.textContent = '加载失败：' + e.message;
+        return;
+      }
+    }
+  }
+  loadAll();
+})();
+</script>
+</body>
+</html>

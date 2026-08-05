@@ -1,0 +1,7 @@
+{
+  "id": "character-builder",
+  "name": "DND角色卡",
+  "version": "1.0.0",
+  "type": "character-sheet",
+  "description": "DND5E 角色卡创建与查看：属性/种族/职业/等级/技能/法术可视化表单，自动计算修正值"
+}

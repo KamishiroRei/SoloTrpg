@@ -51,6 +51,7 @@ const MapEngine = (() => {
   let selectedToken = null;
   let mouseGridX = 0;
   let mouseGridY = 0;
+  const tokenImageCache = {};
 
   // 地图背景
   let backgroundImage = null;
@@ -451,22 +452,27 @@ const MapEngine = (() => {
       }
     }
 
-    // 身体圆
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = token.color || '#4ecdc4';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    const avatarUrl = token.avatarUrl || token.data?.assets?.avatarFramed || token.data?.assets?.avatar;
+    if (avatarUrl) {
+      drawTokenImage(token, avatarUrl, pos.x, pos.y, r);
+    } else {
+      // 身体圆
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = token.color || '#4ecdc4';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-    // 首字母
-    const initial = (token.name || token.displayName || '?').charAt(0);
-    ctx.fillStyle = '#fff';
-    ctx.font = `bold ${Math.max(10, r * 0.9)}px "${getFontFamily()}"`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(initial, pos.x, pos.y);
+      // 首字母
+      const initial = (token.name || token.displayName || '?').charAt(0);
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${Math.max(10, r * 0.9)}px "${getFontFamily()}"`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(initial, pos.x, pos.y);
+    }
 
     // 名字标签
     const display = token.displayName || token.name || '';
@@ -510,6 +516,34 @@ const MapEngine = (() => {
       ctx.textAlign = 'center';
       ctx.fillText(token.conditions.slice(0, 3).join(''), pos.x, iconY);
     }
+  }
+
+  function drawTokenImage(token, url, x, y, r) {
+    let img = tokenImageCache[url];
+    if (!img) {
+      img = new Image();
+      img.onload = () => render();
+      img.onerror = () => { tokenImageCache[url] = null; };
+      img.src = url;
+      tokenImageCache[url] = img;
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.clip();
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
+    } else {
+      ctx.fillStyle = token.color || '#4ecdc4';
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }
 
   function getFontFamily() {
