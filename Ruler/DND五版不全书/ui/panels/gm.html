@@ -2,197 +2,198 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>GM 面板</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GM 工具</title>
 <style>
-  html, body { height: auto !important; overflow: auto !important; margin: 0; padding: 12px; background: transparent; color: #e0e0f0; font-family: system-ui, sans-serif; }
-  .gm-sec { margin-bottom: 16px; }
-  .gm-sec h4 { margin: 0 0 8px; font-size: 13px; color: #ffd479; border-bottom: 1px solid #2a2a4a; padding-bottom: 5px; }
-  .gm-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #3a3a5c; background: #1e2a4a; color: #e0e0f0; cursor: pointer; font-size: 12px; }
-  .btn:hover { background: #253358; }
-  .btn.accent { background: #c9a84c; color: #1a1a2e; border-color: #c9a84c; }
-  .module-layout { display: flex; gap: 10px; }
-  .module-tree { flex: 1; min-width: 0; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 8px; font-size: 12px; overflow: auto; max-height: 420px; }
-  .module-preview { flex: 1; min-width: 0; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px; font-size: 12px; overflow: auto; max-height: 420px; white-space: pre-wrap; word-break: break-all; }
-  .rules-empty { color: #6a6a8a; text-align: center; padding: 20px; font-size: 12px; line-height: 1.7; }
-  .module-node { padding: 3px 4px; border-radius: 4px; cursor: pointer; }
-  .module-node:hover { background: #253358; }
-  .module-dir { font-weight: 600; }
-  .module-children { margin-left: 16px; }
-  .module-del { margin-left: 6px; opacity: 0; cursor: pointer; }
-  .module-node:hover .module-del { opacity: 1; }
+  :root { color-scheme: dark; --bg:#171a2d; --panel:#202846; --panel2:#182039; --border:#35416a; --text:#eef0ff; --muted:#9ca7c9; --accent:#d2ad45; --accent2:#f0d57a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; min-height:100%; background:transparent; color:var(--text); font:12px/1.55 system-ui,"Microsoft YaHei",sans-serif; }
+  body { padding:12px; }
+  button,input { font:inherit; }
+  .curtain { min-height:460px; display:flex; align-items:center; justify-content:center; padding:24px; border:1px solid var(--border); border-radius:14px; background:linear-gradient(145deg,rgba(32,40,70,.96),rgba(16,20,38,.98)); text-align:center; }
+  .curtain-card { max-width:360px; }
+  .curtain-icon { font-size:44px; margin-bottom:12px; }
+  .curtain h2 { margin:0 0 8px; font-size:18px; color:var(--accent2); }
+  .curtain p { margin:0 0 18px; color:var(--muted); }
+  .workspace { display:grid; gap:12px; }
+  .section { border:1px solid var(--border); border-radius:12px; background:linear-gradient(145deg,var(--panel),var(--panel2)); overflow:hidden; }
+  .section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 12px; border-bottom:1px solid rgba(80,94,143,.45); }
+  .section-head h3 { margin:0; font-size:13px; color:var(--accent2); }
+  .section-body { padding:12px; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; }
+  .btn { border:1px solid var(--border); border-radius:7px; padding:7px 11px; color:var(--text); background:#243052; cursor:pointer; }
+  .btn:hover { border-color:#6276b2; background:#2b3961; }
+  .btn.accent { color:#171a2d; border-color:var(--accent); background:var(--accent); font-weight:700; }
+  .btn.danger { border-color:#8d4c61; color:#ffb8c5; }
+  .hint { color:var(--muted); margin-top:8px; }
+  .gallery-tools { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-bottom:10px; }
+  .search { width:100%; border:1px solid var(--border); border-radius:7px; padding:7px 9px; background:#11172c; color:var(--text); outline:none; }
+  .search:focus { border-color:#7085c7; }
+  .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px; max-height:300px; overflow:auto; padding-right:3px; }
+  .media-card { min-width:0; border:1px solid var(--border); border-radius:9px; overflow:hidden; background:#11172c; cursor:pointer; position:relative; }
+  .media-card:hover { border-color:#6073ac; transform:translateY(-1px); }
+  .media-card.selected { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; }
+  .media-card img { display:block; width:100%; aspect-ratio:4/3; object-fit:cover; background:repeating-conic-gradient(#22283e 0 25%,#171c30 0 50%) 50%/14px 14px; }
+  .media-meta { padding:6px 7px; min-width:0; }
+  .media-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .media-module { color:var(--muted); font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .empty { grid-column:1/-1; padding:28px 12px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:9px; }
+  .selection { display:grid; grid-template-columns:112px minmax(0,1fr); gap:10px; margin-top:11px; padding-top:11px; border-top:1px solid rgba(80,94,143,.4); }
+  .selection img { width:112px; height:84px; object-fit:cover; border-radius:8px; border:1px solid var(--border); background:#11172c; }
+  .selection-info { min-width:0; display:grid; gap:7px; align-content:start; }
+  .selection-path { color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .selection-actions { display:flex; flex-wrap:wrap; gap:7px; }
+  [hidden] { display:none !important; }
 </style>
 </head>
 <body>
-  <div class="gm-sec">
-    <h4>GM 工具</h4>
-    <div class="gm-btns">
-      <button class="btn accent" id="btn-check-tool">📋 检定工具</button>
-      <button class="btn" id="btn-gm-ai-gen">🤖 AI生成</button>
-      <button class="btn" id="btn-illustration">🖼 放插图（临时代替地图）</button>
-      <button class="btn" id="btn-illustration-clear">⏹ 结束插图</button>
-    </div>
+<div id="gm-curtain" class="curtain" hidden>
+  <div class="curtain-card">
+    <div class="curtain-icon">🎭</div>
+    <h2>GM 帷幕</h2>
+    <p id="curtain-text">当前身份是玩家。GM 工具和未公开模组信息不会向玩家开放。</p>
+    <button id="become-gm" class="btn accent" hidden>将自己设为真人 GM</button>
   </div>
-  <div class="gm-sec">
-    <h4>模组管理（GM 专属；远端不同步，AI 引用时动态加载资源）</h4>
-    <div class="gm-btns" style="margin-bottom:8px;">
-      <button class="btn" id="btn-module-folder">📂 导入文件夹</button>
-      <button class="btn" id="btn-module-file">📄 导入文件</button>
+</div>
+
+<main id="gm-workspace" class="workspace" hidden>
+  <section class="section">
+    <div class="section-head"><h3>GM 工具</h3><span id="gm-name"></span></div>
+    <div class="section-body">
+      <div class="toolbar">
+        <button class="btn accent" id="btn-check-tool">🎲 发起检定</button>
+        <button class="btn" id="btn-gm-ai-gen">🤖 调用 AI 副GM</button>
+        <button class="btn danger" id="btn-illustration-clear">⏹ 结束插图</button>
+      </div>
+      <div class="hint">模组导入与整理统一在「规则」页完成；这里仅保留带团期间需要的 GM 操作。</div>
     </div>
-    <div class="module-layout">
-      <div class="module-tree" id="module-tree"><div class="rules-empty">尚未导入模组。</div></div>
-      <div class="module-preview" id="module-preview"><div class="rules-empty">← 选择模组文件查看内容</div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h3>场景插图</h3><span id="media-count" class="hint"></span></div>
+    <div class="section-body">
+      <div class="gallery-tools">
+        <input id="media-search" class="search" placeholder="搜索模组、文件名或路径">
+        <button id="media-refresh" class="btn">刷新</button>
+      </div>
+      <div id="media-gallery" class="gallery"><div class="empty">正在读取模组插图……</div></div>
+      <div id="media-selection" class="selection" hidden>
+        <img id="selected-preview" alt="已选插图">
+        <div class="selection-info">
+          <strong id="selected-name"></strong>
+          <div id="selected-path" class="selection-path"></div>
+          <input id="selected-caption" class="search" placeholder="显示标题（默认使用文件名）">
+          <div class="selection-actions">
+            <button id="show-selected" class="btn accent">投放到地图区域</button>
+            <button id="clear-selected" class="btn">取消选择</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <input type="file" id="module-folder-input" webkitdirectory directory multiple style="display:none;">
-    <input type="file" id="module-file-input" multiple style="display:none;">
-  </div>
+  </section>
+</main>
 <script>
-(function() {
-  var parent = window.parent;
-  var api = parent && parent.UIManager ? parent.UIManager : null;
+(function () {
+  var host = window.parent;
+  var api = host && host.UIManager ? host.UIManager : null;
+  var network = host && host.Network ? host.Network : null;
   var system = new URLSearchParams(location.search).get('system') || '';
+  var curtain = document.getElementById('gm-curtain');
+  var workspace = document.getElementById('gm-workspace');
+  var isGM = !!(api && api.isGMUser && api.isGMUser());
+  var isHost = !!(api && api.isRoomHost && api.isRoomHost());
 
-  // ── GM 工具 ──
+  if (!isGM) {
+    curtain.hidden = false;
+    document.getElementById('curtain-text').textContent = isHost
+      ? '你正在承载房间，但当前身份是玩家。承载房间不等于拥有 GM 权限。'
+      : '当前身份是玩家。GM 工具和未公开模组信息不会向玩家开放。';
+    var become = document.getElementById('become-gm');
+    if (isHost && network && network.setRole) {
+      become.hidden = false;
+      become.addEventListener('click', function () {
+        network.setRole('gm', network.getMyName ? network.getMyName() : '');
+      });
+    }
+    return;
+  }
+
+  workspace.hidden = false;
+  document.getElementById('gm-name').textContent = network && network.getMyName ? network.getMyName() : '真人 GM';
   var checkBtn = document.getElementById('btn-check-tool');
-  if (checkBtn && api && api.openDiceModal) {
-    checkBtn.addEventListener('click', function() { api.openDiceModal(); });
-  } else if (checkBtn) {
-    checkBtn.addEventListener('click', function() { alert('宿主未提供检定工具（需要刷新主窗口）。'); });
-  }
-  var aiGen = document.getElementById('btn-gm-ai-gen');
-  if (aiGen && api && api.addChatMessage) {
-    aiGen.addEventListener('click', function() {
-      api.addChatMessage('system', 'GM', '在聊天输入框输入 /ai 指令即可让 AI 生成 GM 工具，例如：/ai 生成一个快速查询状态效果的GM工具');
+  checkBtn.addEventListener('click', function () {
+    if (api && api.openDiceModal) api.openDiceModal();
+  });
+  document.getElementById('btn-gm-ai-gen').addEventListener('click', function () {
+    if (api && api.addChatMessage) api.addChatMessage('system', 'GM工具', '已切换到聊天区。可在设置中选择「AI副GM」，让 AI 检索规则、管理状态、生成候选内容并提醒冲突；真人GM保留最终裁定。');
+    try { host.document.getElementById('chat-input').focus(); } catch (e) {}
+  });
+  document.getElementById('btn-illustration-clear').addEventListener('click', function () {
+    if (api && api.hideIllustration) api.hideIllustration();
+  });
+
+  var allMedia = [];
+  var selected = null;
+  var gallery = document.getElementById('media-gallery');
+  var search = document.getElementById('media-search');
+
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char];
     });
   }
 
-  // ── 插图系统（过场：以插图临时代替地图；AI 作为 GM 时也可用 <illustration> 指令） ──
-  var illBtn = document.getElementById('btn-illustration');
-  var illClear = document.getElementById('btn-illustration-clear');
-  if (illBtn) {
-    illBtn.addEventListener('click', function() {
-      var v = prompt('输入插图来源（过场期间以插图临时代替地图）：\n\n· 模组图片：module:图片路径（如 module:场景/酒馆.png）\n· 网络图片：https://...\n· 本机规则书资源：/Ruler/... 相对路径', 'module:');
-      if (!v || !v.trim()) return;
-      var caption = prompt('插图标题/说明（可留空）', '');
-      if (api && api.showIllustration) api.showIllustration(v.trim(), (caption || '').trim());
-      else if (parent && parent.UIManager && parent.UIManager.showIllustration) parent.UIManager.showIllustration(v.trim(), (caption || '').trim());
-      else alert('宿主未提供插图能力（需要刷新主窗口）。');
+  function renderMedia() {
+    var keyword = search.value.trim().toLowerCase();
+    var rows = allMedia.filter(function (item) {
+      return !keyword || (item.path + ' ' + item.name + ' ' + item.moduleName).toLowerCase().indexOf(keyword) >= 0;
     });
-  }
-  if (illClear) {
-    illClear.addEventListener('click', function() {
-      if (api && api.hideIllustration) api.hideIllustration();
-      else if (parent && parent.UIManager && parent.UIManager.hideIllustration) parent.UIManager.hideIllustration();
-    });
-  }
-
-  // ── 模组管理 ──
-  var folderBtn = document.getElementById('btn-module-folder');
-  var fileBtn = document.getElementById('btn-module-file');
-  var folderInput = document.getElementById('module-folder-input');
-  var fileInput = document.getElementById('module-file-input');
-  if (folderBtn && folderInput) {
-    folderBtn.addEventListener('click', function() { folderInput.click(); });
-    folderInput.addEventListener('change', function() {
-      if (this.files && this.files.length) uploadModuleFiles(this.files, true);
-      this.value = '';
-    });
-  }
-  if (fileBtn && fileInput) {
-    fileBtn.addEventListener('click', function() { fileInput.click(); });
-    fileInput.addEventListener('change', function() {
-      if (this.files && this.files.length) uploadModuleFiles(this.files, false);
-      this.value = '';
-    });
-  }
-
-  function uploadModuleFiles(fileList, isFolder) {
-    if (!system) { alert('未选择规则系统'); return; }
-    var arr = Array.prototype.slice.call(fileList);
-    var fd = new FormData();
-    fd.append('system', system);
-    arr.forEach(function(f) {
-      fd.append('files', f);
-      var rel = isFolder && f.webkitRelativePath ? f.webkitRelativePath : f.name;
-      fd.append('relPath', rel);
-    });
-    var ce = document.getElementById('module-tree');
-    if (ce) ce.innerHTML = '<div class="rules-empty">正在导入模组：' + arr.length + ' 个文件…</div>';
-    fetch('/api/module/upload', { method: 'POST', body: fd })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (api && api.addChatMessage) {
-          api.addChatMessage('system', '模组', (data && data.success) ? '已导入 ' + data.total + ' 个文件 → ' + system : ('模组导入失败: ' + ((data && data.error) || '未知错误')));
-        }
-        refreshModuleList();
-      })
-      .catch(function(e) {
-        if (api && api.addChatMessage) api.addChatMessage('system', '模组', '模组导入失败: ' + (e.message || ''));
-        refreshModuleList();
-      });
-  }
-
-  function refreshModuleList() {
-    var treeEl = document.getElementById('module-tree'); if (!treeEl) return;
-    if (!system) { treeEl.innerHTML = '<div class="rules-empty">尚未选择规则系统。</div>'; return; }
-    fetch('/api/module/list?system=' + encodeURIComponent(system))
-      .then(function(r) { return r.ok ? r.json() : { tree: [] }; })
-      .then(function(data) {
-        var tree = (data && data.tree) || [];
-        if (!tree.length) { treeEl.innerHTML = '<div class="rules-empty">尚未导入模组。<br>点击「📂 导入文件夹」或「📄 导入文件」。</div>'; return; }
-        treeEl.innerHTML = renderTree(tree, '');
-        bindTreeEvents(treeEl);
-      })
-      .catch(function(e) { treeEl.innerHTML = '<div class="rules-empty">模组列表加载失败：' + (e.message || '') + '</div>'; });
-  }
-
-  function renderTree(items, prefix) {
-    var html = '';
-    items.forEach(function(item) {
-      var rel = prefix + item.name;
-      if (item.type === 'dir') {
-        html += '<div class="module-node module-dir" data-path="' + esc(rel) + '">📁 ' + esc(item.name) + '<span class="module-del" data-del="' + esc(rel) + '" title="删除整个文件夹">🗑</span></div>';
-        if (item.children && item.children.length) html += '<div class="module-children">' + renderTree(item.children, rel + '/') + '</div>';
-      } else {
-        html += '<div class="module-node" data-file="' + esc(rel) + '" data-size="' + (item.size || 0) + '">📄 ' + esc(item.name) + '</div>';
-      }
-    });
-    return html;
-  }
-
-  function bindTreeEvents(root) {
-    root.querySelectorAll('[data-file]').forEach(function(el) {
-      el.addEventListener('click', function() { previewModule(el.getAttribute('data-file')); });
-    });
-    root.querySelectorAll('[data-del]').forEach(function(el) {
-      el.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (!confirm('删除模组「' + el.getAttribute('data-del') + '」？')) return;
-        fetch('/api/module/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: system, path: el.getAttribute('data-del') }) })
-          .then(function(r) { return r.json(); })
-          .then(function(d) { refreshModuleList(); })
-          .catch(function() {});
+    document.getElementById('media-count').textContent = rows.length + ' / ' + allMedia.length;
+    if (!rows.length) {
+      gallery.innerHTML = '<div class="empty">' + (allMedia.length ? '没有符合搜索条件的插图。' : '当前模组没有可用图片。请先在「规则」页导入模组，AI 整理后会建立媒体索引。') + '</div>';
+      return;
+    }
+    gallery.innerHTML = rows.map(function (item) {
+      return '<article class="media-card' + (selected && selected.path === item.path ? ' selected' : '') + '" data-path="' + esc(item.path) + '">' +
+        '<img loading="lazy" src="' + esc(item.url) + '" alt="' + esc(item.name) + '">' +
+        '<div class="media-meta"><div class="media-name" title="' + esc(item.name) + '">' + esc(item.name) + '</div><div class="media-module">' + esc(item.moduleName || '模组') + '</div></div></article>';
+    }).join('');
+    gallery.querySelectorAll('.media-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        selected = allMedia.find(function (item) { return item.path === card.getAttribute('data-path'); }) || null;
+        showSelection();
+        renderMedia();
       });
     });
   }
 
-  function previewModule(rel) {
-    var pv = document.getElementById('module-preview'); if (!pv) return;
-    fetch('/api/module/read?system=' + encodeURIComponent(system) + '&path=' + encodeURIComponent(rel))
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (!data) { pv.innerHTML = '<div class="rules-empty">读取失败</div>'; return; }
-        if (data.binary) { pv.innerHTML = '<div class="rules-empty">二进制文件：' + esc(data.name) + '（' + data.size + ' B）</div>'; return; }
-        pv.innerHTML = '<b>' + esc(data.name) + '</b>' + (data.truncated ? ' <span style="color:#c9a86a;">（已截断）</span>' : '') + '<hr>' + esc(data.content || '');
-      })
-      .catch(function() { pv.innerHTML = '<div class="rules-empty">读取失败</div>'; });
+  function showSelection() {
+    var box = document.getElementById('media-selection');
+    box.hidden = !selected;
+    if (!selected) return;
+    document.getElementById('selected-preview').src = selected.url;
+    document.getElementById('selected-name').textContent = selected.name;
+    document.getElementById('selected-path').textContent = selected.path;
+    document.getElementById('selected-caption').value = selected.name;
   }
 
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  function loadMedia() {
+    gallery.innerHTML = '<div class="empty">正在读取模组插图……</div>';
+    fetch('/api/module/media?system=' + encodeURIComponent(system) + '&view=gm')
+      .then(function (response) { if (!response.ok) throw new Error('读取失败'); return response.json(); })
+      .then(function (data) { allMedia = data.images || []; renderMedia(); })
+      .catch(function (error) { gallery.innerHTML = '<div class="empty">插图读取失败：' + esc(error.message || '未知错误') + '</div>'; });
   }
 
-  refreshModuleList();
+  search.addEventListener('input', renderMedia);
+  document.getElementById('media-refresh').addEventListener('click', loadMedia);
+  document.getElementById('clear-selected').addEventListener('click', function () { selected = null; showSelection(); renderMedia(); });
+  document.getElementById('show-selected').addEventListener('click', function () {
+    if (!selected || !api || !api.showIllustration) return;
+    var caption = document.getElementById('selected-caption').value.trim() || selected.name;
+    api.showIllustration(selected.url, caption);
+  });
+  loadMedia();
 })();
 </script>
 </body>

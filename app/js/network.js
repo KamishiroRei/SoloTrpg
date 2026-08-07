@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    TrpgRecode - P2P房间网络模块
    房间码创建/加入、状态同步
    ============================================ */
@@ -10,20 +10,26 @@ const Network = (() => {
   let roomCode = null;
   let isHost = false;
   let players = {};
-  let myName = ''; // 2026-08-06：玩家名 = 玩家身份（同名即同一玩家）
+  let myName = '';
+  let myRole = 'player';
+  let gmName = '';
 
   let onPlayersUpdate = null;
   let onChat = null;
   let onAIChat = null;
-  let onChatEdited = null;    // 2026-08-05 条目化：消息被编辑（其他端原地更新）
-  let onChatRetracted = null; // 2026-08-05 条目化：消息被撤回（所有端移除条目）
-  let onContentUpdated = null; // 2026-08-05：GM 内容更新通知（玩家端全量重载）
+  let onChatEdited = null;
+  let onChatRetracted = null;
+  let onContentUpdated = null;
   let onDiceRoll = null;
   let onRoomCreated = null;
   let onRoomJoined = null;
   let onRoomError = null;
-  let onPermDenied = null; // 2026-08-06：服务端权限拒绝（角色修改被拒，供前端回滚/提示）
-  let onTokenUpdated = null; // 2026-08-06：角色控制权转交广播
+  let onPermDenied = null;
+  let onTokenUpdated = null;
+  let onRoleUpdated = null;
+  let onPrivateMessage = null;
+  let onPrivateOffline = null;
+  let onTyping = null;
 
   // ── 连接并检查URL参数 ──────────────────────────────
 
@@ -59,7 +65,6 @@ const Network = (() => {
     setupEvents();
   }
 
-  // 2026-08-06：玩家名（持久于本机 localStorage；进入房间时输入/选择）—— 见状态区 getMyName()
 
   function setupEvents() {
     socket.on('room_created', (data) => {
@@ -67,9 +72,14 @@ const Network = (() => {
       isHost = true;
       players = data.players || {};
       myName = data.myName || '';
-      if (myName) { try { localStorage.setItem('trpg_player_name', myName); } catch (e) {} }
+      myRole = data.myRole === 'gm' ? 'gm' : 'player';
+      gmName = data.gmName || '';
+      if (myName) { try { localStorage.setItem('trpg_player_nickname', myName); localStorage.removeItem('trpg_player_name'); } catch (e) {} }
+      if (data.mapState && window.MapEngine) {
+        try { window.MapEngine.importState(data.mapState); } catch (e) { console.warn('[网络] 地图状态载入失败', e); }
+      }
       // 同步房间标记
-      if (data.tokens && data.tokens.length > 0 && window.MapEngine.getAllTokens().length === 0) {
+      if (!data.mapState && data.tokens && data.tokens.length > 0 && window.MapEngine.getAllTokens().length === 0) {
         window.MapEngine.setTokens(data.tokens);
         if (window.UIManager) window.UIManager.refreshCharacterList();
       }
@@ -81,8 +91,13 @@ const Network = (() => {
       isHost = !!data.isHost;
       players = data.players || {};
       myName = data.myName || '';
-      if (myName) { try { localStorage.setItem('trpg_player_name', myName); } catch (e) {} }
-      if (data.tokens && data.tokens.length > 0 && window.MapEngine.getAllTokens().length === 0) {
+      myRole = data.myRole === 'gm' ? 'gm' : 'player';
+      gmName = data.gmName || '';
+      if (myName) { try { localStorage.setItem('trpg_player_nickname', myName); localStorage.removeItem('trpg_player_name'); } catch (e) {} }
+      if (data.mapState && window.MapEngine) {
+        try { window.MapEngine.importState(data.mapState); } catch (e) { console.warn('[网络] 地图状态载入失败', e); }
+      }
+      if (!data.mapState && data.tokens && data.tokens.length > 0 && window.MapEngine.getAllTokens().length === 0) {
         window.MapEngine.setTokens(data.tokens);
         if (window.UIManager) window.UIManager.refreshCharacterList();
       }
@@ -102,8 +117,30 @@ const Network = (() => {
     });
 
     socket.on('players_update', (data) => {
-      players = data;
+      players = data || {};
+      const me = players[myName];
+      if (me && me.role) myRole = me.role === 'gm' ? 'gm' : 'player';
+      const activeGM = Object.keys(players).find(name => players[name] && players[name].role === 'gm');
+      gmName = activeGM || '';
       if (onPlayersUpdate) onPlayersUpdate(players, isHost);
+    });
+
+    socket.on('role_updated', (data) => {
+      gmName = data && data.gmName ? data.gmName : '';
+      if (data && data.name === myName) myRole = data.role === 'gm' ? 'gm' : 'player';
+      if (onRoleUpdated) onRoleUpdated(data || {});
+    });
+
+    socket.on('private_msg', (data) => {
+      if (onPrivateMessage) onPrivateMessage(data);
+    });
+
+    socket.on('private_offline', (data) => {
+      if (onPrivateOffline) onPrivateOffline(data);
+    });
+
+    socket.on('typing', (data) => {
+      if (onTyping) onTyping(data || {});
     });
 
     socket.on('chat', (data) => {
@@ -130,7 +167,6 @@ const Network = (() => {
       if (onDiceRoll) onDiceRoll(data);
     });
 
-    // 游戏状态同步（2026-08-06：远端应用走 MapEngine 的 remote 方法，不触发本地钩子转播，杜绝广播循环）
     socket.on('token_add', (data) => {
       window.MapEngine.addTokenRemote(data);
       if (window.UIManager) window.UIManager.refreshCharacterList();
@@ -151,33 +187,69 @@ const Network = (() => {
       if (window.UIManager) window.UIManager.refreshCharacterList();
     });
 
+    socket.on('map_state', (data) => {
+      if (!data || !data.mapState || !window.MapEngine) return;
+      try {
+        window.MapEngine.importState(data.mapState, { preserveView: true });
+        if (window.UIManager) window.UIManager.refreshCharacterList();
+      } catch (e) { console.warn('[网络] 地图状态同步失败', e); }
+    });
+
+    socket.on('map_overlay', (data) => {
+      if (!data || !data.overlay || !window.MapEngine || !window.MapEngine.applyOverlayState) return;
+      try { window.MapEngine.applyOverlayState(data.overlay); }
+      catch (e) { console.warn('[网络] 地图范围同步失败', e); }
+    });
+
     socket.on('disconnect', () => {
       roomCode = null;
       players = {};
+      myRole = 'player';
+      gmName = '';
       if (onPlayersUpdate) onPlayersUpdate({}, false);
     });
   }
 
   // ── 房间操作 ──────────────────────────────────────
 
-  function createRoom(system, adventure, gmName) {
+  function createRoom(system, adventure, name, role) {
     if (!socket) return;
-    // 2026-08-06：GM 玩家名（房主身份=玩家名）
-    socket.emit('create_room', { system: system || '', adventure: adventure || '默认', name: gmName || getMyName() || '房主' });
+    socket.emit('create_room', {
+      system: system || '',
+      adventure: adventure || '默认',
+      name: name || getMyName() || '房主',
+      role: role === 'gm' ? 'gm' : 'player'
+    });
   }
 
   function joinRoom(code, name) {
     if (!socket) return;
-    if (name) localStorage.setItem('trpg_player_name', name);
+    if (name) { localStorage.setItem('trpg_player_nickname', name); localStorage.removeItem('trpg_player_name'); }
     socket.emit('join_room', { code, name: name || getMyName() });
   }
 
-  // 2026-08-06：改名（身份变更；服务端把旧名创建的角色归属转给新名）
   function renameMe(newName) {
     if (!socket || !newName || !newName.trim()) return;
     socket.emit('set_name', newName.trim());
-    if (newName.trim() !== myName) { try { localStorage.setItem('trpg_player_name', newName.trim()); } catch (e) {} }
+    if (newName.trim() !== myName) {
+      // 全局昵称：房间内改名 = 修改全局昵称（覆盖旧房间独立昵称系统）
+      try { localStorage.setItem('trpg_player_nickname', newName.trim()); localStorage.removeItem('trpg_player_name'); } catch (e) {}
+    }
     myName = newName.trim();
+  }
+
+  function sendPlayerCharacter(character) {
+    if (!socket || !roomCode) return;
+    socket.emit('player_character', {
+      characterId: (character && character.id) || '',
+      name: (character && (character.displayName || character.name)) || '',
+      avatarUrl: (character && (character.avatarUrl || (character.data && character.data.assets && (character.data.assets.avatarFramed || character.data.assets.avatar)))) || ''
+    });
+  }
+
+  function setRole(role, name) {
+    if (!socket || !roomCode || !isHost) return;
+    socket.emit('set_role', { role: role === 'gm' ? 'gm' : 'player', name: name || myName });
   }
 
   function getRoomUrl() {
@@ -190,28 +262,28 @@ const Network = (() => {
 
   function sendTokenAdd(token) {
     if (!socket) return;
-    // 2026-08-06：owner = 当前玩家名（服务端强制校验覆盖），角色归属=创建者
     socket.emit('token_add', {
-      id: token.id, name: token.name, displayName: token.displayName,
-      color: token.color, gridX: token.gridX, gridY: token.gridY,
-      hp: token.hp, maxHp: token.maxHp, data: token.data,
-      owner: myName || getMyName()
+      id: token.id, kind: token.kind || 'character', name: token.name, displayName: token.displayName,
+      color: token.color, icon: token.icon, shape: token.shape, size: token.size, avatarUrl: token.avatarUrl,
+      gridX: token.gridX, gridY: token.gridY, hp: token.hp, maxHp: token.maxHp, ac: token.ac,
+      conditions: token.conditions || [], data: token.data, owner: token.owner || myName || getMyName(),
+      mapId: window.MapEngine && window.MapEngine.getTokenMapId ? window.MapEngine.getTokenMapId(token.id) : ''
     });
   }
 
   function sendTokenMove(tokenId, gx, gy) {
     if (!socket) return;
-    socket.emit('token_move', { id: tokenId, gridX: gx, gridY: gy });
+    socket.emit('token_move', { id: tokenId, gridX: gx, gridY: gy, mapId: window.MapEngine && window.MapEngine.getTokenMapId ? window.MapEngine.getTokenMapId(tokenId) : '' });
   }
 
   function sendTokenUpdate(tokenId, updates) {
     if (!socket) return;
-    socket.emit('token_update', { id: tokenId, ...updates });
+    socket.emit('token_update', { id: tokenId, mapId: window.MapEngine && window.MapEngine.getTokenMapId ? window.MapEngine.getTokenMapId(tokenId) : '', ...updates });
   }
 
   function sendTokenRemove(tokenId) {
     if (!socket) return;
-    socket.emit('token_remove', { id: tokenId });
+    socket.emit('token_remove', { id: tokenId, mapId: window.MapEngine && window.MapEngine.getTokenMapId ? window.MapEngine.getTokenMapId(tokenId) : '' });
   }
 
   function sendTokenSyncAll() {
@@ -219,18 +291,26 @@ const Network = (() => {
     socket.emit('token_sync_all', { tokens: window.MapEngine.getAllTokens() });
   }
 
+  function sendMapState(mapState) {
+    if (!socket || !roomCode) return;
+    socket.emit('map_state', { mapState: mapState || (window.MapEngine && window.MapEngine.exportState ? window.MapEngine.exportState() : null) });
+  }
+
+  function sendMapOverlay(overlay) {
+    if (!socket || !roomCode || !overlay) return;
+    socket.emit('map_overlay', { overlay });
+  }
+
   function sendDiceRoll(expression, result) {
     if (!socket) return;
     socket.emit('dice_roll', { expression, result });
   }
 
-  // 2026-08-06：GM 转交角色控制权
   function sendTokenTransfer(tokenId, toName) {
     if (!socket) return;
     socket.emit('token_transfer', { id: tokenId, to: toName });
   }
 
-  // 2026-08-06：聊天带当前绑定角色名（显示"角色名（玩家名）"）
   function sendChat(text, channelId, msgId, characterName) {
     if (!socket) return;
     socket.emit('chat_msg', { text, channelId, id: msgId, characterName: characterName || '' });
@@ -241,7 +321,6 @@ const Network = (() => {
     socket.emit('ai_chat', { text, channelId, id: msgId });
   }
 
-  // 2026-08-05 条目化：编辑/撤回广播（服务端校验作者/GM权限后转发）
   function sendChatEdit(msgId, newText, channelId) {
     if (!socket) return;
     socket.emit('chat_edit', { id: msgId, newText, channelId });
@@ -252,7 +331,6 @@ const Network = (() => {
     socket.emit('chat_retract', { id: msgId, channelId });
   }
 
-  // 2026-08-05：GM 手动广播内容更新（保存插件/界面/规则后调用），玩家端收到后全量重载
   function sendContentUpdate() {
     if (!socket) return;
     socket.emit('content_update', {});
@@ -263,20 +341,49 @@ const Network = (() => {
     socket.emit('set_name', name);
   }
 
+  function sendPrivateMessage(to, text) {
+    if (!socket) return;
+    socket.emit('private_msg', { to, text });
+  }
+
+  function sendTyping() {
+    if (!socket) return;
+    socket.emit('typing', {});
+  }
+
   // ── 状态 ──────────────────────────────────────────
 
   function isConnected() { return socket && socket.connected; }
   function getRoomCode() { return roomCode; }
   function amIHost() { return isHost; }
+  function amIGM() { return myRole === 'gm'; }
+  function getMyRole() { return myRole; }
+  function getGMName() { return gmName; }
   function getPlayers() { return { ...players }; }
-  function getMyName() { return myName || (function() { try { return localStorage.getItem('trpg_player_name') || ''; } catch (e) { return ''; } })(); }
+  // 全局玩家昵称（设置页定义，覆盖旧房间独立昵称系统 trpg_player_name）：
+  // 优先读 trpg_player_nickname；旧名存在时自动迁移并删除旧键
+  function getMyName() {
+    var nick = '';
+    try { nick = localStorage.getItem('trpg_player_nickname') || ''; } catch (e) {}
+    if (nick) return nick;
+    try {
+      var legacy = localStorage.getItem('trpg_player_name');
+      if (legacy) {
+        localStorage.setItem('trpg_player_nickname', legacy);
+        localStorage.removeItem('trpg_player_name');
+        return legacy;
+      }
+    } catch (e) {}
+    return myName || '';
+  }
 
   return {
-    connect, createRoom, joinRoom, getRoomUrl, renameMe,
-    isConnected, getRoomCode, amIHost, getPlayers, getMyName,
-    sendTokenAdd, sendTokenMove, sendTokenUpdate, sendTokenRemove, sendTokenSyncAll,
+    connect, createRoom, joinRoom, getRoomUrl, renameMe, setRole,
+    isConnected, getRoomCode, amIHost, amIGM, getMyRole, getGMName, getPlayers, getMyName,
+    sendTokenAdd, sendTokenMove, sendTokenUpdate, sendTokenRemove, sendTokenSyncAll, sendMapState, sendMapOverlay,
     sendTokenTransfer,
-    sendDiceRoll, sendChat, sendAIChat, sendSetName,
+    sendDiceRoll, sendChat, sendAIChat, sendSetName, sendPrivateMessage, sendTyping,
+    sendPlayerCharacter,
     sendChatEdit, sendChatRetract, sendContentUpdate,
     set onPlayersUpdate(fn) { onPlayersUpdate = fn; },
     set onChat(fn) { onChat = fn; },
@@ -289,7 +396,11 @@ const Network = (() => {
     set onRoomJoined(fn) { onRoomJoined = fn; },
     set onRoomError(fn) { onRoomError = fn; },
     set onPermDenied(fn) { onPermDenied = fn; },
-    set onTokenUpdated(fn) { onTokenUpdated = fn; }
+    set onTokenUpdated(fn) { onTokenUpdated = fn; },
+    set onRoleUpdated(fn) { onRoleUpdated = fn; },
+    set onPrivateMessage(fn) { onPrivateMessage = fn; },
+    set onPrivateOffline(fn) { onPrivateOffline = fn; },
+    set onTyping(fn) { onTyping = fn; }
   };
 })();
 

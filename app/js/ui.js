@@ -18,20 +18,22 @@ const UIManager = (() => {
   let _channelUnread = {};
   let _currentAdventure = '默认'; // D+三级会话：当前冒险（规则书-冒险-频道）
   let _activeSheet = null;      // 当前规则系统的角色卡插件 { system, handler }
-  let _charListEventsBound = false; // 角色列表事件委托是否已绑定（幂等标志，refreshCharacterList 兜底绑定）
+  let _charListEventsBound = false;
   let _sheetCollector = null;   // 插件表单的收集函数（保存时调用，返回 { name, displayName, color, data }）
   let _pendingResume = null; // { userMessage, partialContent, partialReasoning, prompt, channelId } AI回复中断后的续接状态
   let _activeDevAbort = null; // 当前AI开发请求的AbortController（状态框"停止"按钮用）
+  let _activeModules = []; // 当前活动模组列表（冒险级，可多个，注入带团 AI 提示词）
+  let _gmContext = ''; // 带团现场上下文（角色卡+模组，服务端自动组装）
   let _rulePollTimer = null; // 规则书接管进度轮询定时器
   let _ruleTaskViewSystem = null; // 当前内容视图正在显示的进度所属系统
   const DEFAULT_CHANNELS = [
     { id: 'story', name: '剧情', prompt: '你在剧情频道担任 GM。推进场景、扮演 NPC、维护叙事连续性；玩家行动由玩家决定。遇到判定或数据变化时调用当前规则模块，不在聊天中临时猜规则。', skills: ['gm-protocol'], avg: true },
     { id: 'combat', name: '战斗', prompt: '你在战斗频道管理先攻、回合、行动、伤害、状态与资源。所有结果读取当前规则模块并写回角色和会话数据，展示必要的骰值与加值。', skills: ['gm-protocol'] },
-    { id: 'system', name: '系统', prompt: '你在系统频道担任 TrpgRecode 开发 Agent。先理解玩家真正要完成的跑团行为，再按需调用开发、规则书、角色系统或体验设计 SKILL，形成定位、修改、重载、验证闭环。', skills: ['agent-guide'] }
+    { id: 'system', name: '系统', prompt: '你在系统频道担任 TrpgRecode 开发 Agent。后端会按任务自动注入开发、规则书、角色系统、体验设计和插件 SKILL；你必须直接按最高游戏体验标准定位、修改、验证并总结。', skills: ['agent-guide', 'rulebook-development', 'gameplay-ux', 'character-system', 'plugin-authoring'] }
   ];
   const _settings = {
     provider: 'gpt',
-    aiEnabled: false, aiMode: 'full', aiChatEnabled: true, aiQuickMode: false,
+    aiEnabled: false, aiMode: 'aigm', aiChatEnabled: true, aiQuickMode: false,
     gptKey: '', gptModel: 'gpt-4o', gptKeySet: false,
     customEndpoint: '', customKey: '', customModel: '', customKeySet: false,
     gridColor: '#3a3a5c', bgColor: '#1a1a2e', rangeColor: '#ff6b6b', cellSize: 50, maxChat: 200,
@@ -40,7 +42,15 @@ const UIManager = (() => {
 
   function _esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
   function _el(id) { return document.getElementById(id); }
-  function _loadSettings() { try { var s = JSON.parse(localStorage.getItem('trpg_settings')); if (s) Object.assign(_settings, s); } catch(e){} }
+  function _loadSettings() {
+    try {
+      var saved = JSON.parse(localStorage.getItem('trpg_settings'));
+      if (saved) Object.assign(_settings, saved);
+      if (_settings.aiMode === 'full') _settings.aiMode = 'aigm';
+      if (_settings.aiMode === 'scene') _settings.aiMode = 'assistant-gm';
+      if (!['aigm', 'assistant-gm', 'aipl', 'rules'].includes(_settings.aiMode)) _settings.aiMode = 'aigm';
+    } catch (e) {}
+  }
   function _saveSettings() { try { localStorage.setItem('trpg_settings', JSON.stringify(_settings)); } catch(e){} }
   function _loadChannels() { try { var c = JSON.parse(localStorage.getItem('trpg_chat_channels')); _chatChannels = Array.isArray(c) && c.length ? c : JSON.parse(JSON.stringify(DEFAULT_CHANNELS)); } catch(e) { _chatChannels = JSON.parse(JSON.stringify(DEFAULT_CHANNELS)); } }
   function _saveChannels() { try { localStorage.setItem('trpg_chat_channels', JSON.stringify(_chatChannels)); } catch(e){} }
@@ -116,8 +126,15 @@ const UIManager = (() => {
   }
 
   function isGMUser() {
-    // 本地单人/未加入房间时视为GM；加入房间后只有房主是GM。
-    return !Network || !Network.getRoomCode || !Network.getRoomCode() || Network.amIHost();
+    return !Network || !Network.getRoomCode || !Network.getRoomCode() || (Network.amIGM && Network.amIGM());
+  }
+
+  function isRoomHost() {
+    return !!(Network && Network.getRoomCode && Network.getRoomCode() && Network.amIHost && Network.amIHost());
+  }
+
+  function canManageRuleContent() {
+    return !Network || !Network.getRoomCode || !Network.getRoomCode() || isGMUser() || isRoomHost();
   }
 
   function canUseAIChat() {
@@ -128,7 +145,6 @@ const UIManager = (() => {
     var can = canUseAIChat();
     var row = _el('chat-ai-toggle-row');
     var toggle = _el('chat-ai-toggle');
-    var hint = _el('chat-ai-toggle-hint');
     var sw = row ? row.querySelector('.chat-ai-switch') : null;
     if (row) row.style.display = can ? 'flex' : 'none';
     if (toggle) {
@@ -137,10 +153,16 @@ const UIManager = (() => {
       toggle.disabled = !can;
     }
     if (sw) sw.classList.toggle('active', can && !!_settings.aiQuickMode);
-    if (hint) {
-      hint.textContent = can
-        ? (_settings.aiQuickMode ? '开启：发送给AI' : '关闭：普通聊天')
-        : '仅GM/房主可使用AI';
+    var typingEl = _el('chat-typing-status');
+    if (typingEl) {
+      if (!can) typingEl.textContent = '仅当前真人GM可使用AI主持功能';
+      else typingEl.textContent = '';
+    }
+    renderChatStatus();
+    var gmDirBtn = _el('btn-gm-directive');
+    if (gmDirBtn) {
+      gmDirBtn.style.display = can ? '' : 'none';
+      gmDirBtn.onclick = function() { openGmDirectiveWindow(); };
     }
     var gmAi = _el('setting-gm-ai-chat-enabled');
     if (gmAi) {
@@ -177,21 +199,29 @@ const UIManager = (() => {
     setupMovableMapToolbar();
     _setupTabs();
     setupChat();
+    bindNotesPanel();
     setupChatResize();
+    setupSidePanelResize();
+    setupModuleSplit();
     setupDice();
     setupRules();
     setupModuleManager();
     setupCharacterImport();
     setupCharacterImageTool();
     setupModals();
+    setupModernMapWorkspace();
+    // 世界状态轮询常驻：页面加载即启动（AI 工具修改 world-state 后自动同步地图/角色）
+    _worldPollStarted = true;
+    setTimeout(pollWorldState, 800);
     setupSettings();
     setupNetwork();
+    setupTypingStatus();
     setupCheckTool();
     setupPendingCharacterListener();
-    restoreCharacters();
+    loadActiveModule();
+    setupGmDirectiveChannel();
     _restoreChatLog(); // 恢复持久化的聊天记录（玩家输入+AI输出，不含系统消息）
     renderChatMessages();
-    // 兜底：任何未显式落盘的 token 变更（如地图拖动位置）在关闭/刷新前统一保存
     window.addEventListener('beforeunload', persistCharacters);
     updateAIControls();
     setupCharacterListEvents();
@@ -201,15 +231,14 @@ const UIManager = (() => {
       addChatMessage('system', '测量', '距离: ' + dist.toFixed(1) + ' 格');
     };
     updateZoomLabel();
-    // 开始界面（2026-08-05）：全局入口——选择规则书→冒险（或继续上次）后才进入内部
-    // F5刷新保持（2026-08-05）：存在上次进入记录时直接恢复主界面（当前规则书+冒险），
-    // 而不是每次刷新都回到开始界面（刷新=在当前界面重载，不是退出）
     var lastEntry = _loadLastEntry();
     if (lastEntry && lastEntry.system) {
       _selectedRuleSystem = lastEntry.system;
       _currentAdventure = lastEntry.adventure || '默认';
       try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {}
       enterMainInterface(); // 内部已加载当前频道服务端历史
+      // 规则系统就绪后才恢复角色（此前在 init 早期执行时系统名为空，角色永远走本地空分支）
+      restoreCharacters();
     } else {
       renderStartScreen();
     }
@@ -246,15 +275,13 @@ const UIManager = (() => {
   function _setupToolbar() {
     var bind = function(id, evt, fn) { var e = _el(id); if (e) e.addEventListener(evt, fn); };
     bind('btn-select', 'click', function() { MapEngine.setTool('select'); });
-    bind('btn-pan', 'click', function() { MapEngine.setTool('pan'); });
-    bind('btn-range', 'click', function() { openRangeModal(); });
+    bind('btn-range', 'click', function() { MapEngine.setTool('range'); });
     bind('btn-measure', 'click', function() { MapEngine.setTool('measure'); });
     bind('btn-zoomin', 'click', function() { MapEngine.zoomIn(); });
     bind('btn-zoomout', 'click', function() { MapEngine.zoomOut(); });
     bind('btn-zoomfit', 'click', function() { MapEngine.zoomFit(); });
     bind('btn-add-token', 'click', function() { openCharacterModal(); });
-    bind('btn-clear-range', 'click', function() { MapEngine.clearRange(); });
-    bind('btn-map-bg', 'click', function() { openBgModal(); });
+    bind('btn-clear-measure', 'click', function() { MapEngine.clearMeasurements(); });
     bind('toggle-grid', 'change', function() { MapEngine.setGridVisible(this.checked); });
     bind('toggle-snap', 'change', function() { MapEngine.setSnapToGrid(this.checked); });
     bind('grid-size-select', 'change', function() {
@@ -263,7 +290,7 @@ const UIManager = (() => {
   }
 
   function updateToolButtons(tool) {
-    ['select', 'pan', 'range', 'measure'].forEach(function(t) {
+    ['select', 'range', 'measure'].forEach(function(t) {
       var b = _el('btn-' + t); if (b) b.classList.toggle('active', t === tool);
     });
   }
@@ -281,9 +308,6 @@ const UIManager = (() => {
     }
   }
 
-  // ── 规则书界面框架引擎（2026-08-05）：宿主只提供引擎，界面框架是规则书自身文件 ──
-  // 新规则书无 ui/ 文件 → 用内置默认框架（DEFAULT_TABS）；AI 解析后写 Ruler/<系统>/ui/manifest.json 迭代定制。
-  // manifest 结构: { tabs:[{id,icon,name,customPanel?}], hideTabs:[], theme:{cssVars}, sidebar:{...} }
   var DEFAULT_TABS = [
     { id: 'characters', icon: '👥', name: '角色' },
     { id: 'encounter', icon: '⚔', name: '遭遇' },
@@ -294,7 +318,6 @@ const UIManager = (() => {
   ];
   var _uiManifest = null; // 当前规则书的界面框架（null=默认）
 
-  // 加载并应用规则书 ui-manifest（引擎化：界面文件在规则书文件夹内）
   function applyUiManifest(system) {
     _uiManifest = null;
     // 重置主题变量（回到默认）
@@ -334,15 +357,11 @@ var nav = document.querySelector('.panel-tabs');
 if (!nav) return;
 var hide = {};
 (hideTabs || []).forEach(function(h) { hide[h] = true; });
-// 2026-08-05：GM 页签（GM工具+模组）仅 GM/主机可见——非 GM 一律隐藏
-var notGM = typeof isGMUser === 'function' && !isGMUser();
 // 生成页签按钮
 nav.innerHTML = '';
 var firstVisible = null;
 tabs.forEach(function(t, i) {
 if (hide[t.id]) return;
-if (notGM && t.id === 'gm') return; // 非 GM 隐藏 GM 页签
-if (notGM && t.visibility === 'gm') return; // 2026-08-05：GM/PL 区分——visibility=gm 的页签仅 GM
 if (!firstVisible) firstVisible = t;
       var btn = document.createElement('button');
       btn.className = 'panel-tab' + (i === 0 ? ' active' : '');
@@ -383,10 +402,6 @@ if (!firstVisible) firstVisible = t;
   }
 
   function _setupTabs() {
-    // 2026-08-05：GM 页签（GM工具+模组管理）仅 GM/主机可见——非 GM 隐藏
-    if (typeof isGMUser === 'function' && !isGMUser()) {
-      document.querySelectorAll('.panel-tab[data-tab="gm"]').forEach(function(t) { t.style.display = 'none'; });
-    }
     document.querySelectorAll('.panel-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
         var target = this.getAttribute('data-tab');
@@ -413,6 +428,90 @@ if (!firstVisible) firstVisible = t;
     });
   }
 
+  // ── 冒险笔记（纯文本记忆，落盘 Ruler/<系统>/存档/<冒险>/notes/；AI gm_note 同源读写）──
+  var _noteList = [];
+  var _activeNote = '';
+  function notesApi(method, params) {
+    var sys = _selectedRuleSystem || '';
+    var adv = _currentAdventure || localStorage.getItem('trpg_current_adventure') || '默认';
+    if (method === 'list' || method === 'read') {
+      var url = '/api/notes/' + method + '?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv);
+      if (method === 'read') url += '&file=' + encodeURIComponent(params.file);
+      return fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); });
+    }
+    return fetch('/api/notes/' + method, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ system: sys, adventure: adv }, params))
+    }).then(function (r) { return r.json(); });
+  }
+  function loadNotes() {
+    notesApi('list').then(function (d) {
+      _noteList = (d && d.notes) || [];
+      var listEl = _el('notes-list');
+      if (!listEl) return;
+      if (!_noteList.length) { listEl.innerHTML = '<div class="notes-empty">暂无笔记，点「新建」记录第一条。</div>'; return; }
+      listEl.innerHTML = '';
+      _noteList.forEach(function (n) {
+        var b = document.createElement('div');
+        b.className = 'note-item' + (_activeNote === n.file ? ' active' : '');
+        b.textContent = n.name;
+        b.title = n.file;
+        b.onclick = function () { openNote(n.file); };
+        listEl.appendChild(b);
+      });
+    });
+  }
+  function openNote(file) {
+    _activeNote = file || '';
+    notesApi('read', { file: file }).then(function (d) {
+      var ta = _el('session-notes');
+      if (ta) ta.value = (d && d.content !== undefined) ? d.content : '';
+      loadNotes();
+    });
+  }
+  function saveActiveNote() {
+    var ta = _el('session-notes');
+    if (!_activeNote) { noteFeedback('请先点「＋ 新建」或选择一篇笔记'); return; }
+    notesApi('save', { file: _activeNote, content: ta ? ta.value : '' }).then(function (d) {
+      noteFeedback(d && d.success ? '已保存' : ('保存失败：' + ((d && d.error) || '未知错误')), !(d && d.success));
+    });
+  }
+  function newNote() {
+    var name = prompt('笔记名：', '');
+    if (!name || !name.trim()) return;
+    _activeNote = name.trim() + '.md';
+    var ta = _el('session-notes'); if (ta) ta.value = '';
+    notesApi('save', { file: _activeNote, content: '' }).then(function (d) {
+      if (d && d.success) loadNotes();
+      else noteFeedback('创建失败：' + ((d && d.error) || '未知错误'), true);
+    });
+  }
+  function deleteActiveNote() {
+    if (!_activeNote) { noteFeedback('当前没有打开的笔记'); return; }
+    if (!confirm('删除笔记「' + _activeNote + '」？')) return;
+    notesApi('delete', { file: _activeNote }).then(function (d) {
+      _activeNote = '';
+      var ta = _el('session-notes'); if (ta) ta.value = '';
+      loadNotes();
+      if (d && !d.success) noteFeedback('删除失败：' + ((d && d.error) || '未知错误'), true);
+    });
+  }
+  function noteFeedback(text, isErr) {
+    var b = _el('note-save');
+    if (!b) return;
+    var old = b.textContent;
+    b.textContent = text;
+    b.style.color = isErr ? '#ff8d94' : '#55d7d2';
+    setTimeout(function () { b.textContent = old; b.style.color = ''; }, 1800);
+  }
+  function bindNotesPanel() {
+    var save = _el('note-save'); if (save) save.onclick = saveActiveNote;
+    var nw = _el('note-new'); if (nw) nw.onclick = newNote;
+    var del = _el('note-delete'); if (del) del.onclick = deleteActiveNote;
+    loadNotes();
+  }
+
   function setupChat() {
     var chatInput = _el('chat-input');
     renderChannelTabs();
@@ -424,7 +523,6 @@ if (!firstVisible) firstVisible = t;
     var upBtn = _el('btn-channel-up'); if (upBtn) upBtn.addEventListener('click', function() { moveChannel(-1); });
     var downBtn = _el('btn-channel-down'); if (downBtn) downBtn.addEventListener('click', function() { moveChannel(1); });
     var promptBtn = _el('btn-channel-prompt'); if (promptBtn) promptBtn.addEventListener('click', editChannelPrompt);
-    // 频道弹层按钮（2026-08-06 多行提示词）
     var cmClose = _el('channel-modal-close'); if (cmClose) cmClose.addEventListener('click', closeChannelModal);
     var cmCancel = _el('channel-modal-cancel'); if (cmCancel) cmCancel.addEventListener('click', closeChannelModal);
     var cmSave = _el('channel-modal-save'); if (cmSave) cmSave.addEventListener('click', saveChannelModal);
@@ -437,10 +535,11 @@ if (!firstVisible) firstVisible = t;
         _currentAdventure = advSelect.value || '默认';
         try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {}
         renderChannelTabs();
+        updateAdventureActionButtons();
+        loadNotes();
       });
     }
     loadAdventureList();
-    // 主菜单侧边栏（2026-08-05 v2 抽屉式）：☰ 按钮开/关，左侧滑出 + 右侧遮罩
     var menuBtn = _el('btn-main-menu');
     if (menuBtn) menuBtn.addEventListener('click', openGlobalSidebar);
     var gsClose = _el('btn-gs-close');
@@ -459,14 +558,14 @@ if (!firstVisible) firstVisible = t;
     });
     var startNewAdv = _el('btn-start-new-adv');
     if (startNewAdv) startNewAdv.addEventListener('click', function() {
-      var nn = prompt('新冒险名称：');
-      if (!nn || !nn.trim()) return;
-      fetch('/api/adventures/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _pendingStartRule || _selectedRuleSystem || '', name: nn.trim() }) })
-        .then(function(r) { return r.json(); })
-        .then(function(d) { if (d.success) { _currentAdventure = d.adventure; try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {} pickAdventure(d.adventure); } else alert(d.error || '创建失败'); })
-        .catch(function(e) { alert('创建失败: ' + (e.message || e)); });
+      dlgPrompt('新建冒险', '冒险名称：', '', function(nn) {
+        if (!nn || !nn.trim()) return;
+        fetch('/api/adventures/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _pendingStartRule || _selectedRuleSystem || '', name: nn.trim() }) })
+          .then(function(r) { return r.json(); })
+          .then(function(d) { if (d.success) { _currentAdventure = d.adventure; try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {} pickAdventure(d.adventure); } else dlgAlert('提示', d.error || '创建失败'); })
+          .catch(function(e) { dlgAlert('提示', '创建失败: ' + (e.message || e)); });
+      });
     });
-    // 开始界面拖放上传（2026-08-05 v5）：无特效，纯功能——拖文件到窗口任意位置即上传（复用既有流程）
     document.addEventListener('dragover', function(e) { e.preventDefault(); });
     document.addEventListener('drop', function(e) {
       e.preventDefault();
@@ -482,24 +581,25 @@ if (!firstVisible) firstVisible = t;
     });
     var historyBtn = _el('btn-channel-history');
     if (historyBtn) historyBtn.addEventListener('click', viewChannelHistory);
-    // 2026-08-05：清空当前频道对话（系统频道开发记录不保留）——删除服务端 jsonl + 清空本地历史
     var clearBtn = _el('btn-channel-clear');
     if (clearBtn) {
       clearBtn.addEventListener('click', function() {
         var ch = getActiveChannel();
         if (!ch) return;
-        if (!confirm('清空「' + ch.name + '」频道的全部对话？\n开发记录将不可恢复（本地历史与服务器会话一并清空）。')) return;
-        var sys = _selectedRuleSystem || '';
-        var adv = _currentAdventure || '默认';
-        fetch('/api/sessions/delete', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ system: sys, adventure: adv, channel: ch.id })
-        }).catch(function() {});
-        // 清空本地聊天历史（该频道）
-        _chatHistory = _chatHistory.filter(function(m) { return (m.channelId || 'story') !== ch.id; });
-        _persistChatLog();
-        renderChatMessages();
-        addChatMessage('system', '频道', '已清空「' + ch.name + '」频道对话。');
+        dlgConfirm('确认清空', '清空「' + ch.name + '」频道的全部对话？\n开发记录将不可恢复（本地历史与服务器会话一并清空）。', function(ok) {
+          if (!ok) return;
+          var sys = _selectedRuleSystem || '';
+          var adv = _currentAdventure || '默认';
+          fetch('/api/sessions/delete', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ system: sys, adventure: adv, channel: ch.id })
+          }).catch(function() {});
+          // 清空本地聊天历史（该频道）
+          _chatHistory = _chatHistory.filter(function(m) { return (m.channelId || 'story') !== ch.id; });
+          _persistChatLog();
+          renderChatMessages();
+          addChatMessage('system', '频道', '已清空「' + ch.name + '」频道对话。');
+        });
       });
       // 系统频道才显示清空按钮（剧情/战斗等保留记录）
       var ch = getActiveChannel();
@@ -512,15 +612,16 @@ if (!firstVisible) firstVisible = t;
     if (advCloseBtn) advCloseBtn.addEventListener('click', function() { var p = _el('adventure-panel'); if (p) p.style.display = 'none'; var b2 = _el('btn-adventure-manage'); if (b2) b2.classList.remove('active'); });
     var advCreateBtn = _el('btn-adv-create');
     if (advCreateBtn) advCreateBtn.addEventListener('click', function() {
-      var nn = prompt('新冒险名称：');
-      if (!nn || !nn.trim()) return;
-      fetch('/api/adventures/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: nn.trim() }) })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-          if (d.success) { _currentAdventure = d.adventure; try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {} loadAdventureList(); }
-          else alert(d.error || '创建失败');
-        })
-        .catch(function(e) { alert('创建失败: ' + (e.message || e)); });
+      dlgPrompt('新建冒险', '冒险名称：', '', function(nn) {
+        if (!nn || !nn.trim()) return;
+        fetch('/api/adventures/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: nn.trim() }) })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.success) { _currentAdventure = d.adventure; try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {} loadAdventureList(); }
+            else dlgAlert('提示', d.error || '创建失败');
+          })
+          .catch(function(e) { dlgAlert('提示', '创建失败: ' + (e.message || e)); });
+      });
     });
     var advSearch = _el('adv-search');
     if (advSearch) advSearch.addEventListener('input', function() { renderAdventurePanel(_advPanelData); });
@@ -543,7 +644,7 @@ if (!firstVisible) firstVisible = t;
         _settings.aiQuickMode = false;
         _saveSettings();
         updateAIControls();
-        addChatMessage('system', 'AI', '只有GM/房主可以打开AI开关。');
+        addChatMessage('system', 'AI', '只有当前真人GM可以打开主持AI。', _activeChannelId || 'story');
         return;
       }
       _settings.aiQuickMode = !!this.checked;
@@ -569,13 +670,13 @@ if (!firstVisible) firstVisible = t;
       }
       if (text.startsWith('/ai')) {
         if (!canUseAIChat()) {
-          addChatMessage('system', 'AI', '只有GM/房主可以向AI提问。');
+          addChatMessage('system', 'AI', '只有当前真人GM可以调用主持AI。');
           return; // 保留输入内容
         }
         var aiMsg = text.replace(/^\/ai\s*/, '');
         if (aiMsg) {
           chatInput.value = ''; clearDraft(); autoResizeChatInput();
-          sendToAI(aiMsg); // 发送失败时 sendToAI 会把内容放回输入框
+          sendToAIWithHandoff(aiMsg); // 发送失败时 sendToAI 会把内容放回输入框
         }
         return;
       }
@@ -589,9 +690,8 @@ if (!firstVisible) firstVisible = t;
         // GM快速AI开关：开启时普通文本直接交给AI；关闭时作为普通聊天。
         if (canUseAIChat() && _settings.aiQuickMode) {
           chatInput.value = ''; clearDraft(); autoResizeChatInput();
-          sendToAI(text); // 发送失败时 sendToAI 会把内容放回输入框
+          sendToAIWithHandoff(text); // 发送失败时 sendToAI 会把内容放回输入框
         } else {
-          // 2026-08-06：本地聊天同样显示"角色名（你）"
           var myChar = getMyCharacterName();
           addChatMessage('user', myChar ? myChar + '（你）' : '你', text);
           chatInput.value = ''; clearDraft(); autoResizeChatInput();
@@ -605,7 +705,7 @@ if (!firstVisible) firstVisible = t;
         var draft = localStorage.getItem('trpg_chat_draft');
         if (draft) { chatInput.value = draft; autoResizeChatInput(); }
       } catch (e) {}
-      chatInput.addEventListener('input', function() { autoResizeChatInput(); saveDraft(); });
+      chatInput.addEventListener('input', function() { autoResizeChatInput(); saveDraft(); sendTypingThrottled(); });
       chatInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _sendChat(); }
       });
@@ -615,6 +715,77 @@ if (!firstVisible) firstVisible = t;
 
   function getActiveChannel() {
     return _chatChannels.find(function(c) { return c.id === _activeChannelId; }) || _chatChannels[0] || DEFAULT_CHANNELS[0];
+  }
+
+  function getChannelNameById(id) {
+    var c = _chatChannels.find(function(ch) { return ch.id === id; });
+    return c ? (c.name || c.id) : '';
+  }
+
+  var _gmWindows = {}; // GM 指令窗口引用（按频道 id）
+  var _gmBc = null; // GM 指令窗口跨窗口通道（BroadcastChannel，独立子窗口无 opener 时使用）
+
+  function setupGmDirectiveChannel() {
+    if (_gmBc) return;
+    try {
+      _gmBc = new BroadcastChannel('trpg_gm');
+      _gmBc.onmessage = function(e) {
+        var m = e && e.data;
+        if (!m) return;
+        if (m.type === 'gm_directive') {
+          var win = _gmWindows[m.channelId];
+          if (!win || win.closed) win = null;
+          sendToAI(String(m.text || ''), { gmDirective: true, channelId: m.channelId, gmWindow: win, gmChannel: { winId: m.winId } });
+        } else if (m.type === 'pm_send') {
+          // 私聊窗口 → 主窗口 → 联机发送
+          if (window.Network && Network.sendPrivateMessage && Network.isConnected && Network.isConnected()) {
+            Network.sendPrivateMessage(String(m.to || ''), String(m.text || ''));
+          } else {
+            _gmBc.postMessage({ type: 'pm_error', winId: m.winId, to: m.to, error: '未连接房间，私聊不可用（单人游玩请使用 AI 私聊）' });
+          }
+        }
+      };
+      // 联机私聊与玩家列表 → 私聊窗口
+      try {
+        Network.onPrivateMessage = function(data) {
+          if (_gmBc) _gmBc.postMessage({ type: 'pm_recv', from: data.from, to: data.to, text: data.text, time: data.time });
+        };
+        Network.onPrivateOffline = function(data) {
+          if (_gmBc) _gmBc.postMessage({ type: 'pm_offline', to: data.to });
+        };
+      } catch (e) {}
+      // 玩家列表变化转发（供私聊窗口会话列表）
+      if (!window._pmPlayersBridge) {
+        window._pmPlayersBridge = true;
+        var origPlayersUpdate = Network.onPlayersUpdate;
+        Network.onPlayersUpdate = function(players, host) {
+          try { if (_gmBc) _gmBc.postMessage({ type: 'pm_players', players: players || {} }); } catch (e) {}
+          if (typeof origPlayersUpdate === 'function') origPlayersUpdate(players, host);
+        };
+      }
+    } catch (e) {}
+  }
+
+  // GM 指令窗口：单独向当前频道的 AI 发送非剧情消息（导演指令/秘密/管理），回复仅显示在窗口内
+  function openGmDirectiveWindow() {
+    var ch = getActiveChannel();
+    var cid = ch ? ch.id : 'story';
+    var url = '/gm-directive.html?system=' + encodeURIComponent(_selectedRuleSystem || '') +
+      '&adventure=' + encodeURIComponent(_currentAdventure || '默认') +
+      '&channel=' + encodeURIComponent(cid) + '&name=' + encodeURIComponent(ch ? (ch.name || cid) : '剧情');
+    var win = window.open(url, '_blank', 'width=520,height=600');
+    if (win) _gmWindows[cid] = win;
+  }
+
+  function sendGmDirective(text, channelId) {
+    var cid = channelId || _activeChannelId || 'story';
+    var win = _gmWindows[cid];
+    if (!win || win.closed) win = null;
+    sendToAI(String(text || ''), { gmDirective: true, channelId: cid, gmWindow: win });
+  }
+
+  function getChannels() {
+    return _chatChannels.filter(function(c) { return !c.archived; }).map(function(c) { return { id: c.id, name: c.name || c.id }; });
   }
 
   function renderChannelTabs() {
@@ -640,10 +811,8 @@ if (!firstVisible) firstVisible = t;
         _channelUnread[ch.id] = 0;
         renderChannelTabs();
         renderChatMessages();
-        // 2026-08-05：清空按钮仅系统频道显示
         var clearBtn = _el('btn-channel-clear');
         if (clearBtn) clearBtn.style.display = (ch.id === 'system') ? '' : 'none';
-        // 2026-08-05：切换频道时加载该频道的服务端历史（若有新内容）
         loadChannelHistoryFromServer(ch.id);
       });
       tabs.appendChild(btn);
@@ -670,27 +839,29 @@ if (!firstVisible) firstVisible = t;
     var ch = getActiveChannel();
     if (!ch) return;
     if (DEFAULT_CHANNELS.some(function(d) { return d.id === ch.id; })) {
-      alert('默认频道（剧情/战斗/系统）不可删除，仅可删除新增频道。');
+      dlgAlert('提示', '默认频道（剧情/战斗/系统）不可删除，仅可删除新增频道。');
       return;
     }
-    if (!confirm('彻底删除频道「' + ch.name + '」？\n此操作将删除该频道的本地会话文件（jsonl），不可恢复。若想保留历史请使用「归档」或先「历史」导出查阅。')) return;
-    var idx = _chatChannels.findIndex(function(c) { return c.id === ch.id; });
-    if (idx < 0) return;
-    _chatChannels.splice(idx, 1);
-    // 删除该频道的消息记录（内存+持久化）
-    _chatHistory = _chatHistory.filter(function(m) { return (m.channelId || 'story') !== ch.id; });
-    _persistChatLog();
-    delete _channelUnread[ch.id];
-    _activeChannelId = _chatChannels[0] ? _chatChannels[0].id : 'story';
-    _saveChannels();
-    renderChannelTabs();
-    // 彻底删除服务端会话文件（jsonl）
-    fetch('/api/sessions/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system: _selectedRuleSystem || '', adventure: _currentAdventure || '默认', channel: ch.id })
-    }).catch(function() { /* 后端删除失败不阻塞界面 */ });
-    addChatMessage('system', '频道', '已彻底删除频道: ' + ch.name);
+    dlgConfirm('删除频道', '彻底删除频道「' + ch.name + '」？\n此操作将删除该频道的本地会话文件（jsonl），不可恢复。若想保留历史请使用「归档」或先「历史」导出查阅。', function(ok) {
+      if (!ok) return;
+      var idx = _chatChannels.findIndex(function(c) { return c.id === ch.id; });
+      if (idx < 0) return;
+      _chatChannels.splice(idx, 1);
+      // 删除该频道的消息记录（内存+持久化）
+      _chatHistory = _chatHistory.filter(function(m) { return (m.channelId || 'story') !== ch.id; });
+      _persistChatLog();
+      delete _channelUnread[ch.id];
+      _activeChannelId = _chatChannels[0] ? _chatChannels[0].id : 'story';
+      _saveChannels();
+      renderChannelTabs();
+      // 彻底删除服务端会话文件（jsonl）
+      fetch('/api/sessions/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: _selectedRuleSystem || '', adventure: _currentAdventure || '默认', channel: ch.id })
+      }).catch(function() { /* 后端删除失败不阻塞界面 */ });
+      addChatMessage('system', '频道', '已彻底删除频道: ' + ch.name);
+    });
   }
 
   // 频道归档菜单：归档当前频道 / 列出已归档频道供恢复（归档保留jsonl，删除才彻底删）
@@ -701,30 +872,32 @@ if (!firstVisible) firstVisible = t;
       (archivedList.length ? '已归档频道：\n' + archivedList.map(function(c, i) { return (i + 1) + '. ' + c.name; }).join('\n') + '\n\n' : '（无已归档频道）\n\n') +
       (ch && !ch.archived ? '操作：\n  1=归档当前频道「' + ch.name + '」\n' : '') +
       '  恢复 = 输入要恢复的频道名\n  取消 = 关闭';
-    var ans = prompt(promptText, ch && !ch.archived ? '1' : '');
-    if (!ans) return;
-    if (ans.trim() === '1' && ch && !ch.archived) {
-      if (!confirm('归档频道「' + ch.name + '」？本地会话文件保留，可从归档列表恢复。')) return;
-      ch.archived = true;
-      _saveChannels();
-      _activeChannelId = _chatChannels.find(function(c) { return !c.archived; }) ? _chatChannels.find(function(c) { return !c.archived; }).id : 'story';
-      renderChannelTabs();
-      addChatMessage('system', '频道', '已归档频道: ' + ch.name + '（可点🗄恢复）');
-      return;
-    }
-    var restore = archivedList.find(function(c) { return c.name === ans.trim(); });
-    if (restore) {
-      restore.archived = false;
-      _saveChannels();
-      _activeChannelId = restore.id;
-      renderChannelTabs();
-      addChatMessage('system', '频道', '已恢复频道: ' + restore.name);
-    } else {
-      alert('未找到频道「' + ans + '」。');
-    }
+    dlgPrompt('频道归档', promptText, ch && !ch.archived ? '1' : '', function(ans) {
+      if (!ans) return;
+      if (ans.trim() === '1' && ch && !ch.archived) {
+        dlgConfirm('归档频道', '归档频道「' + ch.name + '」？本地会话文件保留，可从归档列表恢复。', function(ok) {
+          if (!ok) return;
+          ch.archived = true;
+          _saveChannels();
+          _activeChannelId = _chatChannels.find(function(c) { return !c.archived; }) ? _chatChannels.find(function(c) { return !c.archived; }).id : 'story';
+          renderChannelTabs();
+          addChatMessage('system', '频道', '已归档频道: ' + ch.name + '（可点🗄恢复）');
+        });
+        return;
+      }
+      var restore = archivedList.find(function(c) { return c.name === ans.trim(); });
+      if (restore) {
+        restore.archived = false;
+        _saveChannels();
+        _activeChannelId = restore.id;
+        renderChannelTabs();
+        addChatMessage('system', '频道', '已恢复频道: ' + restore.name);
+      } else {
+        dlgAlert('提示', '未找到频道「' + ans + '」。');
+      }
+    });
   }
 
-  // 频道弹层（新建/提示词编辑）：多行 textarea 输入，2026-08-06 取代浏览器单行 prompt()
   var _channelModalCtx = null;
   function openChannelModal(ch, isNew) {
     var modal = _el('channel-modal'); if (!modal) return;
@@ -752,7 +925,7 @@ if (!firstVisible) firstVisible = t;
     var prompt = promptEl ? promptEl.value : '';
     var avgCb = _el('channel-modal-avg');
     var avg = !!(avgCb && avgCb.checked);
-    if (!name) { alert('请填写频道名称'); return; }
+    if (!name) { dlgAlert('提示', '请填写频道名称'); return; }
     if (ctx.isNew) {
       var ch = { id: 'ch_' + Date.now(), name: name, prompt: prompt };
       if (avg) ch.avg = true;
@@ -779,7 +952,6 @@ if (!firstVisible) firstVisible = t;
     var cont = _el('chat-messages'); if (!cont) return;
     cont.innerHTML = '';
     var max = _settings.maxChat || 200;
-    // 2026-08-05 全站重构：AVG 频道渲染历史时按消息顺序重建立绘舞台快照，
     // 每条消息显示其"当时的立绘状态"（倒回查看时立绘与对话进程一致）
     var avgOn = avgEnabledFor(_activeChannelId);
     var histStage = { left: null, right: null, speaking: null };
@@ -813,10 +985,6 @@ if (!firstVisible) firstVisible = t;
     renderAvgStageBar();
   }
 
-  // ── 服务端会话历史加载（2026-08-05 修复）：主界面聊天区与历史窗口同源 ──
-  // 聊天区历史此前只依赖 localStorage（可能被清空/跨会话丢失），导致"聊天区看不到历史、历史窗口能看到"。
-  // 现在进入界面/切换频道时从服务端 jsonl（/api/sessions/read）加载 user/assistant 消息到聊天区，
-  // tool 消息不显示（与历史窗口显示策略一致）。
   var _serverHistLoaded = {}; // channelId -> 最后加载的 assistant 时间戳（去重用）
 
   function loadChannelHistoryFromServer(channelId, force) {
@@ -835,8 +1003,11 @@ if (!firstVisible) firstVisible = t;
           if (!text) return;
           // 跳过系统注入消息（【会话起点】与动态摘要等，对用户无意义）
           if (text.indexOf('【会话起点】') === 0) return;
+          if (text.indexOf('【回合结束·战斗总结】') === 0) return; // 内部自动请求不显示
           if (m.role === 'user' && text === '继续') return; // 内部续接指令不显示
           var time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+          text = text.replace(/\[\[turn:end\]\]/g, '').trim(); // 行动标记对玩家不可见
+          if (!text) return;
           var key = channelId + '|' + (m.role === 'user' ? 'user' : 'ai') + '|' + text.substring(0, 80);
           // 与 localStorage 历史去重：同内容同类型不重复添加
           var dup = _chatHistory.some(function(x) {
@@ -857,10 +1028,11 @@ if (!firstVisible) firstVisible = t;
       .catch(function() { /* 服务端无历史或网络错误时静默（本地历史仍可用） */ });
   }
 
-  // ── 聊天记录持久化（2026-08-05）：只保存玩家输入(user)与AI输出正文(ai/dice)，
-  //    不保存系统消息（工具调用/进度通知/状态提示等 type=system 的消息） ──
-  var CHAT_LOG_KEY = 'trpg_chat_log';
+  // 本地缓存按冒险分桶（切换冒险不串数据）：key = 基础名_<冒险名>
+  function advKey(base) { return base + '_' + (_currentAdventure || '默认'); }
+  var CHAT_LOG_KEY = 'trpg_chat_log'; // 旧全局键（迁移用）
   var SAVEABLE_TYPES = { user: 1, ai: 1, dice: 1 };
+  function chatLogKey() { return advKey('trpg_chat_log'); }
 
   function _persistChatLog() {
     try {
@@ -868,13 +1040,20 @@ if (!firstVisible) firstVisible = t;
       // 只保留最近 maxChat 条（与界面一致），避免无限增长
       var max = _settings.maxChat || 200;
       if (keep.length > max) keep = keep.slice(keep.length - max);
-      localStorage.setItem(CHAT_LOG_KEY, JSON.stringify(keep));
+      localStorage.setItem(chatLogKey(), JSON.stringify(keep));
     } catch (e) { /* 存储不可用或超出容量时静默 */ }
   }
 
   function _restoreChatLog() {
     try {
-      var raw = localStorage.getItem(CHAT_LOG_KEY);
+      var raw = localStorage.getItem(chatLogKey());
+      // 旧全局键迁移：曾不按冒险分桶，若存在则并入当前冒险桶并删除
+      if (raw == null) {
+        try {
+          var legacy = localStorage.getItem(CHAT_LOG_KEY);
+          if (legacy) { localStorage.setItem(chatLogKey(), legacy); localStorage.removeItem(CHAT_LOG_KEY); raw = legacy; }
+        } catch (e2) {}
+      }
       if (!raw) return;
       var arr = JSON.parse(raw);
       if (!Array.isArray(arr)) return;
@@ -902,13 +1081,47 @@ if (!firstVisible) firstVisible = t;
     } catch (e) { /* 恢复失败不影响使用 */ }
   }
 
+  // AI 消息左侧的发言角色头像：优先取该消息时刻的舞台发言者（历史快照），否则取当前舞台发言者
+  function chatAvatarHtml(snap) {
+    var spk = snap ? (snap.speaking || snap.left || null) : (_avgStage.speaking || _avgStage.left || null);
+    if (!spk || !spk.name) return '<span class="msg-avatar ph">AI</span>';
+    var url = spk.url || '';
+    return '<span class="msg-avatar' + (url ? '' : ' ph') + '" title="' + _esc(spk.name) + '">' +
+      (url ? '<img src="' + _esc(url) + '" alt="' + _esc(spk.name) + '">' : _esc(spk.name.charAt(0))) + '</span>';
+  }
+
+  // AI 输出中的 HTML 块（如角色卡视觉排版）→ Shadow DOM 直接注入渲染：样式隔离不污染全局、脚本不执行安全、视觉效果即时可见
+  function extractHtmlBlock(text) {
+    var s = String(text || '');
+    var m = s.match(/<style[\s\S]*?<\/style>/i);
+    if (!m) return '';
+    var idx = s.indexOf('<style');
+    var endTag = s.lastIndexOf('</html>');
+    var end = endTag >= idx ? endTag + 7 : s.length;
+    return s.substring(idx, end);
+  }
+  function textBeforeHtml(text) {
+    var idx = String(text || '').indexOf('<style');
+    return idx > 0 ? String(text).substring(0, idx).trim() : '';
+  }
+  function htmlLiveDiv(html) {
+    var hostId = 'hml_' + Math.random().toString(36).slice(2, 8);
+    setTimeout(function() {
+      var h = document.getElementById(hostId);
+      if (!h) return;
+      try {
+        if (h.attachShadow) h.attachShadow({ mode: 'open' }).innerHTML = html;
+        else h.innerHTML = html;
+      } catch (e) {}
+    }, 0);
+    return '<div id="' + hostId + '" class="html-live"></div>';
+  }
+
   function appendChatMessageElement(cont, msg, stageSnapshot) {
     if (msg.reasoning) {
       appendAIElementWithReasoning(cont, msg);
       return;
     }
-    // 2026-08-06 AVG 立绘模式：频道标记"显示发言立绘"且 AI 输出 <portrait name="角色名"> 时
-    // 以"双人立绘舞台+文字"布局渲染（开始对话者居左、新来者居右、发言者高亮、另一方压暗）
     if (msg.type === 'ai') {
       // 插图指令：<illustration> 以插图临时代替地图（过场），<illustration clear> 恢复
       var ill = extractIllustrationDirective(msg.message);
@@ -935,7 +1148,6 @@ if (!firstVisible) firstVisible = t;
         renderAvgStageBar();
       }
     }
-    // 2026-08-05 条目化：撤回占位——已撤回消息显示"XX撤回了一条消息"，不显示内容
     if (msg.status === 'retracted') {
       var rd = document.createElement('div');
       rd.className = 'chat-message system chat-retracted-note';
@@ -946,7 +1158,6 @@ if (!firstVisible) firstVisible = t;
     var div = document.createElement('div');
     div.className = 'chat-message ' + msg.type;
     div.setAttribute('data-msgid', msg.id || '');
-    // 操作区（2026-08-05）：编辑（作者本人）、撤回（作者本人或GM）、许可（GM+联机+pending）
     var ops = '';
     var canEdit = (msg.type === 'user' && msg.author === 'local') || (msg.type === 'ai' && typeof isGMUser === 'function' && isGMUser());
     var canRetract = canEdit || (typeof isGMUser === 'function' && isGMUser());
@@ -959,11 +1170,35 @@ if (!firstVisible) firstVisible = t;
     }
     var pendingBadge = (msg.status === 'pending') ? '<span class="msg-pending-badge">📋 待许可</span>' : '';
     var editedMark = msg.edited ? ' <span class="msg-edited-mark" title="已编辑">(已编辑)</span>' : '';
-    div.innerHTML = '<span class="msg-time">' + _esc(msg.time) + '</span>' +
+    var inner = '<span class="msg-time">' + _esc(msg.time) + '</span>' +
       '<span class="msg-sender">' + _esc(msg.sender) + ':</span>' +
       pendingBadge +
       '<span class="msg-text">' + simpleMarkdown(msg.message) + editedMark + '</span>' +
       (ops ? '<span class="msg-ops">' + ops + '</span>' : '');
+    if (msg.type === 'user') {
+      // 玩家消息：右侧气泡（AVG 式）
+      div.className = 'chat-message user';
+      div.innerHTML = '<div class="bubble">' + inner + '</div>';
+    } else if (msg.type === 'ai') {
+      // AI 消息：左侧气泡 + 当前发言角色立绘头像；含 HTML 块时渲染视觉预览
+      div.className = 'chat-message ai';
+      var htmlBlock = extractHtmlBlock(msg.message);
+      if (htmlBlock) {
+        var pre = textBeforeHtml(msg.message);
+        var preHtml = '';
+        if (pre) {
+          preHtml = '<span class="msg-time">' + _esc(msg.time) + '</span>' +
+            '<span class="msg-sender">' + _esc(msg.sender) + ':</span>' +
+            pendingBadge +
+            '<span class="msg-text">' + simpleMarkdown(pre) + editedMark + '</span>';
+        }
+        div.innerHTML = chatAvatarHtml(stageSnapshot) + '<div class="bubble html-msg">' + preHtml + htmlLiveDiv(htmlBlock) + (ops ? '<span class="msg-ops">' + ops + '</span>' : '') + '</div>';
+      } else {
+        div.innerHTML = chatAvatarHtml(stageSnapshot) + '<div class="bubble">' + inner + '</div>';
+      }
+    } else {
+      div.innerHTML = inner;
+    }
     // 绑定操作
     if (div.querySelector('.msg-op-approve')) {
       div.querySelector('.msg-op-approve').addEventListener('click', function() { approveAIMessage(msg); });
@@ -990,7 +1225,6 @@ if (!firstVisible) firstVisible = t;
       var def = DEFAULT_CHANNELS.find(function(c) { return c.id === targetChannel; });
       if (def) _chatChannels.push(JSON.parse(JSON.stringify(def)));
     }
-    // 条目化（2026-08-05）：唯一 id + 作者归属（权限：编辑/撤回校验）
     var item = { id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), time: time, sender: sender, message: message, type: type, channelId: targetChannel, author: type === 'user' ? 'local' : (type === 'ai' ? 'ai' : 'system'), status: 'normal' };
     _chatHistory.push(item);
     if (targetChannel === _activeChannelId) {
@@ -1007,6 +1241,77 @@ if (!firstVisible) firstVisible = t;
     _persistChatLog();
   }
 
+  // 右侧面板（角色/遭遇/规则等列表）宽度拖拽拉伸
+  function setupSidePanelResize() {
+    var handle = _el('side-panel-resize-handle');
+    if (!handle) return;
+    function applySideWidth(w) {
+      var min = Math.min(260, Math.round(window.innerWidth * 0.35));
+      var max = Math.round(window.innerWidth * 0.62);
+      w = Math.max(min, Math.min(max, Math.round(w)));
+      document.documentElement.style.setProperty('--side-panel-width', w + 'px');
+      // 地图固定完整渲染：任何面板尺寸变化都强制地图全量重绘，不省略（用户明确要求不做渲染节省）
+      if (window.MapEngine && typeof window.MapEngine.resize === 'function') {
+        try { window.MapEngine.resize(); } catch (e) {}
+      }
+    }
+    try {
+      var savedW = Number(localStorage.getItem('trpg_side_panel_width') || 0) || 0;
+      if (savedW >= 260) applySideWidth(savedW);
+    } catch (e) {}
+    var dragging = false;
+    handle.addEventListener('mousedown', function (e) {
+      dragging = true;
+      handle.classList.add('dragging');
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      applySideWidth(window.innerWidth - e.clientX);
+    });
+    window.addEventListener('mouseup', function () {
+      if (!dragging) return;
+      dragging = false;
+      handle.classList.remove('dragging');
+      try {
+        var cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--side-panel-width') || '0', 10);
+        localStorage.setItem('trpg_side_panel_width', String(cur || window.innerWidth));
+      } catch (e) {}
+    });
+  }
+
+  // 规则详情栏（模组树 / 预览）左右分栏拖拽拉伸
+  function setupModuleSplit() {
+    var handle = _el('module-split-handle');
+    var tree = _el('module-tree');
+    if (!handle || !tree) return;
+    try {
+      var savedT = Number(localStorage.getItem('trpg_module_tree_width') || 0) || 0;
+      if (savedT >= 140) tree.style.width = savedT + 'px';
+    } catch (e) {}
+    var dragging = false;
+    handle.addEventListener('mousedown', function (e) {
+      dragging = true;
+      handle.classList.add('dragging');
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      var rect = tree.parentElement.getBoundingClientRect();
+      var w = Math.max(140, Math.min(Math.round(rect.width * 0.7), e.clientX - rect.left));
+      tree.style.width = w + 'px';
+      if (window.MapEngine && typeof window.MapEngine.resize === 'function') {
+        try { window.MapEngine.resize(); } catch (e2) {}
+      }
+    });
+    window.addEventListener('mouseup', function () {
+      if (!dragging) return;
+      dragging = false;
+      handle.classList.remove('dragging');
+      try { localStorage.setItem('trpg_module_tree_width', String(parseInt(tree.style.width || '220', 10))); } catch (e) {}
+    });
+  }
+
   function setupChatResize() {
     var handle = _el('bottom-resize-handle'); var panel = _el('bottom-panel'); var main = _el('main-area');
     if (!handle || !panel || !main) return;
@@ -1019,16 +1324,15 @@ if (!firstVisible) firstVisible = t;
       applyBottomHeight(window.innerHeight - e.clientY);
     });
     window.addEventListener('mouseup', function() { if (dragging) localStorage.setItem('trpg_bottom_height', String(panel.offsetHeight)); dragging = false; });
-    // 2026-08-05 全站重构：地图是最底层铺满全窗口（fixed inset:0），底部聊天区是浮动层，
     // 调整聊天高度只改变浮动层自身，地图比例不再随之变动。
     function applyBottomHeight(h) {
       h = Math.max(120, Math.min(Math.round(window.innerHeight * 0.7), h || 220));
       panel.style.height = h + 'px';
       main.style.height = '';
       main.style.top = '0'; main.style.left = '0'; main.style.right = '0'; main.style.bottom = '0';
-      // 2026-08-06：右侧面板底部与聊天栏顶对齐（同层级浮动层互不遮挡），角色列表/详情不再被聊天栏盖住
+      document.documentElement.style.setProperty('--chat-panel-height', h + 'px');
       var side = _el('side-panel');
-      if (side) side.style.bottom = (h + 4) + 'px';
+      if (side) side.style.bottom = '0';
       if (window.MapEngine && typeof window.MapEngine.resize === 'function') {
         try { window.MapEngine.resize(); } catch (e) {}
       }
@@ -1053,12 +1357,12 @@ if (!firstVisible) firstVisible = t;
   // ── AI对话（通过聊天集成） ─────────────────────
 
   var AI_MODE_PROMPTS = {
-    full: '当前模式：完整GM带团。负责剧情推进、NPC扮演、规则判定与数据管理（HP/资源/物品/状态精确更新）。融合角色设定与世界观，不盲目吹捧玩家角色。记忆不可靠，不确定时翻查规则书和模组。需要规则时回复[[search:关键词]]。剧情对话支持AVG双人立绘模式：用 <portrait name="角色名">对话文本</portrait> 让该角色发言并显示立绘（首次出现的角色居左，第二位居右，当前发言者高亮、另一方压暗，模拟完整AVG），</portrait> 或 <portrait clear> 关闭立绘。过场/无需地图移动的场景：用 <illustration src="模组路径或图片URL" caption="标题">描述</illustration> 以插图临时代替地图，<illustration clear> 结束插图恢复地图。',
-    scene: '当前模式：场景描写。只负责描写环境、氛围、NPC外观和行为。不干预玩家之间的扮演对话，不替玩家做决定，不判定行动结果。玩家要求场景变化或地图更新时照做。需要模组设定时回复[[module:关键词]]。NPC出场说话时可用 <portrait name="角色名">对话文本</portrait> 显示立绘（双人舞台：首次居左、第二位居右、发言者高亮另一方压暗），</portrait> 或 <portrait clear> 关闭。过场插图：<illustration src="模组路径或URL" caption="标题">描述</illustration> 或 <illustration clear> 结束。',
-    rules: '当前模式：规则助手。只回答规则问题，引用规则书原文。不做剧情推进，不描写场景，不替玩家决策。需要查规则时回复[[search:关键词]]。'
+    aigm: '当前模式：AI GM。你拥有真人GM授予的主持权限，负责推进场景、扮演NPC、发起判定、管理战斗与时间，并通过规则模块精确更新角色、资源、物品和状态。规则或模组信息不确定时先检索本地资料，不以记忆猜测。玩家决定自己的行动。支持 <portrait name="角色名">对话</portrait>、<portrait clear>、<illustration src="module:相对路径" caption="标题">描述</illustration> 与 <illustration clear>；进入新场景/战斗地点时可用 [[map:bg:图片路径]] 切换当前地图背景（module:前缀指模组内图片，如 [[map:bg:module:地图/绿龙谷.png]]）。模组已拆解为「资料/」多文件资料包（见 .trpg/index.json 索引），带团按需读取对应文件，禁止整读原始 PDF；进入新场景时查模组媒体索引，模组提供场景图时自动播 CG 或换地图背景。收到「开团」指令时不得立即开场：先与玩家确认入场动机（玩家为什么来到这里，逐人）、登场方式、起始场景选择与期望氛围（全部不剧透），玩家确认就绪后才正式开场。真人 GM 会通过【GM 指令：...】或【GM 导演指令（玩家不可见...）】下达带团指令（开团/暂停/继续/秘密设定）——按指令执行，指令内容不要向玩家复述。',
+    'assistant-gm': '当前模式：AI副GM。真人GM拥有最终裁定权。你负责检索规则、重复计算、先攻与状态管理、生成候选NPC/地点/遭遇/物品、整理会话摘要、提醒冲突与数据异常。只在真人GM明确授权时推进剧情或修改公共状态，不夺取主持权。模组秘密仅向真人GM展示。',
+    aipl: '当前模式：AI玩家（AIPL）。真人GM在本地带团，你只控制分配给AI的玩家角色。像真实玩家一样根据角色知识、性格、能力和当前公开信息做决定、对话并声明行动；接受真人GM裁定，不读取或利用GM秘密，不调用GM工具，不替其他玩家角色决定。需要规则时查阅公开规则与自己的角色数据。',
+    rules: '当前模式：规则助手。只检索、解释和引用当前规则系统的精确来源，执行必要的计算与数据核对；不推进剧情、不替玩家决策，也不访问未公开的模组秘密。'
   };
 
-  // 对标opencode的reasoningSummary：从"**标题**\n\n正文"提取思考摘要标题
   function reasoningSummaryText(text) {
     var content = String(text || '').trim();
     if (!content) return '';
@@ -1067,15 +1371,10 @@ if (!firstVisible) firstVisible = t;
     return content.length > 80 ? content.substring(0, 80) + '…' : content;
   }
 
-  // 带思考摘要的AI消息（对标opencode：摘要标题独立显示，正文可展开）
   function addAIMessageWithReasoning(reasoningText, content, channelId) {
     var time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
     var targetChannel = channelId || _activeChannelId || 'story';
-    // 2026-08-05 思考显示区分：仅系统频道（开发）保留 AI 思考展示；
-    // 剧情/战斗等玩家频道不保存不显示思考内容（沉浸感），只显示正文
     var keepReasoning = targetChannel === 'system';
-    // 2026-08-05 联机许可流程：房间内 AI 输出先 pending（仅GM可见），GM 许可后才广播给玩家；
-    // 单机（无房间）直接 normal 显示。GM 触发 AI 时本端为 GM。
     var inRoom = !!(Network && Network.isConnected && Network.isConnected() && Network.getRoomCode && Network.getRoomCode());
     var item = { id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), time: time, sender: 'AI', message: content, type: 'ai', channelId: targetChannel, author: 'ai', status: inRoom && targetChannel !== 'system' ? 'pending' : 'normal', reasoning: keepReasoning ? (reasoningText || '') : '' };
     _chatHistory.push(item);
@@ -1107,7 +1406,6 @@ if (!firstVisible) firstVisible = t;
       reasoningHtml = '<div class="chat-reasoning" title="点击展开/收起思考内容">💭 ' + _esc(summary) +
         '<div class="chat-reasoning-body" style="display:none;">' + _esc(msg.reasoning) + '</div></div>';
     }
-    // 2026-08-05：AI 消息操作区（GM 可编辑/撤回；pending 显示许可/拒绝）
     var ops = '';
     var isGM = typeof isGMUser === 'function' && isGMUser();
     if (msg.status === 'pending' && isGM && Network && Network.isConnected && Network.isConnected() && Network.getRoomCode && Network.getRoomCode()) {
@@ -1119,10 +1417,11 @@ if (!firstVisible) firstVisible = t;
     }
     var pendingBadge = (msg.status === 'pending') ? '<span class="msg-pending-badge">📋 待许可</span>' : '';
     var editedMark = msg.edited ? ' <span class="msg-edited-mark" title="已编辑">(已编辑)</span>' : '';
-    div.innerHTML = '<span class="msg-time">' + _esc(msg.time) + '</span>' +
+    var inner = '<span class="msg-time">' + _esc(msg.time) + '</span>' +
       '<span class="msg-sender">AI:</span>' + pendingBadge + reasoningHtml +
       '<span class="msg-text">' + simpleMarkdown(msg.message) + editedMark + '</span>' +
       (ops ? '<span class="msg-ops">' + ops + '</span>' : '');
+    div.innerHTML = chatAvatarHtml() + '<div class="bubble">' + inner + '</div>';
     var reasonHead = div.querySelector('.chat-reasoning');
     if (reasonHead) {
       reasonHead.addEventListener('click', function() {
@@ -1138,8 +1437,7 @@ if (!firstVisible) firstVisible = t;
   }
 
   // 发送失败时把内容放回输入框（不丢用户输入）
-  function restoreChatInput(msg) {
-    var inp = _el('chat-input');
+  function restoreChatInput(msg) {    var inp = _el('chat-input');
     if (!inp) return;
     inp.value = msg;
     inp.style.height = 'auto';
@@ -1147,8 +1445,6 @@ if (!firstVisible) firstVisible = t;
     try { localStorage.setItem('trpg_chat_draft', msg); } catch (e) {}
   }
 
-  // ── 条目化操作（2026-08-05）：编辑/撤回/许可 ──
-  // 权限：作者本人可编辑/撤回自己的消息；GM 可撤回任何消息（不可编辑玩家的）；AI 消息归属 GM。
 
   // 编辑：原地变输入框 → 保存 → 更新本地+服务端 jsonl+广播
   function startEditMessage(div, msg) {
@@ -1189,20 +1485,22 @@ if (!firstVisible) firstVisible = t;
   // 撤回：确认 → 本地移除（显示占位）+ 服务端 jsonl 删除 + 广播（作者/GM 均可）
   function retractMessage(msg) {
     if (!msg || !msg.id) return;
-    if (!confirm('撤回这条消息？（所有端将移除该消息）')) return;
-    var by = (typeof isGMUser === 'function' && isGMUser()) ? 'GM' : '你';
-    // 本地：标记为撤回占位（不直接删除条目——占位显示"XX撤回了一条消息"）
-    msg.status = 'retracted';
-    msg.retractedBy = by;
-    msg.message = '';
-    _persistChatLog();
-    renderChatMessages();
-    // 服务端 jsonl 删除该条
-    removeSessionMessage(msg);
-    // 联机广播撤回（服务端校验作者/GM后转发）
-    if (Network && Network.isConnected && Network.isConnected()) {
-      Network.sendChatRetract(msg.id, msg.channelId);
-    }
+    dlgConfirm('撤回消息', '撤回这条消息？（所有端将移除该消息）', function(ok) {
+      if (!ok) return;
+      var by = (typeof isGMUser === 'function' && isGMUser()) ? 'GM' : '你';
+      // 本地：标记为撤回占位（不直接删除条目——占位显示"XX撤回了一条消息"）
+      msg.status = 'retracted';
+      msg.retractedBy = by;
+      msg.message = '';
+      _persistChatLog();
+      renderChatMessages();
+      // 服务端 jsonl 删除该条
+      removeSessionMessage(msg);
+      // 联机广播撤回（服务端校验作者/GM后转发）
+      if (Network && Network.isConnected && Network.isConnected()) {
+        Network.sendChatRetract(msg.id, msg.channelId);
+      }
+    });
   }
 
   // 联机 GM 许可：AI 消息从 pending → approved 并广播给玩家
@@ -1281,28 +1579,34 @@ if (!firstVisible) firstVisible = t;
     // 但远端玩家 isGMUser()=false 时按钮自然不渲染；GM 主机收到自己广播不回显（broadcast 不含自己）
   }
 
-  // ── AI 开发状态框（2026-08-05）：系统频道工具调用/进度/用量摘要，对标opencode reasoningSummary ──
-  var _devStatus = { round: 0, input: 0, output: 0, total: 0, steps: [] };
+  var _devStatus = { mode: 'dev', active: false, gmDir: false, contentStarted: false, lastTool: '', round: 0, input: 0, output: 0, total: 0, cacheHit: 0, phase: '', summary: '', steps: [] };
   function updateDevStatus(update) {
-    var box = _el('ai-dev-status'); if (!box) return;
-    box.style.display = 'block';
+    _devStatus.active = true;
     if (update.phase) { _devStatus.phase = update.phase; }
     if (update.summary) { _devStatus.summary = update.summary; }
+    if (update.content) {
+      // 正文已开始：输入行清空AI状态，消息气泡显示正文
+      _devStatus.contentStarted = true;
+      _devStatus.lastTool = '';
+    }
     if (update.tool) {
-      var args = update.args || {};
-      var brief = '';
-      try {
-        var argStr = JSON.stringify(args);
-        brief = argStr.length > 90 ? argStr.substring(0, 90) + '…' : argStr;
-      } catch (e) { brief = ''; }
-      var file = args.path || args.rel || args.pattern || args.command || args.url || '';
-      _devStatus.steps.unshift({
-        tool: update.tool,
-        brief: brief,
-        file: String(file).substring(0, 80),
-        ok: false
-      });
-      if (_devStatus.steps.length > 8) _devStatus.steps.pop();
+      _devStatus.lastTool = update.tool;
+      if (_devStatus.mode === 'dev') {
+        var args = update.args || {};
+        var brief = '';
+        try {
+          var argStr = JSON.stringify(args);
+          brief = argStr.length > 90 ? argStr.substring(0, 90) + '…' : argStr;
+        } catch (e) { brief = ''; }
+        var file = args.path || args.rel || args.pattern || args.command || args.url || '';
+        _devStatus.steps.unshift({
+          tool: update.tool,
+          brief: brief,
+          file: String(file).substring(0, 80),
+          ok: false
+        });
+        if (_devStatus.steps.length > 8) _devStatus.steps.pop();
+      }
     }
     if (update.toolResult) {
       var last = _devStatus.steps[0];
@@ -1311,15 +1615,30 @@ if (!firstVisible) firstVisible = t;
     if (update.round) { _devStatus.round = update.round; }
     if (update.input !== undefined) { _devStatus.input = update.input; _devStatus.output = update.output; _devStatus.total = update.total; _devStatus.cacheHit = update.cacheHit || 0; }
     renderDevStatus();
+    renderChatStatus();
+  }
+  // 开发模式显示完整细节；带团模式只显示进度文案（防剧透）
+  function gamePhaseText() {
+    if (_devStatus.gmDir) return _devStatus.phase === '执行中' ? '正在响应私聊指令…' : '正在规划剧情…';
+    return _devStatus.phase === '执行中' ? '正在查阅世界资料…' : '正在规划剧情…';
   }
   function renderDevStatus() {
     var box = _el('ai-dev-status'); if (!box) return;
-    var titleEl = _el('ai-dev-title'); if (titleEl) titleEl.textContent = '🤖 AI 开发中' + (_devStatus.round ? '（第' + _devStatus.round + '轮）' : '');
-    var phaseEl = _el('ai-dev-phase'); if (phaseEl) phaseEl.textContent = _devStatus.phase || '';
-    var sumEl = _el('ai-dev-summary'); if (sumEl) sumEl.textContent = _devStatus.summary || '';
+    var isDev = _devStatus.mode === 'dev';
+    // 带团模式：副GM/规则助手给GM显示进度；AI GM/AI玩家隐藏（防剧透）
+    var gameVisible = !isDev && (_settings.aiMode === 'assistant-gm' || _settings.aiMode === 'rules');
+    box.style.display = (_devStatus.active && (isDev || gameVisible)) ? 'block' : 'none';
+    var titleEl = _el('ai-dev-title');
+    if (titleEl) {
+      titleEl.textContent = '💭 AI思考中' + (isDev && _devStatus.round ? '（第' + _devStatus.round + '轮）' : '');
+    }
+    var phaseEl = _el('ai-dev-phase');
+    if (phaseEl) phaseEl.textContent = isDev ? (_devStatus.phase || '') : gamePhaseText();
+    var sumEl = _el('ai-dev-summary');
+    if (sumEl) sumEl.textContent = isDev ? (_devStatus.summary || '') : '';
     var stepsEl = _el('ai-dev-steps');
     if (stepsEl) {
-      if (_devStatus.steps.length) {
+      if (isDev && _devStatus.steps.length) {
         stepsEl.innerHTML = _devStatus.steps.map(function (s) {
           var icon = s.ok ? '<span class="st-ok">✓</span>' : '<span class="st-tool">⚙</span>';
           var file = s.file ? ' <span class="st-file">' + _esc(s.file) + '</span>' : '';
@@ -1331,14 +1650,86 @@ if (!firstVisible) firstVisible = t;
       }
     }
     var tokenEl = _el('ai-dev-token');
-    if (tokenEl && _devStatus.total > 0) {
-      var hitText = _devStatus.cacheHit > 0 ? '，缓存命中 ' + _devStatus.cacheHit + '（按1/10计费）' : '';
-      tokenEl.textContent = '本轮输入 ' + _devStatus.input + ' / 输出 ' + _devStatus.output + ' / 合计 ' + _devStatus.total + ' tokens' + hitText;
+    if (tokenEl) {
+      tokenEl.textContent = (isDev && _devStatus.total > 0)
+        ? '本轮输入 ' + _devStatus.input + ' / 输出 ' + _devStatus.output + ' / 合计 ' + _devStatus.total + ' tokens' + (_devStatus.cacheHit > 0 ? '，缓存命中 ' + _devStatus.cacheHit + '（按1/10计费）' : '')
+        : '';
     }
+    var collapseBtn = _el('ai-dev-collapse');
+    if (collapseBtn) collapseBtn.style.display = isDev ? '' : 'none';
+    var bodyEl = _el('ai-dev-body');
+    if (bodyEl) bodyEl.style.display = (isDev && !bodyEl.classList.contains('collapsed')) ? '' : 'none';
   }
   function hideDevStatus() {
-    _devStatus = { round: 0, input: 0, output: 0, total: 0, steps: [] };
+    _devStatus.active = false;
     var box = _el('ai-dev-status'); if (box) box.style.display = 'none';
+    renderChatStatus();
+  }
+
+  // ── 输入行状态区：AI思考中/AI执行XX + 谁正在输入 ──
+  var TOOL_LABELS = {
+    read_file: '读取文件', write_file: '写入文件', edit: '编辑文件', grep: '检索', glob: '查找文件',
+    list_files: '查看文件', bash: '执行命令', todowrite: '规划任务', skill: '加载技能',
+    webfetch: '获取网页', websearch: '搜索', question: '提问', task: '分派任务',
+    exclude_file: '排除文件', rename_system: '重命名规则', write_settings: '写配置',
+    compress_to_table: '整理表格', search_files: '检索', read_index: '读取索引',
+    gm_search: '查阅资料', gm_rule: '查询规则', gm_get_state: '读取状态', gm_update: '更新数据', gm_media: '查找媒体'
+  };
+  function toolLabel(t) {
+    if (TOOL_LABELS[t]) return TOOL_LABELS[t];
+    return String(t || '').replace(/_/g, ' ').substring(0, 12);
+  }
+  var _typingOthers = {}; // 玩家名 -> 最后输入时间戳
+  function typingNames() {
+    var now = Date.now();
+    var names = [];
+    for (var k in _typingOthers) if (now - _typingOthers[k] <= 3000) names.push(k);
+    if (!names.length) return '';
+    if (names.length === 1) return names[0] + ' 正在输入…';
+    if (names.length === 2) return names[0] + '、' + names[1] + ' 正在输入…';
+    return names[0] + '、' + names[1] + ' 等 ' + names.length + ' 人正在输入…';
+  }
+  function renderChatStatus() {
+    var el = _el('chat-typing-status');
+    if (!el) return;
+    var parts = [];
+    if (_devStatus.active && !_devStatus.contentStarted) {
+      if (_devStatus.lastTool) {
+        parts.push('<span class="ai-tool">⚙ AI执行' + _esc(toolLabel(_devStatus.lastTool)) + '</span>');
+      } else {
+        parts.push('<span class="ai-on">💭 AI思考中</span>');
+      }
+    }
+    var tp = typingNames();
+    if (tp) parts.push('<span>' + _esc(tp) + '</span>');
+    el.innerHTML = parts.join(' <span class="t-sep">·</span> ');
+  }
+  var _lastTypingSent = 0;
+  var _typingStopTimer = null;
+  function sendTypingThrottled() {
+    if (!window.Network || !Network.isConnected || !Network.isConnected()) return;
+    var now = Date.now();
+    if (now - _lastTypingSent >= 1500) {
+      _lastTypingSent = now;
+      Network.sendTyping();
+    }
+    clearTimeout(_typingStopTimer);
+    _typingStopTimer = setTimeout(function() { _lastTypingSent = 0; }, 2000);
+  }
+  function setupTypingStatus() {
+    if (window.Network) {
+      Network.onTyping = function(data) {
+        if (!data || !data.player) return;
+        if (data.player === Network.getMyName()) return;
+        _typingOthers[data.player] = Date.now();
+        renderChatStatus();
+      };
+      setInterval(function() {
+        var now = Date.now(), dirty = false;
+        for (var k in _typingOthers) if (now - _typingOthers[k] > 3000) { delete _typingOthers[k]; dirty = true; }
+        if (dirty) renderChatStatus();
+      }, 1000);
+    }
   }
 
   // ── D+会话管理：冒险列表加载（三级：规则书-冒险-频道） ──
@@ -1361,6 +1752,7 @@ if (!firstVisible) firstVisible = t;
           advSelect.appendChild(opt);
         });
         if (options.indexOf(_currentAdventure) < 0) _currentAdventure = options[0] || '默认';
+        updateAdventureActionButtons();
         renderAdventurePanel(list);
       })
       .catch(function() { advSelect.innerHTML = '<option>默认</option>'; });
@@ -1395,6 +1787,7 @@ if (!firstVisible) firstVisible = t;
           '<button class="btn-small adv-rename" title="重命名">重命名</button>' +
           '<button class="btn-small adv-tagbtn" title="编辑标签">标签</button>' +
           '<button class="btn-small adv-archive" title="归档（保留文件可检索）">' + (a.archived ? '已归档' : '归档') + '</button>' +
+          '<button class="btn-small adv-reset" title="重置：清空剧情会话与进度，保留玩家角色卡">重置</button>' +
           '<button class="btn-small adv-del" title="彻底删除（含文件）">删除</button>' +
         '</div>';
       // 事件
@@ -1405,6 +1798,7 @@ if (!firstVisible) firstVisible = t;
         var sel = _el('adventure-select'); if (sel) sel.value = a.name;
         renderChannelTabs();
         loadAdventureList();
+        updateAdventureActionButtons();
       });
       var unarcBtn = row.querySelector('.adv-unarchive');
       if (unarcBtn) unarcBtn.addEventListener('click', function() {
@@ -1412,38 +1806,55 @@ if (!firstVisible) firstVisible = t;
       });
       var renBtn = row.querySelector('.adv-rename');
       if (renBtn) renBtn.addEventListener('click', function() {
-        var nn = prompt('新冒险名称：', a.name);
-        if (!nn || nn.trim() === a.name) return;
-        fetch('/api/adventures/rename', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: a.name, newName: nn.trim() }) })
-          .then(function(r) { return r.json(); })
-          .then(function(d) { if (d.success) { if (_currentAdventure === a.name) _currentAdventure = d.adventure; loadAdventureList(); } else alert(d.error || '重命名失败'); })
-          .catch(function(e) { alert('重命名失败: ' + (e.message || e)); });
+        dlgPrompt('重命名冒险', '新冒险名称：', a.name, function(nn) {
+          if (!nn || nn.trim() === a.name) return;
+          fetch('/api/adventures/rename', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: a.name, newName: nn.trim() }) })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { if (d.success) { if (_currentAdventure === a.name) _currentAdventure = d.adventure; loadAdventureList(); } else dlgAlert('提示', d.error || '重命名失败'); })
+            .catch(function(e) { dlgAlert('提示', '重命名失败: ' + (e.message || e)); });
+        });
       });
       var tagBtn = row.querySelector('.adv-tagbtn');
       if (tagBtn) tagBtn.addEventListener('click', function() {
-        var ts = prompt('标签（逗号分隔）：', (a.tags || []).join(','));
-        if (ts === null) return;
-        var tags = ts.split(/[,，]/).map(function(t) { return t.trim(); }).filter(Boolean);
-        fetch('/api/adventures/tag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: a.name, tags: tags }) })
-          .then(function(r) { return r.json(); })
-          .then(function() { loadAdventureList(); })
-          .catch(function(e) { alert('标签更新失败: ' + (e.message || e)); });
+        dlgPrompt('编辑标签', '标签（逗号分隔）：', (a.tags || []).join(','), function(ts) {
+          if (ts === null) return;
+          var tags = ts.split(/[,，]/).map(function(t) { return t.trim(); }).filter(Boolean);
+          fetch('/api/adventures/tag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: a.name, tags: tags }) })
+            .then(function(r) { return r.json(); })
+            .then(function() { loadAdventureList(); })
+            .catch(function(e) { dlgAlert('提示', '标签更新失败: ' + (e.message || e)); });
+        });
       });
       var arcBtn = row.querySelector('.adv-archive');
       if (arcBtn) arcBtn.addEventListener('click', function() {
         if (!a.archived) {
-          if (!confirm('归档冒险「' + a.name + '」？归档后保留全部本地文件，可在管理面板恢复。')) return;
+          dlgConfirm('归档冒险', '归档冒险「' + a.name + '」？归档后保留全部本地文件，可在管理面板恢复。', function(ok) {
+            if (!ok) return;
+            apiAdvArchive(a.name, true);
+          });
+        } else {
+          apiAdvArchive(a.name, false);
         }
-        apiAdvArchive(a.name, !a.archived);
       });
       var delBtn = row.querySelector('.adv-del');
       if (delBtn) delBtn.addEventListener('click', function() {
-        if (!confirm('彻底删除冒险「' + a.name + '」？\n此操作将删除全部本地文件（含所有频道会话），不可恢复！')) return;
-        if (!confirm('再次确认：冒险「' + a.name + '」将被彻底删除，确定？')) return;
-        fetch('/api/adventures/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: a.name }) })
-          .then(function(r) { return r.json(); })
-          .then(function(d) { if (d.success) { if (_currentAdventure === a.name) _currentAdventure = '默认'; loadAdventureList(); } else alert(d.error || '删除失败'); })
-          .catch(function(e) { alert('删除失败: ' + (e.message || e)); });
+        dlgConfirm('删除冒险', '彻底删除冒险「' + a.name + '」？\n此操作将删除全部本地文件（含所有频道会话），不可恢复！', function(ok) {
+          if (!ok) return;
+          dlgConfirm('再次确认', '再次确认：冒险「' + a.name + '」将被彻底删除，确定？', function(ok2) {
+            if (!ok2) return;
+            performAdventureDelete(a.name);
+          });
+        });
+      });
+      var resetBtn = row.querySelector('.adv-reset');
+      if (resetBtn) resetBtn.addEventListener('click', function() {
+        dlgConfirm('重置冒险', '重置冒险「' + a.name + '」？\n将清空全部剧情/战斗/系统会话与带团进度，玩家角色卡与立绘保留。', function(ok) {
+          if (!ok) return;
+          dlgConfirm('再次确认', '再次确认：重置后剧情记录不可恢复，角色卡保留。确定重置？', function(ok2) {
+            if (!ok2) return;
+            performAdventureReset(a.name);
+          });
+        });
       });
       listEl.appendChild(row);
     });
@@ -1452,8 +1863,8 @@ if (!firstVisible) firstVisible = t;
   function apiAdvArchive(name, archived) {
     fetch('/api/adventures/archive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: name, archived: archived }) })
       .then(function(r) { return r.json(); })
-      .then(function(d) { if (d.success) { loadAdventureList(); } else alert(d.error || '归档失败'); })
-      .catch(function(e) { alert('归档失败: ' + (e.message || e)); });
+      .then(function(d) { if (d.success) { loadAdventureList(); } else dlgAlert('提示', d.error || '归档失败'); })
+      .catch(function(e) { dlgAlert('提示', '归档失败: ' + (e.message || e)); });
   }
 
   // 打开/关闭冒险管理面板（📁 按钮页签式高亮，面板悬浮地图底部向上打开）
@@ -1471,14 +1882,28 @@ if (!firstVisible) firstVisible = t;
     var ch = getActiveChannel(); if (!ch) return;
     var sys = _selectedRuleSystem || '';
     var adv = _currentAdventure || '默认';
-    // 2026-08-05：改用独立页面（app/history.html）打开历史——window.open 带 URL 不触发弹窗拦截提示，
-    // 页面自行 fetch 渲染（不再 document.write，避免 WebView2 渲染时序问题导致全黑）
     var url = 'history.html?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv) + '&channel=' + encodeURIComponent(ch.id) + '&name=' + encodeURIComponent(ch.name || ch.id);
     window.open(url, '_blank');
   }
 
-  function sendToAI(msg) {
-    // 手动中止支持（2026-08-05）：状态框"■ 停止"按钮 abort 当前AI请求
+  // 发送前附加待处理的 NPC 特殊情况上报（handoff，最小化信息），让大模型 AI 接手
+  function sendToAIWithHandoff(msg, opts) {
+    var sys = _selectedRuleSystem || '';
+    var adv = _currentAdventure || '默认';
+    fetch(getServerUrl() + '/api/combat/pending-handoffs?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var extra = '';
+        if (d && d.success && d.handoffs && d.handoffs.length) {
+          extra = d.handoffs.map(function(h) { return '【NPC自动行为接管请求】单位「' + h.unit + '」触发特殊情况：' + h.message; }).join('\n');
+        }
+        sendToAI(extra ? extra + '\n\n' + msg : msg, opts);
+      })
+      .catch(function() { sendToAI(msg, opts); });
+  }
+
+  function sendToAI(msg, opts) {
+    opts = opts || {};
     var devCtrl = new AbortController();
     _activeDevAbort = devCtrl;
     var stopBtn = _el('ai-dev-stop');
@@ -1487,57 +1912,129 @@ if (!firstVisible) firstVisible = t;
       stopBtn.onclick = function() {
         devCtrl.abort();
         stopBtn.style.display = 'none';
-        addChatMessage('system', 'AI', '已手动中止AI开发。已生成的部分内容已保留，输入「继续」可从断点续写。');
+        _devStatus.active = false;
+        renderDevStatus();
+        renderChatStatus();
+        addChatMessage('system', 'AI', '已手动中止AI。已生成的部分内容已保留，输入「继续」可从断点续写。', _activeChannelId || 'story');
       };
     }
-    // 任务开始立即显示开发状态框（即使AI先思考不调工具也可见）
-    var devBox = _el('ai-dev-status');
-    if (devBox) {
-      devBox.style.display = 'block';
-      var devTitle = _el('ai-dev-title');
-      if (devTitle) devTitle.textContent = '🤖 AI 开发中';
-      var devPhase = _el('ai-dev-phase');
-      if (devPhase) devPhase.textContent = '思考中...';
-      var devSteps = _el('ai-dev-steps');
-      if (devSteps) devSteps.innerHTML = '';
-    }
+    // 任务开始立即重置状态（即使AI先思考不调工具也可见）
+    _devStatus.active = true;
+    _devStatus.contentStarted = false;
+    _devStatus.lastTool = '';
+    _devStatus.round = 0;
+    _devStatus.input = 0; _devStatus.output = 0; _devStatus.total = 0; _devStatus.cacheHit = 0;
+    _devStatus.phase = '思考';
+    _devStatus.summary = '';
+    _devStatus.steps = [];
+    renderDevStatus();
+    renderChatStatus();
     if (!canUseAIChat()) {
-      addChatMessage('system', 'AI', '只有GM/房主可以向AI提问。');
+      addChatMessage('system', 'AI', '只有当前真人GM可以调用主持AI。', _activeChannelId || 'story');
       restoreChatInput(msg);
       return;
     }
     if (!_settings.aiEnabled) {
-      addChatMessage('system', 'AI', 'AI模型未启用。请由GM在设置中开启模型调用。');
+      addChatMessage('system', 'AI', 'AI模型未启用。请由GM在设置中开启模型调用。', _activeChannelId || 'story');
       restoreChatInput(msg);
       return;
     }
     if (!AIClient.isConnected()) {
-      addChatMessage('system', 'AI', '世界尚未苏醒：运行 SoloTrpg 后才能与 AI 对话。');
+      var connDiag = '';
+      try {
+        if (AIClient.getLastConnError) connDiag = '（诊断: ' + AIClient.getLastConnError() + ' / ' + AIClient.getServerUrl() + '）';
+      } catch (e) {}
+      addChatMessage('system', 'AI', '世界尚未苏醒：运行 SoloTrpg 后才能与 AI 对话。' + connDiag, _activeChannelId || 'story');
       restoreChatInput(msg);
       return;
     }
-    addChatMessage('user', '你', msg);
+    if (opts.silent) {
+      // 内部自动请求（如回合总结）：不显示用户消息
+    } else if (opts.gmDirective) {
+      if (!(opts.gmWindow || opts.gmChannel)) {
+        // 指令反馈留在当前频道，不跳系统频道
+        addChatMessage('system', 'GM', '⚙ 已发送 GM 指令：' + String(msg).replace(/^【GM[^】]*】/, '').slice(0, 60) + (msg.length > 60 ? '…' : ''), opts.channelId || _activeChannelId || 'story');
+      }
+    } else {
+      addChatMessage('user', '你', msg);
+    }
+    // 自然语言 GM 指令（界面化交互，禁止程序化标记）：开团 / 暂停 / 继续 / 设定当前模组
+    var nl = msg.trim();
+    var nlStart = function() {
+      var note = '【GM 指令：现在开团】不要立即开场。先与玩家进行开场前交流：①玩家角色为什么会来到这里（入场动机，逐人确认）；②登场方式（结伴/各自抵达/被召集等）；③导入场景选择（模组提供的起始地点）；④期望的开场氛围与节奏。全部内容不涉及剧透。玩家明确确认就绪后，再正式开场（开场白面向玩家）。不要复述系统指令。';
+      loadGmContext().then(function() { sendToAI(note, { gmDirective: true, channelId: _activeChannelId || 'story' }); });
+    };
+    if (nl === '开团' || nl === '开始带团' || nl === '开始跑团') { nlStart(); return; }
+    if (nl === '暂停') {
+      sendToAI('【GM 指令：暂停带团】暂停当前进行中的剧情/战斗，等待 GM 下一步指令，不要自行推进。', { gmDirective: true, channelId: _activeChannelId || 'story' });
+      return;
+    }
+    if (nl === '继续') {
+      sendToAI('【GM 指令：继续带团】恢复推进当前剧情，从暂停处自然继续。', { gmDirective: true, channelId: _activeChannelId || 'story' });
+      return;
+    }
+    var nlModule = nl.match(/^(?:把|将)?当前模组(?:设为|设定为|改成|换成)[:：]?\s*(.+)$/) || nl.match(/^开始(?:带|跑)\s*(.+?)(?:模组)?$/);
+    if (nlModule) {
+      resolveModuleName(nlModule[1]).then(function(name) {
+        if (name) setActiveModuleToggle(name);
+        else addChatMessage('system', '模组', '未找到名为「' + nlModule[1] + '」的已导入模组。请在「规则」页的模组列表里点「🎲 设为带团模组」。');
+      });
+      return;
+    }
+    if (nl === '开始战斗' || nl === '进入战斗') { if (window.CombatUI) window.CombatUI.startCombat(); return; }
+    if (nl === '结束回合' || nl === '本回合结束') { if (window.CombatUI) window.CombatUI.endCombatRound(); return; }
+    if (nl === '结束战斗') { if (window.CombatUI) window.CombatUI.endCombat(); return; }
     var ch = getActiveChannel();
-    var sendChannelId = _activeChannelId || 'story';
+    if (opts.channelId) {
+      var targetCh = _chatChannels.find(function(c) { return c.id === opts.channelId; });
+      if (targetCh) ch = targetCh;
+    }
+    var sendChannelId = opts.channelId || _activeChannelId || 'story';
+    // 状态条分层：系统频道=开发模式（完整细节）；玩家频道=带团模式（进度/防剧透）
+    _devStatus.mode = (ch.id === 'system') ? 'dev' : 'game';
+    _devStatus.gmDir = !!opts.gmDirective;
+    renderDevStatus();
+    renderChatStatus();
+    var gmWin = opts.gmWindow || null;
+    var gmPost = function(type, extra) {
+      try {
+        var payload = Object.assign({ type: type, winId: opts.gmChannel ? opts.gmChannel.winId : '', channelId: opts.channelId || '' }, extra || {});
+        if (opts.gmChannel && _gmBc) {
+          _gmBc.postMessage(payload);
+        } else if (gmWin && !gmWin.closed) {
+          gmWin.postMessage(payload, location.origin);
+        }
+      } catch (e) {}
+    };
     var prompt;
     // 系统频道不注入GM模式提示词（模式提示词面向玩家频道带团，对系统频道无意义，省token）
     if (ch.id === 'system') {
       prompt = '';
     } else {
-      prompt = (AI_MODE_PROMPTS[_settings.aiMode] || AI_MODE_PROMPTS.full) + '\n\n当前频道：' + (ch.name || '') + '\n频道提示词：' + (ch.prompt || '');
+      prompt = (AI_MODE_PROMPTS[_settings.aiMode] || AI_MODE_PROMPTS.aigm) + '\n\n当前频道：' + (ch.name || '') + '\n频道提示词：' + (ch.prompt || '');
+      if (_gmContext) {
+        prompt += '\n\n' + _gmContext;
+      } else if (_activeModules && _activeModules.length) {
+        prompt += '\n\n当前活动模组（' + _activeModules.length + ' 个）：';
+        _activeModules.forEach(function(m) {
+          prompt += '\n- ' + m + '（模组目录：Ruler/' + (_selectedRuleSystem || '') + '/modules/' + m + '）';
+        });
+        prompt += '\n带团要求：开始/继续带团前先读取各模组 .trpg/AGENT.md 与 .trpg/index.json（场景/NPC/地点/遭遇/秘密用稳定ID引用）；未写进 .trpg/public-index.json 的内容一律是 GM 秘密，禁止向玩家泄露；按模组章节推进剧情。';
+      }
     }
-    // 系统频道使用最小基础提示词，并按任务动态加载 SKILL。
+    // 系统频道由后端按任务类型自动注入默认提示词与 SKILL；前端只补充频道语义和规则系统操作标记。
     if (ch.id === 'system') {
-      var skillNames = Array.isArray(ch.skills) && ch.skills.length ? ch.skills : ['agent-guide'];
-      prompt += (ch.prompt || '') + '\n\n按任务真实内容动态加载 SKILL，而不是把全部规范永久塞进上下文。当前频道建议先加载：' +
-        skillNames.map(function(n) { return 'skill {"name":"' + n + '"}'; }).join('、') + '。' +
-        '\n涉及规则书解析与规则模块：rulebook-development；角色卡、背包、标签、权限与版本：character-system；界面交互与真实玩家流程：gameplay-ux；插件接口：plugin-authoring；带团规则调用：gm-protocol。' +
+      prompt += (ch.prompt || '') +
+        '\n\n后端会自动判断任务类型并注入默认 SKILL。你不得以“未加载技能”为由降低完成标准；需要复读某项规范时再用 skill 工具。' +
         '\n规则系统操作标记：删除 [[rules:delete:规则系统名]]；重新解析 [[rules:reparse:规则系统名]]。';
     }
     var cont = _el('chat-messages');
     var time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    var isGmMode = !!(gmWin || opts.gmChannel); // 私聊窗口模式：输出只进私聊窗口，绝不进剧情聊天区
     var placeholder = null;
-    if (cont) {
+    if (isGmMode) {
+      gmPost('gm_reply_stream', { text: '' });
+    } else if (cont) {
       placeholder = document.createElement('div');
       placeholder.className = 'chat-message ai';
       placeholder.innerHTML = '<span class="msg-time">' + _esc(time) + '</span>' +
@@ -1546,11 +2043,14 @@ if (!firstVisible) firstVisible = t;
       cont.scrollTop = cont.scrollHeight;
     }
     var updatePlaceholder = function(text, isReasoning) {
+      if (isGmMode) {
+        gmPost('gm_reply_stream', { text: String(text || '') });
+        return;
+      }
       if (!placeholder || !cont) return;
       var textEl = placeholder.querySelector('.msg-text');
       if (!textEl) return;
       if (isReasoning) {
-        // 深度思考中：显示实时摘要（对标opencode）
         textEl.className = 'msg-text thinking-text';
         textEl.innerHTML = '💭 ' + _esc(reasoningSummaryText(text));
       } else {
@@ -1564,26 +2064,30 @@ if (!firstVisible) firstVisible = t;
     var chatReq = (ch.id === 'system')
       ? AIClient.sendSystemChat(msg, {
           customSystemPrompt: prompt,
+          promptProfile: 'system_development',
           system: _selectedRuleSystem || '',
           adventure: _currentAdventure || '默认',
           channel: 'system',
           signal: devCtrl.signal,
+          private: !!opts.gmDirective, // 导演指令：落盘私聊会话文件，不进系统频道公屏历史
           onStream: function(update) {
             if (update.type === 'reasoning') {
               updatePlaceholder(update.text, true);
               updateDevStatus({ phase: '思考', summary: reasoningSummaryText(update.text) });
             } else if (update.type === 'content') {
               updatePlaceholder(update.text, false);
+              updateDevStatus({ content: true });
             }
           },
           onTool: function(tool, args) {
-            // 工具调用：只更新开发状态框摘要，不刷聊天栏
+            // 工具调用：更新状态（开发模式记步骤，带团模式只显示简短进度，不刷聊天栏）
             updateDevStatus({ tool: tool, args: args, phase: '执行中' });
           },
           onToolResult: function(tool, result) {
             updateDevStatus({ toolResult: tool, ok: String(result || '').indexOf('已写入') >= 0 || String(result || '').indexOf('已编辑') >= 0 });
           },
           onUsage: function(round, usage) {
+            if (_devStatus.mode !== 'dev') return;
             var input = usage.prompt_tokens || usage.input_tokens || 0;
             var output = usage.completion_tokens || usage.output_tokens || 0;
             var total = usage.total_tokens || (input + output);
@@ -1598,41 +2102,80 @@ if (!firstVisible) firstVisible = t;
           adventure: _currentAdventure || '默认',
           channel: sendChannelId,
           signal: devCtrl.signal,
+          gmTools: ch.id !== 'system' && _settings.aiMode !== 'aipl',
+          private: !!opts.gmDirective, // 导演指令：落盘私聊会话文件，不进公屏历史
           onStream: function(update) {
             if (update.type === 'reasoning') {
-              // 2026-08-05：非系统频道思考不显示内容，只显示"AI思考中"（沉浸感）
+              updateDevStatus({ phase: '思考' });
               if (sendChannelId === 'system') updatePlaceholder(update.text, true);
               else {
                 var textEl = placeholder ? placeholder.querySelector('.msg-text') : null;
                 if (textEl) { textEl.className = 'msg-text thinking-text'; textEl.innerHTML = '💭 AI思考中…'; }
               }
             }
-            else if (update.type === 'content') updatePlaceholder(update.text, false);
+            else if (update.type === 'content') {
+              updatePlaceholder(update.text, false);
+              updateDevStatus({ content: true });
+            }
+            else if (update.type === 'tool') {
+              updateDevStatus({ tool: update.name || 'gm_search', phase: '执行中' });
+            }
+            else if (update.type === 'tool_result') {
+              updateDevStatus({ toolResult: update.name || '' });
+            }
           }
         });
     chatReq.then(function(result) {
+      if (isGmMode) {
+        if (result && result.content) gmPost('gm_reply_stream', { text: result.content });
+        gmPost('gm_reply_done', { content: (result && result.content) || '' });
+        _activeDevAbort = null;
+        hideDevStatus();
+        var stopBtn2b = _el('ai-dev-stop'); if (stopBtn2b) stopBtn2b.style.display = 'none';
+        return;
+      }
       if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
-      hideDevStatus(); // 任务结束隐藏开发状态框（AI已用正文总结）
+      hideDevStatus(); // 任务结束隐藏状态（AI已用正文总结）
       _activeDevAbort = null;
       var stopBtn2 = _el('ai-dev-stop'); if (stopBtn2) stopBtn2.style.display = 'none';
       if (result && result.interrupted) {
         // 流中断：保存续接状态，显示已生成部分，提示输入"继续"
         _pendingResume = { userMessage: msg, partialContent: result.partialContent || '', partialReasoning: result.partialReasoning || '', prompt: prompt, channelId: sendChannelId };
         if (result.partialContent) addChatMessage('ai', 'AI', result.partialContent + '\n\n——（生成中断）', sendChannelId);
-        addChatMessage('system', 'AI', '回复生成中断，已保存中断前的内容。输入「继续」可让AI从断点续写。');
+        addChatMessage('system', 'AI', '回复生成中断，已保存中断前的内容。输入「继续」可让AI从断点续写。', sendChannelId);
         return;
       }
       _pendingResume = null;
       if (result && result.content) {
-        if (result.reasoningContent) addAIMessageWithReasoning(result.reasoningContent, result.content, sendChannelId);
-        else addChatMessage('ai', 'AI', result.content, sendChannelId);
+        var finalContent = result.content;
+        if (sendChannelId !== 'system' && !isGmMode) {
+          // 反应触发事件：[[event:type|source|target]]（对玩家不可见）
+          if (finalContent.indexOf('[[event:') >= 0 && window.CombatUI) {
+            window.CombatUI.handleCombatEvents(window.CombatUI.parseEventMarks(finalContent));
+            finalContent = finalContent.replace(/\[\[event:[^\]]*\]\]/g, '');
+          }
+          // 引擎驱动回合：AI 行动完成标记（对玩家不可见）→ 自动推进战斗
+          if (finalContent.indexOf('[[turn:end]]') >= 0 && window.CombatUI) {
+            finalContent = finalContent.replace(/\[\[turn:end\]\]/g, '');
+            window.CombatUI.handleTurnAdvance();
+          }
+        }
+        if (result.reasoningContent) addAIMessageWithReasoning(result.reasoningContent, finalContent, sendChannelId);
+        else addChatMessage('ai', 'AI', finalContent, sendChannelId);
       }
     }).catch(function(e) {
+      if (isGmMode) {
+        gmPost('gm_reply_error', { error: (e && e.message) || '与世界的联络中断' });
+        _activeDevAbort = null;
+        hideDevStatus();
+        var stopBtn3b = _el('ai-dev-stop'); if (stopBtn3b) stopBtn3b.style.display = 'none';
+        return;
+      }
       if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
       hideDevStatus();
       _activeDevAbort = null;
       var stopBtn3 = _el('ai-dev-stop'); if (stopBtn3) stopBtn3.style.display = 'none';
-      addChatMessage('system', 'AI', '错误: ' + (e.message || '与世界的联络中断'));
+      addChatMessage('system', 'AI', '错误: ' + (e.message || '与世界的联络中断'), sendChannelId);
     });
   }
 
@@ -1641,6 +2184,27 @@ if (!firstVisible) firstVisible = t;
     if (!_pendingResume) return;
     var pending = _pendingResume;
     _pendingResume = null;
+    var devCtrl = new AbortController();
+    _activeDevAbort = devCtrl;
+    var stopBtn = _el('ai-dev-stop');
+    if (stopBtn) {
+      stopBtn.style.display = 'inline-block';
+      stopBtn.onclick = function() {
+        devCtrl.abort();
+        stopBtn.style.display = 'none';
+        _devStatus.active = false;
+        renderDevStatus();
+        renderChatStatus();
+        addChatMessage('system', 'AI', '已手动中止续写。已生成的部分内容已保留，输入「继续」可从断点续写。', pending.channelId);
+      };
+    }
+    _devStatus.active = true;
+    _devStatus.contentStarted = false;
+    _devStatus.lastTool = '';
+    _devStatus.mode = (pending.channelId === 'system') ? 'dev' : 'game';
+    _devStatus.gmDir = false;
+    renderDevStatus();
+    renderChatStatus();
     var ch = getActiveChannel();
     var cont = _el('chat-messages');
     var time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
@@ -1658,13 +2222,15 @@ if (!firstVisible) firstVisible = t;
       resumeFrom: pending.partialContent,
       resumeReasoning: pending.partialReasoning,
       suppressFinalMessage: true,
+      signal: devCtrl.signal,
       onStream: function(update) {
         if (!placeholder || !cont) return;
         var textEl = placeholder.querySelector('.msg-text');
         if (!textEl) return;
         if (update.type === 'reasoning') {
           textEl.className = 'msg-text thinking-text';
-          textEl.innerHTML = '💭 ' + _esc(reasoningSummaryText(update.text));
+          // 玩家频道不显示思考内容（防剧透），仅系统频道显示摘要
+          textEl.innerHTML = (pending.channelId === 'system') ? '💭 ' + _esc(reasoningSummaryText(update.text)) : '💭 继续中…';
         } else {
           var clean = String(update.text || '').replace(/\[\[(search|module):.+?\]\]/g, '').trim();
           textEl.className = 'msg-text';
@@ -1674,10 +2240,15 @@ if (!firstVisible) firstVisible = t;
       }
     }).then(function(result) {
       if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+      _activeDevAbort = null;
+      _devStatus.active = false;
+      renderDevStatus();
+      renderChatStatus();
+      var stopBtn2 = _el('ai-dev-stop'); if (stopBtn2) stopBtn2.style.display = 'none';
       if (result && result.interrupted) {
         _pendingResume = Object.assign({}, pending, { partialContent: (pending.partialContent || '') + (result.partialContent || ''), partialReasoning: (pending.partialReasoning || '') + (result.partialReasoning || '') });
         if (result.partialContent) addChatMessage('ai', 'AI', result.partialContent + '\n\n——（续写中断）', pending.channelId);
-        addChatMessage('system', 'AI', '续写再次中断，输入「继续」可再次续接。');
+        addChatMessage('system', 'AI', '续写再次中断，输入「继续」可再次续接。', pending.channelId);
         return;
       }
       if (result && result.content) {
@@ -1686,8 +2257,82 @@ if (!firstVisible) firstVisible = t;
       }
     }).catch(function(e) {
       if (placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
-      addChatMessage('system', 'AI', '续接失败: ' + (e.message || '与世界的联络中断'));
+      _activeDevAbort = null;
+      _devStatus.active = false;
+      renderDevStatus();
+      renderChatStatus();
+      var stopBtn3 = _el('ai-dev-stop'); if (stopBtn3) stopBtn3.style.display = 'none';
+      addChatMessage('system', 'AI', '续接失败: ' + (e.message || '与世界的联络中断'), pending.channelId);
     });
+  }
+
+  // 通用风格化弹窗辅助（优先 UIManager.dialog，缺省回退浏览器原生）
+  function dlgAlert(title, msg) {
+    if (window.UIManager && window.UIManager.dialog) window.UIManager.dialog.alert(title, msg);
+    else alert(msg);
+  }
+  function dlgConfirm(title, msg, cb) {
+    if (window.UIManager && window.UIManager.dialog) window.UIManager.dialog.confirm(title, msg, cb);
+    else cb(confirm(msg));
+  }
+  function dlgPrompt(title, placeholder, def, cb) {
+    if (window.UIManager && window.UIManager.dialog) window.UIManager.dialog.prompt(title, placeholder, def, cb);
+    else { var v = prompt(placeholder, def); cb(v); }
+  }
+
+  // 重置冒险（服务端清 sessions/进度，保留角色卡）与删除冒险（彻底）；冒险管理面板与设置页共用
+  // 与GM的AI私聊记录按冒险分桶（trpg_gmwin_<冒险>_<频道>，见 gm-directive.html）；玩家之间私聊（trpg_pm_*）不随冒险重置
+  function clearGmPrivateChats(name) {
+    try {
+      var prefix = 'trpg_gmwin_' + name + '_';
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(prefix) === 0) keys.push(k);
+      }
+      keys.forEach(function(k) { localStorage.removeItem(k); });
+    } catch (e) {}
+  }
+  function performAdventureReset(name) {
+    fetch(getServerUrl() + '/api/adventures/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: name }) })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          // 清空本地聊天缓存与会话去重表（角色卡 localStorage 保留）；与GM的AI私聊记录一并清空（玩家私聊保留）
+          clearGmPrivateChats(name);
+          if (_currentAdventure === name) {
+            _chatHistory = [];
+            try { localStorage.removeItem(chatLogKey()); } catch (e) {}
+            _serverHistLoaded = {};
+            _channelUnread = {};
+            renderChannelTabs();
+            addChatMessage('system', '冒险', '冒险「' + name + '」已重置：剧情记录已清空，玩家角色卡已保留。');
+          }
+          loadAdventureList();
+        } else dlgAlert('提示', d.error || '重置失败');
+      })
+      .catch(function(e) { dlgAlert('提示', '重置失败: ' + (e.message || e)); });
+  }
+  function performAdventureDelete(name) {
+    fetch(getServerUrl() + '/api/adventures/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: _selectedRuleSystem || '', name: name }) })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.success) {
+          clearGmPrivateChats(name);
+          if (_currentAdventure === name) {
+            _currentAdventure = '默认';
+            try { localStorage.setItem('trpg_current_adventure', '默认'); } catch (e) {}
+            _chatHistory = [];
+            try { localStorage.removeItem(chatLogKey()); } catch (e) {}
+            _serverHistLoaded = {};
+            _channelUnread = {};
+            renderChannelTabs();
+            addChatMessage('system', '冒险', '冒险「' + name + '」已彻底删除。');
+          }
+          loadAdventureList();
+        } else dlgAlert('提示', d.error || '删除失败');
+      })
+      .catch(function(e) { dlgAlert('提示', '删除失败: ' + (e.message || e)); });
   }
 
   function setupRules() {
@@ -1725,7 +2370,6 @@ if (!firstVisible) firstVisible = t;
                   { phase: 'saved', message: '已保存原初母本：' + (data.originalPath || '') },
                   { phase: 'agent_starting', message: '启动规则书多阶段接管Agent' }
                 ]);
-                // 执行期间轮询刷新进度 + SSE实时动态（对标opencode实时显示）
                 _ruleLiveEvents = [];
                 _ruleAgentAbort = new AbortController();
                 startRuleTaskPolling(data.system, data);
@@ -1769,17 +2413,15 @@ if (!firstVisible) firstVisible = t;
     }
   }
 
-// ── 模组管理（GM页签内：导入文件夹/文件 → 树状浏览 → 预览/删除） ──
+// ── 规则页模组管理 ──
 function setupModuleManager() {
 var folderBtn = _el('btn-module-folder');
 var fileBtn = _el('btn-module-file');
 var folderInput = _el('module-folder-input');
 var fileInput = _el('module-file-input');
-// 2026-08-05：模组是 GM/主机功能——非 GM 隐藏入口（联机时普通玩家不可见不可操作）
-if (typeof isGMUser === 'function' && !isGMUser()) {
-if (folderBtn) folderBtn.style.display = 'none';
-if (fileBtn) fileBtn.style.display = 'none';
-return;
+if (!canManageRuleContent()) {
+  if (folderBtn) folderBtn.style.display = 'none';
+  if (fileBtn) fileBtn.style.display = 'none';
 }
     if (folderBtn && folderInput) {
       folderBtn.addEventListener('click', function() { folderInput.click(); });
@@ -1804,9 +2446,8 @@ return;
 
   // 上传模组：isFolder=true 时用 webkitRelativePath 保留完整目录结构
   function uploadModuleFiles(fileList, isFolder) {
-    // 2026-08-05：模组导入仅 GM/主机可操作
-    if (typeof isGMUser === 'function' && !isGMUser()) {
-      addChatMessage('system', '模组', '模组管理是 GM/主机功能，普通玩家不可操作。');
+    if (!canManageRuleContent()) {
+      addChatMessage('system', '模组', '只有房主或真人GM可以导入和整理模组。');
       return;
     }
     var sys = _moduleSystem();
@@ -1826,7 +2467,8 @@ return;
     if (ce) ce.innerHTML = '<div class="rules-empty">正在导入模组：' + arr.length + ' 个文件…</div>';
     fetch('/api/module/upload', { method: 'POST', body: fd }).then(function(r) { return r.json(); }).then(function(data) {
       if (data && data.success) {
-        addChatMessage('system', '模组', '已导入 ' + data.total + ' 个文件 → ' + sys + ' 的模组目录');
+        addChatMessage('system', '模组', '已把「' + (data.moduleName || '模组') + '」复制到 ' + data.sourcePath + '，并建立 AI 整理任务 ' + data.taskId + '。');
+        dispatchModuleImportTask(data, sys);
       } else {
         addChatMessage('system', '错误', '模组导入失败: ' + ((data && data.error) || '未知错误'));
       }
@@ -1837,6 +2479,69 @@ return;
     });
   }
 
+  function dispatchModuleImportTask(data, system) {
+    if (!data || !data.prompt) return;
+    function setTaskStatus(status, message) {
+      return fetch('/api/module/task/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: system, moduleName: data.moduleName, taskId: data.taskId, status: status, message: message || '' })
+      }).catch(function () {});
+    }
+    if (!_settings.aiEnabled || !AIClient || !AIClient.isConnected || !AIClient.isConnected()) {
+      addChatMessage('system', '模组', 'AI 当前未启用。任务已持久排队，之后可从 ' + data.taskPath + ' 继续执行。', 'system');
+      return;
+    }
+    setTaskStatus('running', '任务已发送给系统开发 Agent');
+    addChatMessage('system', '模组', '正在把模组整理任务发送给系统开发 Agent。原始资料和任务文件已先保存，关闭页面也不会丢失。', 'system');
+    // 模组整理 = 系统开发任务：按开发模式显示完整状态
+    _devStatus.mode = 'dev';
+    _devStatus.active = true;
+    _devStatus.contentStarted = false;
+    _devStatus.lastTool = '';
+    _devStatus.round = 0;
+    _devStatus.input = 0; _devStatus.output = 0; _devStatus.total = 0; _devStatus.cacheHit = 0;
+    _devStatus.phase = '整理';
+    _devStatus.summary = '模组整理任务已发送，正在执行…';
+    _devStatus.steps = [];
+    renderDevStatus();
+    renderChatStatus();
+    AIClient.sendSystemChat(data.prompt, {
+      system: system,
+      adventure: _currentAdventure || '默认',
+      channel: 'system',
+      promptProfile: 'module_ingest',
+      customSystemPrompt: '你是 TrpgRecode 的模组导入 Agent。系统会自动注入模组整理、规则书开发、体验标准与插件规范。直接执行任务，不要停留在建议。',
+      onStream: function(update) {
+        if (update.type === 'reasoning') updateDevStatus({ phase: '思考', summary: reasoningSummaryText(update.text) });
+        else if (update.type === 'content') updateDevStatus({ phase: '整理', summary: String(update.text || '').slice(0, 120) });
+      },
+      onTool: function(tool, args) { updateDevStatus({ tool: tool, args: args, phase: '执行中' }); },
+      onToolResult: function(tool, result) {
+        updateDevStatus({ toolResult: tool, ok: String(result || '').indexOf('已写入') >= 0 || String(result || '').indexOf('已编辑') >= 0 });
+      },
+      onUsage: function(round, usage) {
+        var input = usage.prompt_tokens || usage.input_tokens || 0;
+        var output = usage.completion_tokens || usage.output_tokens || 0;
+        var hit = usage.prompt_cache_hit_tokens || usage.prompt_tokens_details && usage.prompt_tokens_details.cached_tokens || 0;
+        updateDevStatus({ round: round, input: input, output: output, total: usage.total_tokens || (input + output), cacheHit: hit });
+      }
+    }).then(function(result) {
+      var text = result && result.content ? result.content : '模组整理 Agent 已结束本轮任务。';
+      setTaskStatus('completed', text.slice(0, 1800));
+      addChatMessage('system', '模组 Agent', text, 'system');
+      hideDevStatus();
+      refreshModuleList();
+    }).catch(function(error) {
+      var message = error.message || '连接中断';
+      setTaskStatus('failed', message);
+      addChatMessage('system', '模组', 'AI 整理未完成：' + message + '。任务仍保存在 ' + data.taskPath + '，可以继续执行。', 'system');
+      hideDevStatus();
+    });
+  }
+
+  function getModuleAccessView() { return isGMUser() && _settings.aiMode !== 'aipl' ? 'gm' : 'player'; }
+
   function refreshModuleList() {
     var treeEl = _el('module-tree'); if (!treeEl) return;
     var sys = _moduleSystem();
@@ -1844,10 +2549,13 @@ return;
       treeEl.innerHTML = '<div class="rules-empty">尚未选择规则系统。<br>模组将导入到所选规则系统目录下，<br>请先在「📚 规则书」页选择系统。</div>';
       return;
     }
-    fetch('/api/module/list?system=' + encodeURIComponent(sys)).then(function(r) { return r.ok ? r.json() : { tree: [] }; }).then(function(data) {
+    var moduleView = getModuleAccessView();
+    fetch('/api/module/list?system=' + encodeURIComponent(sys) + '&view=' + moduleView).then(function(r) { return r.ok ? r.json() : { tree: [] }; }).then(function(data) {
       var tree = (data && data.tree) || [];
       if (!tree.length) {
-        treeEl.innerHTML = '<div class="rules-empty">尚未导入模组。<br>点击上方「📂 导入文件夹」选择模组目录，<br>或「📄 导入文件」选择模组文档。</div>';
+        treeEl.innerHTML = moduleView === 'gm'
+          ? '<div class="rules-empty">尚未导入模组。<br>规则书源码不会自动出现在这里。<br>导入模组后，AI 会建立 GM 私有索引并按需公布玩家内容。</div>'
+          : '<div class="rules-empty">当前没有已公布的模组资料。<br>模组内容由 GM 与 AI 管理，并会随着冒险推进逐步开放。</div>';
         return;
       }
       treeEl.innerHTML = renderModuleTree(tree, '');
@@ -1862,20 +2570,27 @@ return;
     items.forEach(function(item) {
       var rel = prefix + item.name;
       if (item.type === 'dir') {
-        html += '<div class="module-node module-dir" data-path="' + _esc(rel) + '">' +
+        var isModule = !prefix;
+        var isActive = isModule && _activeModules.indexOf(item.name) >= 0;
+        html += '<div class="module-node module-dir' + (isActive ? ' module-active-on' : '') + '" data-path="' + _esc(rel) + '">' +
           '<span class="module-caret">▼</span><span class="module-icon">📁</span>' +
           '<span class="module-name">' + _esc(item.name) + '</span>' +
-          '<span class="module-del" title="删除整个文件夹">🗑</span></div>';
+          (isModule && canManageRuleContent()
+            ? '<span class="module-active' + (isActive ? ' on' : '') + '" data-act="module-active" title="' + (isActive ? '当前带团模组，点击取消（可多选）' : '设为当前带团模组（可多选）') + '">' + (isActive ? '🎲 带团中' : '🎲 设为带团模组') + '</span>'
+            : '') +
+          (item.audience ? '<span class="module-audience ' + (item.audience === 'gm' ? 'gm' : 'public') + '">' + (item.audience === 'gm' ? 'GM 私有' : '已公开') + '</span>' : '') +
+          (canManageRuleContent() ? '<span class="module-del" title="删除整个模组">🗑</span>' : '') + '</div>';
         if (item.children && item.children.length) {
           html += '<div class="module-children" data-parent="' + _esc(rel) + '">' + renderModuleTree(item.children, rel + '/') + '</div>';
         }
       } else {
         var sizeTxt = item.size > 1024 ? (item.size / 1024).toFixed(1) + ' KB' : item.size + ' B';
-        html += '<div class="module-node module-file" data-path="' + _esc(rel) + '">' +
+        var filePath = item.publicPath || rel;
+        html += '<div class="module-node module-file" data-path="' + _esc(filePath) + '">' +
           '<span class="module-icon">📄</span>' +
           '<span class="module-name">' + _esc(item.name) + '</span>' +
           '<span class="module-size">' + sizeTxt + '</span>' +
-          '<span class="module-del" title="删除文件">🗑</span></div>';
+          (canManageRuleContent() ? '<span class="module-del" title="删除文件">🗑</span>' : '') + '</div>';
       }
     });
     return html;
@@ -1884,6 +2599,11 @@ return;
   function bindModuleTreeEvents(container) {
     container.querySelectorAll('.module-dir').forEach(function(dir) {
       dir.addEventListener('click', function(e) {
+        if (e.target.classList.contains('module-active')) {
+          e.stopPropagation();
+          setActiveModuleToggle(this.getAttribute('data-path'));
+          return;
+        }
         if (e.target.classList.contains('module-del')) {
           deleteModuleItem(this.getAttribute('data-path'));
           e.stopPropagation();
@@ -1915,37 +2635,44 @@ return;
   }
 
   function deleteModuleItem(rel) {
+    if (!canManageRuleContent()) { addChatMessage('system', '模组', '只有房主或真人GM可以删除模组资料。'); return; }
     var sys = _moduleSystem();
     if (!sys || !rel) return;
-    if (!confirm('确定删除模组项「' + rel + '」？此操作不可恢复。')) return;
-    fetch('/api/module/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: sys, path: rel }) })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data && data.success) { addChatMessage('system', '模组', '已删除: ' + rel); refreshModuleList(); }
-        else addChatMessage('system', '错误', '删除失败: ' + ((data && data.error) || '未知错误'));
-      }).catch(function(e) { addChatMessage('system', '错误', '删除失败: ' + (e.message || '')); });
+    dlgConfirm('删除模组项', '确定删除模组项「' + rel + '」？此操作不可恢复。', function(ok) {
+      if (!ok) return;
+      fetch('/api/module/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: sys, path: rel }) })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.success) { addChatMessage('system', '模组', '已删除: ' + rel); refreshModuleList(); }
+          else addChatMessage('system', '错误', '删除失败: ' + ((data && data.error) || '未知错误'));
+        }).catch(function(e) { addChatMessage('system', '错误', '删除失败: ' + (e.message || '')); });
+    });
   }
 
   function previewModuleFile(rel) {
     var sys = _moduleSystem();
     var ce = _el('module-preview'); if (!ce || !sys) return;
     ce.innerHTML = '<div class="rules-placeholder">加载中：' + _esc(rel) + '</div>';
-    fetch('/api/module/read?system=' + encodeURIComponent(sys) + '&path=' + encodeURIComponent(rel)).then(function(r) { return r.json(); }).then(function(data) {
+    fetch('/api/module/read?system=' + encodeURIComponent(sys) + '&path=' + encodeURIComponent(rel) + '&view=' + getModuleAccessView()).then(function(r) { return r.json(); }).then(function(data) {
       if (data && data.error) { ce.innerHTML = '<div class="rules-placeholder">加载失败：' + _esc(data.error) + '</div>'; return; }
       if (data.binary) {
-        ce.innerHTML = '<div class="rules-placeholder">📦 二进制文件：' + _esc(data.name) + '<br>大小：' + (data.size > 1024 ? (data.size / 1024).toFixed(1) + ' KB' : data.size + ' B') + '<br>请在系统资源管理器中查看。</div>';
+        if (/\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(rel) && data.url) {
+          ce.innerHTML = '<div class="module-preview-head">' + _esc(rel) + '</div><div style="padding:10px;text-align:center"><img src="' + _esc(data.url) + '" alt="' + _esc(data.name) + '" style="max-width:100%;max-height:520px;object-fit:contain;border-radius:8px"></div>';
+        } else {
+          ce.innerHTML = '<div class="rules-placeholder">📦 二进制文件：' + _esc(data.name) + '<br>大小：' + (data.size > 1024 ? (data.size / 1024).toFixed(1) + ' KB' : data.size + ' B') + '</div>';
+        }
         return;
       }
-      var html = '<div class="module-preview-head">' + _esc(rel) + (data.truncated ? '<span style="color:#ffa;margin-left:6px;">（已截断，仅前 20000 字符）</span>' : '') + '</div>';
+      var html = '<div class="module-preview-head">' + _esc(rel) + (data.truncated ? '<span style="color:#ffa;margin-left:6px;">（内容较长，当前为节选）</span>' : '') + '</div>';
       var content = data.content || '';
-      if (/\.(md|markdown|txt|htm|html)$/i.test(rel)) html += simpleMarkdown(content);
+      if (data.format === 'html-text') {
+        html += '<div class="module-preview-rendered">' + _esc(content).replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>') + '</div>';
+      } else if (/\.(md|markdown)$/i.test(rel)) html += '<div class="module-preview-rendered">' + simpleMarkdown(content) + '</div>';
       else html += '<pre class="module-preview-pre">' + _esc(content) + '</pre>';
       ce.innerHTML = html;
     }).catch(function(e) { ce.innerHTML = '<div class="rules-placeholder">加载失败：' + _esc(e.message || '') + '</div>'; });
   }
 
-  // 2026-08-05 翻新：规则速查不再有"选择规则书"列表（选择在开始界面完成）；
-  // 本函数保留兼容接口——确保规则速查区渲染当前规则书内容（无内容时才重新加载）
   function refreshRulesList() {
     var ce = _el('rules-content-view');
     if (ce && _selectedRuleSystem && (!ce.innerHTML || ce.innerHTML.indexOf('rules-placeholder') >= 0)) {
@@ -1954,7 +2681,6 @@ return;
     return Promise.resolve();
   }
 
-  // ── 开始界面（全局入口：规则书→冒险，2026-08-05） ──
   var _startRuleStep = false; // true=冒险选择步骤
   var _pendingStartRule = null; // 开始界面中待选的规则书
 
@@ -1966,8 +2692,6 @@ return;
     try { var v = JSON.parse(localStorage.getItem('trpg_last_entry')); return v && v.system ? v : null; } catch (e) { return null; }
   }
 
-  // 渲染开始界面（规则书选择 → 冒险选择）
-  // 渲染开始界面 v2（2026-08-05）：两步清晰流程 + 上传/新建入口
   function renderStartScreen() {
     var screen = _el('start-screen'); if (!screen) return;
     var stepRules = _el('start-step-rules');
@@ -1999,9 +2723,6 @@ return;
           enterMainInterface();
         });
       } else if (cont) { cont.style.display = 'none'; }
-      // 规则书卡片（含操作按钮：进入 / 管理）
-      // 连接重试（2026-08-05）：启动时 AIClient 可能尚未完成连接检测（isConnected=false 返回空列表），
-      // 显示"连接中"并延迟重试，避免误报"无规则书"
       function loadStartRules() {
         AIClient.getRuleSystems().then(function(sys) {
           if (!sys || !sys.length) {
@@ -2082,8 +2803,15 @@ return;
     _selectedRuleSystem = _pendingStartRule;
     _currentAdventure = adv;
     try { localStorage.setItem('trpg_current_adventure', _currentAdventure); } catch (e) {}
+    // 切换冒险：清空本地聊天缓存与会话去重表（本地缓存已按冒险分桶，新冒险重新加载）
+    _chatHistory = [];
+    _serverHistLoaded = {};
+    _channelUnread = {};
     _saveLastEntry();
+    updateAdventureActionButtons();
     enterMainInterface();
+    // 按新冒险恢复角色（本地缓存与服务端存档均按冒险隔离）
+    restoreCharacters();
   }
 
   // 进入内部界面（隐藏开始界面，加载规则书配置）
@@ -2096,10 +2824,78 @@ updateRuleActionButton();
 if (typeof loadAdventureList === 'function') loadAdventureList();
 refreshRulesList();
 renderChannelTabs();
-// 2026-08-05：进入主界面后从服务端加载当前频道历史（聊天区与历史窗口同源）
+loadActiveModule();
 setTimeout(function() { loadChannelHistoryFromServer(_activeChannelId, true); }, 300);
 }
 }
+
+  // 加载当前冒险的"当前活动模组"列表（带团 AI 提示词注入用）
+  function loadActiveModule() {
+    var sys = _selectedRuleSystem || '';
+    if (!sys) return;
+    fetch(getServerUrl() + '/api/module/active?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(_currentAdventure || '默认'))
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (d && d.success) _activeModules = Array.isArray(d.modules) ? d.modules : [];
+        loadGmContext();
+      })
+      .catch(function() {});
+  }
+
+  // 加载带团现场上下文（角色卡摘要 + 活动模组摘要；模组/角色变化时由调用方重新加载）
+  function loadGmContext() {
+    var sys = _selectedRuleSystem || '';
+    if (!sys) return Promise.resolve();
+    return fetch(getServerUrl() + '/api/gm/context?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(_currentAdventure || '默认'))
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) { if (d && d.success) _gmContext = d.context || ''; })
+      .catch(function() {});
+  }
+
+  // 切换当前带团模组（界面按钮/自然语言共用）：已加入则移除，未加入则加入
+  function setActiveModuleToggle(name) {
+    if (!name) return;
+    fetch(getServerUrl() + '/api/module/active', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: _selectedRuleSystem || '', adventure: _currentAdventure || '默认', module: name })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d && d.success && Array.isArray(d.modules)) {
+        _activeModules = d.modules;
+        var joined = _activeModules.indexOf(name) >= 0;
+        addChatMessage('system', '模组', joined ? '「' + name + '」已设为带团模组（共 ' + _activeModules.length + ' 个）。' : '「' + name + '」已移出带团模组。');
+        refreshModuleList();
+        loadGmContext();
+      } else {
+        addChatMessage('system', '模组', '设定失败：' + ((d && d.error) || '未知错误'));
+      }
+    }).catch(function(e) {
+      addChatMessage('system', '模组', '设定失败：' + (e && e.message || '连接中断'));
+    });
+  }
+
+  // 按输入的自然语言名称匹配已导入模组（支持短名：龙后宝山 → 5eDnD_龙后宝山HDQ_中译v1.0）
+  function resolveModuleName(input) {
+    var kw = String(input || '').trim();
+    if (!kw) return Promise.resolve(null);
+    return fetch(getServerUrl() + '/api/module/list?system=' + encodeURIComponent(_selectedRuleSystem || '') + '&view=gm')
+      .then(function(r) { return r.ok ? r.json() : { tree: [] }; })
+      .then(function(d) {
+        var tree = (d && d.tree) || [];
+        var exact = null, fuzzy = [];
+        (function walk(items) {
+          (items || []).forEach(function(item) {
+            if (item && item.type === 'dir') {
+              if (item.name === kw) exact = item.name;
+              if (item.name.indexOf(kw) >= 0 || kw.indexOf(item.name) >= 0) fuzzy.push(item.name);
+              if (item.children) walk(item.children);
+            }
+          });
+        })(tree);
+        return exact || (fuzzy.length ? fuzzy[0] : null);
+      })
+      .catch(function() { return null; });
+  }
 
   // 全局侧边栏（抽屉式：左侧滑出 + 右侧遮罩）
   function openGlobalSidebar() {
@@ -2187,30 +2983,34 @@ setTimeout(function() { loadChannelHistoryFromServer(_activeChannelId, true); },
     if (!_selectedRuleSystem) return;
     if (_rulePollTimer) {
       // 正在解析：停止
-      if (!confirm('停止解析「' + _selectedRuleSystem + '」？已完成的阶段会保留，可稍后继续解析。')) return;
-      stopRuleAgent();
+      dlgConfirm('停止解析', '停止解析「' + _selectedRuleSystem + '」？已完成的阶段会保留，可稍后继续解析。', function(ok) {
+        if (!ok) return;
+        stopRuleAgent();
+      });
       return;
     }
     // 删除
-    if (!confirm('删除规则书「' + _selectedRuleSystem + '」？\n母本、拆解文本、图片资产、日志将全部删除，且不可恢复。')) return;
-    fetch(AIClient.getServerUrl() + '/api/rules/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ system: _selectedRuleSystem })
-    }).then(function(resp) { return resp.json(); }).then(function(data) {
-      if (data && data.success) {
-        addChatMessage('system', '规则书', '已删除规则书: ' + _selectedRuleSystem);
-        _selectedRuleSystem = null;
-        var ce = _el('rules-content-view');
-        if (ce) ce.innerHTML = '<div class="rules-placeholder">规则书已删除。</div>';
-        updateRuleActionButton();
-        refreshRulesList();
-      } else {
-        addChatMessage('system', '规则书', '删除失败: ' + ((data && data.error) || '未知错误'));
-      }
-    }).catch(function(e) {
-      addChatMessage('system', '规则书', '删除失败: ' + (e.message || '与世界的联络中断'));
-    });
+    dlgConfirm('删除规则书', '删除规则书「' + _selectedRuleSystem + '」？\n母本、拆解文本、图片资产、日志将全部删除，且不可恢复。', function(ok) {
+      if (!ok) return;
+      fetch(AIClient.getServerUrl() + '/api/rules/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: _selectedRuleSystem })
+      }).then(function(resp) { return resp.json(); }).then(function(data) {
+        if (data && data.success) {
+          addChatMessage('system', '规则书', '已删除规则书: ' + _selectedRuleSystem);
+          _selectedRuleSystem = null;
+          var ce = _el('rules-content-view');
+          if (ce) ce.innerHTML = '<div class="rules-placeholder">规则书已删除。</div>';
+          updateRuleActionButton();
+          refreshRulesList();
+        } else {
+          addChatMessage('system', '规则书', '删除失败: ' + ((data && data.error) || '未知错误'));
+        }
+      }).catch(function(e) {
+        addChatMessage('system', '规则书', '删除失败: ' + (e.message || '与世界的联络中断'));
+      });
+      });
   }
 
   // 停止解析：abort前端Agent会话fetch → 后端检测到断开后中止循环并写日志
@@ -2320,20 +3120,20 @@ setTimeout(function() { loadChannelHistoryFromServer(_activeChannelId, true); },
     else if (evt.type === 'ai_text') line = '💬 ' + _esc(String(evt.text || '').substring(0, 200));
     else if (evt.type === 'error') line = '⚠ ' + _esc(evt.error || '');
     else if (evt.type === 'question') {
-      // AI提问：弹窗等待用户回答，提交后恢复Agent
-      var answer = prompt('🤖 AI提问：' + (evt.text || ''));
-      fetch(AIClient.getServerUrl() + '/api/agent-answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: evt.id, answer: answer === null ? '（用户取消回答）' : answer })
-      }).catch(function() { /* 连接失败忽略 */ });
+      // AI提问：风格化弹窗等待用户回答，提交后恢复Agent
+      dlgPrompt('🤖 AI提问', evt.text || '', '', function(answer) {
+        fetch(AIClient.getServerUrl() + '/api/agent-answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: evt.id, answer: answer === null ? '（用户取消回答）' : answer })
+        }).catch(function() { /* 连接失败忽略 */ });
+      });
       line = '❓ AI提问：' + _esc(evt.text || '') + ' → 已等待回答';
     }
     if (!line) return;
     _ruleLiveEvents.push({ line: line, isError: evt.type === 'error' });
     if (_ruleLiveEvents.length > 60) _ruleLiveEvents.shift();
     renderRuleLiveEvents();
-    // 关键事件同步到系统频道（通知 + 对话栏，对标opencode）
     if (evt.type === 'phase' || evt.type === 'error') {
       addChatMessage('system', '规则书Agent', evt.type === 'phase' ? evt.message : ('解析错误: ' + evt.error));
     }
@@ -2393,7 +3193,6 @@ setTimeout(function() { loadChannelHistoryFromServer(_activeChannelId, true); },
     });
   }
 
-  // 进度轮询：任务执行期间每2.5秒刷新右侧进度（对标opencode的实时动态）
   function startRuleTaskPolling(system, uploadSummary) {
     stopRuleTaskPolling();
     var poll = function() {
@@ -2421,9 +3220,8 @@ function loadRuleSystemSettings(system, uploadSummary) {
 var ce = _el('rules-content-view'); if (!ce) return;
 _ruleTaskViewSystem = null;
 _selectedRuleSystem = system;
-// 2026-08-05 引擎化：应用该规则书的界面框架（无 ui/manifest.json 则用默认框架）
+loadNotes();
 applyUiManifest(system);
-// GM 面板 iframe（引擎化：加载规则书 ui/panels/gm.html，带 system 参数）
 var gmFrame = _el('gm-panel-frame');
 if (gmFrame) gmFrame.src = '/api/ui-panel?system=' + encodeURIComponent(system) + '&panel=gm';
 updateRuleActionButton();
@@ -2520,13 +3318,10 @@ refreshModuleList();
       });
     }
     var bn = _el('btn-new-character'); if (bn) bn.addEventListener('click', function() { openCharacterModal(); });
-    // 2026-08-06 入口统一：修改角色卡入口已移入角色卡页面内部（sheet.html 内"✏️ 编辑"按钮，按权限显示），
-    // 宿主右上角/角色面板不再出现"修改角色卡"切换按钮。
     var be = _el('btn-edit-character');
     if (be) be.style.display = 'none';
   }
 
-  // 2026-08-06：入口统一后不再切换新建/修改按钮，保留函数名避免遗漏调用点，行为=无操作
   function updateCharacterActionButton() { }
 
   // ── 规则专属角色卡（动态链接：角色界面按当前规则系统加载 character-sheet 插件） ──
@@ -2539,6 +3334,7 @@ refreshModuleList();
     var sys = (_activeSheet && _activeSheet.system) || _selectedRuleSystem || '';
     return {
       system: sys,
+      adventure: _currentAdventure || '默认',
       token: token || null,
       fetch: function(path) { return fetch(getServerUrl() + path); },
       openRuleFile: function(file) {
@@ -2574,14 +3370,13 @@ refreshModuleList();
     return '<div class="' + cls + '" style="background:' + (token.color || '#4ecdc4') + '">' + _esc(initial) + '</div>';
   }
 
-  // ── 多角色持久化（角色列表落盘 + 启动恢复） ──
-  // 设计：角色是玩家跨会话的持久资产。token 数据写入 localStorage 'trpg_characters'，
-  // 刷新/重启后 restoreCharacters() 原样恢复（头像/HP/AC/数据/位置），多角色可切换、可删除。
-  var CHARACTER_STORE_KEY = 'trpg_characters';
+  // ── 多角色持久化（按冒险分桶）──
+  var CHARACTER_STORE_KEY = 'trpg_characters'; // 旧全局键（迁移用）
+  function charactersKey() { return advKey('trpg_characters'); }
 
   function persistCharacters() {
     try {
-      var tokens = MapEngine.getAllTokens();
+      var tokens = MapEngine.getAllCharacterTokens ? MapEngine.getAllCharacterTokens() : MapEngine.getAllTokens();
       var arr = (tokens || []).map(function(t) {
         return {
           id: t.id,
@@ -2591,18 +3386,18 @@ refreshModuleList();
           gridX: t.gridX, gridY: t.gridY,
           hp: t.hp, maxHp: t.maxHp, ac: t.ac,
           avatarUrl: t.avatarUrl,
-          category: getTokenCategory(t), // 2026-08-06：角色分类持久化
-          owner: t.owner || null, // 2026-08-06：角色归属（创建者玩家名）持久化
+          category: getTokenCategory(t),
+          owner: t.owner || null,
           data: t.data || null
         };
       });
-      localStorage.setItem(CHARACTER_STORE_KEY, JSON.stringify(arr));
-      scheduleCharacterArchive(arr); // 2026-08-06：GM 原始版本备份（服务端存档）
+      // 空保护：MapEngine 短暂为空（启动竞态/外部导入前）时不写 localStorage，防止覆盖清空本地恢复源
+      if (!arr.length) return;
+      localStorage.setItem(charactersKey(), JSON.stringify(arr));
+      scheduleCharacterArchive(arr);
     } catch (e) { /* 存储不可用时静默，不打断游戏 */ }
   }
 
-  // ── GM 原始版本备份（2026-08-06）：角色保存后防抖同步到服务端存档 ──
-  // 服务端保留 current.json + versions/ 历史，GM 可对比/恢复（/api/characters/*）
   var _archiveTimer = null;
   function scheduleCharacterArchive(arr) {
     if (!arr || !arr.length) return;
@@ -2620,8 +3415,33 @@ refreshModuleList();
   }
 
   function restoreCharacters() {
-    var arr = null;
-    try { arr = JSON.parse(localStorage.getItem(CHARACTER_STORE_KEY)); } catch (e) {}
+    // 服务端存档优先：AI/外部工具直接修改的角色卡（current.json）以服务端为准；无存档时回退本地
+    var sys = _selectedRuleSystem || '';
+    var adv = _currentAdventure || '默认';
+    var restoreFromServer = function() {
+      fetch(getServerUrl() + '/api/characters/load?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(d) {
+          if (d && d.success && Array.isArray(d.characters) && d.characters.length) {
+            rebuildCharacterTokens(d.characters);
+            try { fetch('/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'chars-restored', n: d.characters.length, t: Date.now() }) }).catch(function() {}); } catch (e2) {}
+          } else {
+            restoreCharactersFromLocal();
+            try { fetch('/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'chars-empty', t: Date.now() }) }).catch(function() {}); } catch (e2) {}
+          }
+        })
+        .catch(function() { restoreCharactersFromLocal(); });
+    };
+    var restoreCharactersFromLocal = function() {
+      var arr = null;
+      try { arr = JSON.parse(localStorage.getItem(charactersKey())); if (!arr) { var legacy = localStorage.getItem(CHARACTER_STORE_KEY); if (legacy) { localStorage.setItem(charactersKey(), legacy); localStorage.removeItem(CHARACTER_STORE_KEY); arr = JSON.parse(legacy); } } } catch (e) {}
+      if (Array.isArray(arr) && arr.length) rebuildCharacterTokens(arr);
+    };
+    if (sys) restoreFromServer();
+    else restoreCharactersFromLocal();
+  }
+
+  function rebuildCharacterTokens(arr) {
     if (!Array.isArray(arr) || !arr.length) return;
     var idMap = {};
     arr.forEach(function(s) {
@@ -2649,7 +3469,7 @@ refreshModuleList();
       if (s.ac !== undefined) patch.ac = s.ac;
       if (s.avatarUrl) patch.avatarUrl = s.avatarUrl;
       if (s.category) patch.category = s.category;
-      if (s.owner) patch.owner = s.owner; // 2026-08-06：恢复角色归属
+      if (s.owner) patch.owner = s.owner;
       if (Object.keys(patch).length) {
         try { MapEngine.updateToken(newId, patch); } catch (e2) {}
       }
@@ -2660,13 +3480,20 @@ refreshModuleList();
           if (snap) { localStorage.setItem('trpg_sheet_' + newId, snap); localStorage.removeItem('trpg_sheet_' + oldId); }
         } catch (e3) {}
       }
+      // 同步独立角色卡窗口快照为服务端加载的最新数据（否则独立窗口读到旧快照）
+      try {
+        var fresh = MapEngine.getTokenById(newId);
+        if (fresh) localStorage.setItem('trpg_sheet_' + newId, JSON.stringify(fresh));
+      } catch (e5) {}
     });
     if (Object.keys(idMap).length) {
       try { localStorage.setItem('trpg_char_idmap', JSON.stringify(idMap)); } catch (e4) {}
     }
+    // 恢复完成必须刷新列表（此前缺失导致服务端角色恢复后界面不显示）
+    refreshCharacterList();
+    persistCharacters();
   }
 
-  // ── 角色分类分页（2026-08-06）：玩家/友方/敌人/NPC + 动态自定义分类 ──
   var DEFAULT_CHAR_CATEGORIES = ['玩家', '友方', '敌人', 'NPC'];
   var CHAR_CAT_STORE_KEY = 'trpg_char_categories';
   var _charCategoryFilter = null; // null=未初始化，首次渲染默认选中「玩家」
@@ -2696,7 +3523,7 @@ refreshModuleList();
     if (_charCategoryFilter === null) _charCategoryFilter = '玩家';
     var cats = getCharCategories();
     var counts = {};
-    MapEngine.getAllTokens().forEach(function(t) { var c = getTokenCategory(t); counts[c] = (counts[c] || 0) + 1; });
+    (MapEngine.getAllCharacterTokens ? MapEngine.getAllCharacterTokens() : MapEngine.getAllTokens()).forEach(function(t) { var c = getTokenCategory(t); counts[c] = (counts[c] || 0) + 1; });
     tabsEl.innerHTML = '';
     cats.forEach(function(cat) {
       var btn = document.createElement('button');
@@ -2717,13 +3544,18 @@ refreshModuleList();
       tabsEl.appendChild(btn);
     });
     var addBtn = document.createElement('button'); addBtn.className = 'char-category-tab char-category-add'; addBtn.textContent = '＋'; addBtn.title = '添加自定义分类';
-    addBtn.addEventListener('click', function() { var name = prompt('新分类名称'); if (!name || !name.trim()) return; name = name.trim(); if (cats.indexOf(name) < 0) { cats.push(name); saveCharCategories(cats); } _charCategoryFilter = name; renderCharacterCategoryTabs(); refreshCharacterList(); });
+    addBtn.addEventListener('click', function() {
+      dlgPrompt('自定义分类', '新分类名称', '', function(name) {
+        if (!name || !name.trim()) return;
+        name = name.trim();
+        if (cats.indexOf(name) < 0) { cats.push(name); saveCharCategories(cats); }
+        _charCategoryFilter = name; renderCharacterCategoryTabs(); refreshCharacterList();
+      });
+    });
     tabsEl.appendChild(addBtn);
   }
 
 
-  // ── 2026-08-06 联机权限（模块级，角色列表/钩子/独立窗口共用） ──
-  // 角色修改权限——单机全权；联机=创建者（owner 玩家名）或 GM
   function canEditCharacter(tokenId) {
     if (!Network || !Network.isConnected || !Network.isConnected()) return true;
     if (isGMUser()) return true;
@@ -2735,7 +3567,7 @@ refreshModuleList();
   // 当前绑定的"我的角色"名（聊天显示"角色名（玩家名）"）
   function getMyCharacterName() {
     try {
-      var cid = localStorage.getItem('trpg_my_character') || '';
+      var cid = localStorage.getItem(advKey('trpg_my_character')) || localStorage.getItem('trpg_my_character') || '';
       if (!cid) return '';
       var t = MapEngine.getTokenById(cid);
       return t ? (t.displayName || t.name || '') : '';
@@ -2754,19 +3586,19 @@ refreshModuleList();
     } catch (e) {}
   }
   function writeAllPermSnapshots() {
-    MapEngine.getAllTokens().forEach(function (t) { writePermSnapshot(t.id); });
+    (MapEngine.getAllCharacterTokens ? MapEngine.getAllCharacterTokens() : MapEngine.getAllTokens()).forEach(function (t) { writePermSnapshot(t.id); });
   }
 
   function refreshCharacterList() {
     setupCharacterListEvents();
     var listEl = _el('character-list'); if (!listEl) return;
     renderCharacterCategoryTabs();
-    var tokens = MapEngine.getAllTokens(); listEl.innerHTML = '';
+    var tokens = MapEngine.getAllCharacterTokens ? MapEngine.getAllCharacterTokens() : MapEngine.getAllTokens(); listEl.innerHTML = '';
     if (!tokens.length) { listEl.innerHTML = '<div class="char-list-empty">暂无角色<br><br>点击「＋ 新建」创建角色，或导入已有角色卡</div>'; return; }
     var cat = _charCategoryFilter || '玩家';
     var filtered = tokens.filter(function(t) { return getTokenCategory(t) === cat; });
     if (!filtered.length) { listEl.innerHTML = '<div class="char-list-empty">分类「' + _esc(cat) + '」暂无角色<br><span>可把其他分类的角色条目拖到此分页</span></div>'; return; }
-    var myCharId = ''; try { myCharId = localStorage.getItem('trpg_my_character') || ''; } catch (e) {}
+    var myCharId = ''; try { myCharId = localStorage.getItem(advKey('trpg_my_character')) || ''; } catch (e) {}
     filtered.forEach(function(t) {
       writePermSnapshot(t.id);
       var canEdit = canEditCharacter(t.id), isMyChar = t.id === myCharId, d = t.data || {};
@@ -2801,20 +3633,23 @@ refreshModuleList();
   function moveCharacterFloatTip(e) { if (!_charFloatTip) return; var x = e.clientX + 16, y = e.clientY + 14; var r = _charFloatTip.getBoundingClientRect(); if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = innerHeight - r.height - 8; _charFloatTip.style.left = Math.max(8,x) + 'px'; _charFloatTip.style.top = Math.max(8,y) + 'px'; }
   function hideCharacterFloatTip() { if (_charFloatTip) _charFloatTip.remove(); _charFloatTip = null; }
 
-  // 2026-08-06：绑定"我的角色"（聊天以角色名发言；默认自己创建的即自动绑定）
   function setMyCharacter(tokenId) {
-    try { localStorage.setItem('trpg_my_character', tokenId); } catch (e) {}
+    try { localStorage.setItem(advKey('trpg_my_character'), tokenId); localStorage.removeItem('trpg_my_character'); } catch (e) {}
     refreshCharacterList();
     var t = MapEngine.getTokenById(tokenId);
     if (t) addChatMessage('system', '角色', '已把「' + (t.displayName || t.name) + '」设为你的人物（聊天将以该角色名义发言）。');
+    // 联机：向房间广播当前角色（私聊/玩家列表用该角色头像与名字展示）
+    if (Network && Network.isConnected && Network.isConnected() && Network.sendPlayerCharacter) {
+      Network.sendPlayerCharacter(t);
+    }
   }
-  // 2026-08-06：GM 转交角色控制权
   function transferCharacter(tokenId) {
     var t = MapEngine.getTokenById(tokenId); if (!t) return;
-    var to = prompt('把「' + (t.displayName || t.name) + '」的控制权转交给哪位玩家？（输入玩家名）', '');
-    if (!to || !to.trim()) return;
-    if (Network.isConnected()) Network.sendTokenTransfer(tokenId, to.trim());
-    else { t.owner = to.trim(); refreshCharacterList(); addChatMessage('system', '权限', '已把控制权转交给「' + to.trim() + '」（单机本地记录）。'); }
+    dlgPrompt('转交控制权', '把「' + (t.displayName || t.name) + '」的控制权转交给哪位玩家？（输入玩家名）', '', function(to) {
+      if (!to || !to.trim()) return;
+      if (Network.isConnected()) Network.sendTokenTransfer(tokenId, to.trim());
+      else { t.owner = to.trim(); refreshCharacterList(); addChatMessage('system', '权限', '已把控制权转交给「' + to.trim() + '」（单机本地记录）。'); }
+    });
   }
 
   // 角色列表事件委托（绑定一次，动态列表项全部生效；幂等：重复调用无副作用）
@@ -2835,8 +3670,6 @@ refreshModuleList();
     });
   }
 
-  // 2026-08-06：角色详情一律在操作系统级独立窗口（sheet.html）显示。
-  // 主窗口角色面板不内嵌长详情（曾与聊天栏同级框造成层级遮挡）；此处只做选中高亮 + 快照写入 + 开窗。
   function selectCharacter(id) {
     var token = MapEngine.getTokenById(id); if (!token) return;
     _lastDetailTokenId = id;
@@ -2846,16 +3679,27 @@ refreshModuleList();
     try { localStorage.setItem('trpg_sheet_' + id, JSON.stringify(token)); } catch (e) {}
   }
 
-  function openCharacterSheet(id) {
-    var token = MapEngine.getTokenById(id); if (!token) return;
-    selectCharacter(id); writePermSnapshot(id);
-    try { localStorage.setItem('trpg_sheet_' + id, JSON.stringify(token)); } catch (e) {}
-    var sys = _selectedRuleSystem || '';
-    try { window.open('/sheet.html?id=' + encodeURIComponent(id) + '&system=' + encodeURIComponent(sys), '_blank'); } catch (e) { addChatMessage('system','角色卡','无法打开角色卡窗口：'+e.message); }
+  // 后端存活检测（2.5s 超时）：打开独立窗口（角色档案/新建角色）前使用，后端未运行时子窗口会显示浏览器错误页"连不上"
+  function checkBackendAlive(cb) {
+    var ctl = null;
+    try { ctl = new AbortController(); } catch (e) { ctl = null; }
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); cb(false); }, 2500);
+    fetch('/', { method: 'HEAD', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { clearTimeout(timer); cb(r.ok); })
+      .catch(function () { clearTimeout(timer); cb(false); });
   }
 
-  // 2026-08-06：不再渲染内嵌详情；改为同步角色卡快照并通知已打开的独立窗口刷新（storage 事件）。
-  // 保留函数名与调用点（UpdateVariable 回写/图片保存/地图点选后刷新），行为改为"数据快照同步"。
+  function openCharacterSheet(id) {
+    var token = MapEngine.getTokenById(id); if (!token) return;
+    checkBackendAlive(function (alive) {
+      if (!alive) { addChatMessage('system', '角色卡', '世界尚未苏醒：运行 SoloTrpg 后才能打开角色档案。'); return; }
+      selectCharacter(id); writePermSnapshot(id);
+      try { localStorage.setItem('trpg_sheet_' + id, JSON.stringify(token)); } catch (e) {}
+      var sys = _selectedRuleSystem || '';
+      try { window.open('/sheet.html?id=' + encodeURIComponent(id) + '&system=' + encodeURIComponent(sys), '_blank'); } catch (e) { addChatMessage('system','角色卡','无法打开角色卡窗口：'+e.message); }
+    });
+  }
+
   function showCharacterDetail(tokenId) {
     var token = MapEngine.getTokenById(tokenId);
     if (!token) return;
@@ -2893,21 +3737,26 @@ refreshModuleList();
 
   function openCharacterModal() {
     // 独立窗口标准：新建角色卡在操作系统级新窗口打开（宿主 WebView2 接管 window.open）
-    var sys = _selectedRuleSystem || '';
-    window.open('/character-create.html?system=' + encodeURIComponent(sys), '_blank');
+    checkBackendAlive(function (alive) {
+      if (!alive) { addChatMessage('system', '角色卡', '世界尚未苏醒：运行 SoloTrpg 后才能新建角色。'); return; }
+      var sys = _selectedRuleSystem || '';
+      window.open('/character-create.html?system=' + encodeURIComponent(sys), '_blank');
+    });
   }
 
   function openCharacterModalForEdit(tokenId) {
     var token = MapEngine.getTokenById(tokenId); if (!token || !canEditCharacter(tokenId)) return;
-    try { localStorage.setItem('trpg_sheet_' + tokenId, JSON.stringify(token)); } catch (e) {}
-    var sys = _selectedRuleSystem || '';
-    window.open('/sheet.html?id=' + encodeURIComponent(tokenId) + '&system=' + encodeURIComponent(sys) + '&edit=1', '_blank');
+    checkBackendAlive(function (alive) {
+      if (!alive) { addChatMessage('system', '角色卡', '世界尚未苏醒：运行 SoloTrpg 后才能编辑角色卡。'); return; }
+      try { localStorage.setItem('trpg_sheet_' + tokenId, JSON.stringify(token)); } catch (e) {}
+      var sys = _selectedRuleSystem || '';
+      window.open('/sheet.html?id=' + encodeURIComponent(tokenId) + '&system=' + encodeURIComponent(sys) + '&edit=1', '_blank');
+    });
   }
 
   // 独立窗口标准：接收角色卡创建窗口（character-create.html）的保存结果
   function setupPendingCharacterListener() {
     window.addEventListener('storage', function(e) {
-      // 2026-08-06：角色卡独立窗口恢复历史版本 → 主窗口应用恢复数据
       if (e.key && e.key.indexOf('trpg_char_restore_') === 0 && e.newValue) {
         var rId = e.key.substring('trpg_char_restore_'.length);
         try {
@@ -2923,6 +3772,21 @@ refreshModuleList();
             persistCharacters();
             refreshCharacterList();
             addChatMessage('system', '角色卡', '已从历史版本恢复角色: ' + ((rch.displayName) || rch.name || ''));
+          }
+        } catch (err) {}
+        try { localStorage.removeItem(e.key); } catch (err) {}
+        return;
+      }
+      if (e.key && e.key.indexOf('trpg_char_import_') === 0 && e.newValue) {
+        try {
+          var ich = JSON.parse(e.newValue);
+          if (ich && ich.id) {
+            var tok = MapEngine.getTokenById(ich.id);
+            if (!tok) MapEngine.addToken({ name: ich.name, displayName: ich.displayName, color: ich.color, gridX: 0, gridY: 0, data: ich.data || {} });
+            if (ich.data && ich.data.assets && (ich.data.assets.avatarFramed || ich.data.assets.avatar)) MapEngine.updateToken(ich.id, { avatarUrl: ich.data.assets.avatarFramed || ich.data.assets.avatar });
+            refreshCharacterList();
+            persistCharacters();
+            addChatMessage('system', '角色卡', '已导入角色: ' + (ich.displayName || ich.name || ''));
           }
         } catch (err) {}
         try { localStorage.removeItem(e.key); } catch (err) {}
@@ -3232,9 +4096,8 @@ refreshModuleList();
       addChatMessage('system', '角色图片', '已记录3:4垂直立绘裁剪。');
     } else {
       _imageTool.cropAvatar = Object.assign({}, _imageTool.crop);
-      var a = cropToDataUrl(_imageTool.cropAvatar, 512, 512, false);
       var f = cropToDataUrl(_imageTool.cropAvatar, 512, 512, true);
-      var ai = _el('char-image-avatar-preview'); if (ai) ai.src = a;
+      var ai = _el('char-image-avatar-preview'); if (ai) ai.src = f;
       var fi = _el('char-image-framed-preview'); if (fi) fi.src = f;
       addChatMessage('system', '角色图片', '已记录圆形头像裁剪。');
     }
@@ -3249,26 +4112,26 @@ refreshModuleList();
     if (!_imageTool.cropPortrait) recordCurrentCrop('portrait');
     if (!_imageTool.cropAvatar) recordCurrentCrop('avatar');
     var system = (_el('char-image-system') || {}).value || 'Common';
-    var characterName = ((_el('char-image-name') || {}).value || '未命名角色').trim();
+    var adventure = _currentAdventure || '默认';
+    var tokenId = _editingCharId || '';
     var payload = {
       system: system,
-      characterName: characterName,
+      adventure: adventure,
+      id: tokenId,
       images: {
-        original: _imageTool.originalDataUrl,
         portrait: cropToDataUrl(_imageTool.cropPortrait, 768, 1024, false),
-        avatar: cropToDataUrl(_imageTool.cropAvatar, 512, 512, false),
         avatarFramed: cropToDataUrl(_imageTool.cropAvatar, 512, 512, true)
       }
     };
-    AIClient.uploadCharacterAssets(payload).then(function(data) {
-      if (!data || data.error) { addChatMessage('system', '角色图片', '保存失败: ' + (data ? data.error : '连接失败')); return; }
+    var fallbackAssets = {
+      portrait: payload.images.portrait,
+      avatarFramed: payload.images.avatarFramed
+    };
+    // 编辑已有角色：上传落盘拿 URL；新建角色（无 id）或上传失败：降级 base64，保存角色时由服务端兜底迁移
+    var applyAssets = function(assets) {
       _pendingCharacterAssets = {
-        system: data.system,
-        characterName: data.characterName,
-        portrait: data.images.portrait.url,
-        avatar: data.images.avatar.url,
-        avatarFramed: data.images.avatarFramed.url,
-        original: data.images.original ? data.images.original.url : ''
+        portrait: assets.portrait,
+        avatarFramed: assets.avatarFramed
       };
       var status = _el('char-image-status'); if (status) status.textContent = '形象已保存，保存角色后关联';
       if (_editingCharId) {
@@ -3281,14 +4144,22 @@ refreshModuleList();
         }
       }
       closeModal('character-image-modal');
-      addChatMessage('system', '角色图片', '已保存角色形象资产到 Ruler/' + data.system + '/assets/characters/' + data.characterName + '/');
+      addChatMessage('system', '角色图片', '已保存角色形象资产到 Ruler/' + system + '/存档/' + adventure + '/characters/' + (tokenId || '待创建') + '/icon/');
+    };
+    if (!tokenId) { applyAssets(fallbackAssets); return; }
+    AIClient.uploadCharacterAssets(payload).then(function(data) {
+      if (!data || data.error || !data.images || !data.images.portrait || !data.images.portrait.url) {
+        addChatMessage('system', '角色图片', '保存图片文件失败: ' + (data ? data.error : '连接失败') + '，已降级为角色卡内数据。');
+        applyAssets(fallbackAssets);
+        return;
+      }
+      applyAssets({ portrait: data.images.portrait.url, avatarFramed: data.images.avatarFramed.url });
     });
   }
 
   function deleteCharacter(tokenId) {
     var token = MapEngine.getTokenById(tokenId); if (!token) return;
     var name = token.displayName || token.name;
-    // 加固：任何一步异常（地图重绘/网络同步/存储）都不阻断删除完成
     try { MapEngine.removeToken(tokenId); } catch (e) {}
     try { localStorage.removeItem('trpg_sheet_' + tokenId); } catch (e) {}
     refreshCharacterList();
@@ -3299,7 +4170,7 @@ refreshModuleList();
   }
 
   function rollAllInitiative() {
-    var tokens = MapEngine.getAllTokens(); if (!tokens.length) return;
+    var tokens = MapEngine.getAllCharacterTokens ? MapEngine.getAllCharacterTokens() : MapEngine.getAllTokens(); if (!tokens.length) return;
     var initiatives = tokens.map(function(t) {
       var bonus = 0;
       if (t.data) bonus = parseInt(t.data.initiative) || parseInt(t.data.Initiative) || parseInt(t.data.Init) || parseInt(t.data['先攻']) || parseInt(t.data['先攻加值']) || 0;
@@ -3486,6 +4357,22 @@ refreshModuleList();
     _el('setting-range-color').addEventListener('change', function() { MapEngine.setRangeColor(this.value); });
     _el('setting-cell-size').addEventListener('change', function() { MapEngine.setCellSize(parseInt(this.value)||50); });
 
+    // 全局玩家昵称：设置页定义，创建/加入房间与房间内改名共用（覆盖旧房间独立昵称系统）
+    var nickInput = _el('setting-player-nickname');
+    if (nickInput) {
+      try { nickInput.value = localStorage.getItem('trpg_player_nickname') || ''; } catch (e) {}
+      var saveNick = function() {
+        var v = (nickInput.value || '').trim();
+        try {
+          if (v) { localStorage.setItem('trpg_player_nickname', v); localStorage.removeItem('trpg_player_name'); }
+          else { localStorage.removeItem('trpg_player_nickname'); }
+        } catch (e) {}
+        addChatMessage('system', '玩家', v ? '全局玩家昵称已设为「' + v + '」（加入房间时默认使用）。' : '已清除全局玩家昵称。');
+      };
+      _el('btn-save-nickname').addEventListener('click', saveNick);
+      nickInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') saveNick(); });
+    }
+
     // 提供商切换
     _el('setting-provider').addEventListener('change', function() {
       var v = this.value;
@@ -3581,18 +4468,37 @@ refreshModuleList();
     _el('btn-export-data').addEventListener('click', exportAllData);
     _el('btn-import-data').addEventListener('click', function() { _el('import-file-input').click(); });
     _el('import-file-input').addEventListener('change', importAllData);
-    _el('btn-reset-all').addEventListener('click', function() {
-      if (!confirm('确定要重置全部数据吗？此操作不可撤销。')) return;
-      MapEngine.clearTokens();
-      _chatHistory = [];
-      try { localStorage.removeItem(CHAT_LOG_KEY); } catch (e) {}
-      var cm = _el('chat-messages'); if (cm) cm.innerHTML = '';
-      refreshCharacterList();
-      var de = _el('character-detail'); if (de) de.style.display = 'none';
-      AIClient.clearHistory();
-      AIClient.clearRolls();
-      addChatMessage('system', '重置', '所有数据已重置。');
+    // 设置页：重置/删除当前冒险（与冒险管理面板共用逻辑；默认冒险删除按钮禁用）
+    function updateAdventureActionButtons() {
+      var delBtn = _el('btn-delete-adventure');
+      if (!delBtn) return;
+      var isDefault = (_currentAdventure || '默认') === '默认';
+      delBtn.disabled = isDefault;
+    }
+    var resetAdvBtn = _el('btn-reset-adventure');
+    if (resetAdvBtn) resetAdvBtn.addEventListener('click', function() {
+      var adv = _currentAdventure || '默认';
+      dlgConfirm('重置冒险', '重置冒险「' + adv + '」？\n将清空全部剧情/战斗/系统会话与带团进度，玩家角色卡与立绘保留。', function(ok) {
+        if (!ok) return;
+        dlgConfirm('再次确认', '再次确认：重置后剧情记录不可恢复，角色卡保留。确定重置？', function(ok2) {
+          if (!ok2) return;
+          performAdventureReset(adv);
+        });
+      });
     });
+    var delAdvBtn = _el('btn-delete-adventure');
+    if (delAdvBtn) delAdvBtn.addEventListener('click', function() {
+      var adv = _currentAdventure || '默认';
+      if (adv === '默认') { dlgAlert('提示', '「默认」冒险不可删除。'); return; }
+      dlgConfirm('删除冒险', '彻底删除冒险「' + adv + '」？\n此操作将删除全部本地文件（含所有频道会话），不可恢复！', function(ok) {
+        if (!ok) return;
+        dlgConfirm('再次确认', '再次确认：冒险「' + adv + '」将被彻底删除，确定？', function(ok2) {
+          if (!ok2) return;
+          performAdventureDelete(adv);
+        });
+      });
+    });
+    updateAdventureActionButtons();
   }
 
   function getServerUrl() {
@@ -3738,8 +4644,26 @@ refreshModuleList();
 
   // ── 网络/房间 ────────────────────────────────────
 
+  function refreshGMPanelAccess() {
+    var frame = _el('gm-panel-frame');
+    if (!frame) return;
+    var src = frame.getAttribute('src') || '';
+    frame.setAttribute('src', src.replace(/([?&])accessRefresh=\d+/, '$1accessRefresh=' + Date.now()) + (src.indexOf('accessRefresh=') >= 0 ? '' : (src.indexOf('?') >= 0 ? '&' : '?') + 'accessRefresh=' + Date.now()));
+  }
+
   function setupNetwork() {
     Network.connect();
+
+    // 联机：向房间广播我的当前角色（私聊/玩家列表用它显示角色头像与名字）
+    function broadcastMyCharacter() {
+      if (!(Network.isConnected && Network.isConnected()) || !Network.getRoomCode || !Network.getRoomCode()) return;
+      try {
+        var cid = localStorage.getItem(advKey('trpg_my_character')) || localStorage.getItem('trpg_my_character') || '';
+        if (!cid) return;
+        var t = MapEngine.getTokenById(cid);
+        if (t && Network.sendPlayerCharacter) Network.sendPlayerCharacter(t);
+      } catch (e) {}
+    }
 
     Network.onRoomCreated = function(data) {
       var disp = _el('room-display');
@@ -3750,10 +4674,11 @@ refreshModuleList();
       }
       addChatMessage('system', '房间', '房间已创建！码: ' + data.code + '。点击顶部房间码复制链接发给朋友。');
       updateAIControls();
-      // 2026-08-06：GM 创建房间后把本地已有角色全量同步到房间（玩家加入即见）
+      refreshGMPanelAccess();
       if (Network.isConnected() && MapEngine.getAllTokens().length) {
         setTimeout(function () { Network.sendTokenSyncAll(); }, 300);
       }
+      setTimeout(broadcastMyCharacter, 500);
       // 我的名字按钮（GM 名）
       var mn = _el('btn-my-name');
       if (mn) { mn.style.display = ''; mn.textContent = '👤 ' + ((Network.getMyName && Network.getMyName()) || data.myName || '房主'); }
@@ -3767,11 +4692,10 @@ refreshModuleList();
       }
       addChatMessage('system', '房间', '已加入房间: ' + data.code);
       updateAIControls();
-      // 2026-08-06：我的名字按钮（玩家名=身份）
+      refreshGMPanelAccess();
+      setTimeout(broadcastMyCharacter, 500);
       var mn2 = _el('btn-my-name');
       if (mn2) { mn2.style.display = ''; mn2.textContent = '👤 ' + ((Network.getMyName && Network.getMyName()) || data.myName || '未命名'); }
-      // 2026-08-05：接入房间自动载入 GM 的开发内容（规则书+插件+界面框架）
-      // 本地校验：当前已加载同一规则书且内容未变则跳过（不重复下载）
       if (data.system) {
         if (_selectedRuleSystem === data.system && _currentAdventure === (data.adventure || '默认')) {
           addChatMessage('system', '房间', '规则书「' + data.system + '」已在本地，无需重复载入。');
@@ -3787,10 +4711,9 @@ refreshModuleList();
     };
 
     Network.onRoomError = function(msg) {
-      alert(msg);
+      dlgAlert('提示', msg);
     };
 
-    // 2026-08-05：GM 内容更新 → 玩家端全量重载（本地校验：未变化的文件不重复下载，见 plugins.js 缓存）
     Network.onContentUpdated = function(data) {
       addChatMessage('system', '房间', '房主更新了内容，正在同步最新版本…');
       if (_selectedRuleSystem) {
@@ -3812,31 +4735,36 @@ refreshModuleList();
         disp.innerHTML = '<span class="room-code">' + code + '</span><span class="room-url-hint">' + count + '人在线</span>';
         disp.className = 'room-info active';
       }
-      // 2026-08-06：联机时显示"我的名字"按钮（玩家名=身份，可改名）
       var mn = _el('btn-my-name');
       if (mn) {
         var my = (Network.getMyName && Network.getMyName()) || '';
         mn.style.display = code ? '' : 'none';
         mn.textContent = '👤 ' + (my || '未命名');
-        mn.title = '我的玩家名：' + (my || '未命名') + '（同名进入房间=同一玩家；点击改名）';
+        mn.title = '我的全局昵称：' + (my || '未命名') + '（同名进入房间=同一玩家；点击改名）';
       }
       updateAIControls();
+      refreshGMPanelAccess();
     };
 
-    // 2026-08-06：改名（身份变更——旧名创建的角色归属自动转给新名，GM 可再转交）
+    Network.onRoleUpdated = function(data) {
+      updateAIControls();
+      refreshGMPanelAccess();
+      addChatMessage('system', '房间', (data.name || '玩家') + ' 的房间身份已切换为 ' + (data.role === 'gm' ? '真人GM' : '玩家') + '。');
+    };
+
     var myNameBtn = _el('btn-my-name');
     if (myNameBtn) myNameBtn.addEventListener('click', function() {
       var cur = (Network.getMyName && Network.getMyName()) || '';
-      var nn = prompt('你的玩家名（身份标识，同名进入=同一玩家）', cur);
-      if (nn === null) return;
-      nn = nn.trim();
-      if (!nn || nn === cur) return;
-      Network.renameMe(nn);
-      addChatMessage('system', '房间', '已改名为「' + nn + '」（你创建的角色归属将转给新名字）。');
+      dlgPrompt('全局昵称', '全局玩家昵称（设置页可定义，加入房间默认使用；在线重名会被拒绝）', cur, function(nn) {
+        if (nn === null) return;
+        nn = (nn || '').trim();
+        if (!nn || nn === cur) return;
+        Network.renameMe(nn);
+        addChatMessage('system', '房间', '全局昵称已改为「' + nn + '」（你创建的角色归属将转给新名字）。');
+      });
     });
 
     Network.onChat = function(data) {
-      // 2026-08-06：聊天显示"角色名（玩家名）"
       var sender = (data.characterName && data.characterName !== data.sender)
         ? data.characterName + '（' + (data.sender || '玩家') + '）'
         : (data.sender || '玩家');
@@ -3847,11 +4775,9 @@ refreshModuleList();
       handleRemoteAIChat(data);
     };
 
-    // 2026-08-05 条目化：远端编辑/撤回同步
     Network.onChatEdited = function(data) { handleRemoteChatEdited(data); };
     Network.onChatRetracted = function(data) { handleRemoteChatRetracted(data); };
 
-    // 2026-08-06 联机权限：服务端拒绝（角色被他人/GM 修改权限拦截）→ 提示 + 回滚本地为合法镜像
     Network.onPermDenied = function(data) {
       addChatMessage('system', '权限', (data && data.message) || '无权限修改该角色（只读）。');
       if (data && data.token) {
@@ -3863,7 +4789,6 @@ refreshModuleList();
         writeAllPermSnapshots();
       }
     };
-    // 2026-08-06：角色控制权转交广播（GM 转交 owner）
     Network.onTokenUpdated = function(data) {
       if (data && data.id) {
         var t = MapEngine.getTokenById(data.id);
@@ -3880,21 +4805,70 @@ refreshModuleList();
     };
 
     // 房间按钮
-_el('btn-create-room').addEventListener('click', function() {
-if (!Network.isConnected()) {
-addChatMessage('system', '房间', 'SoloTrpg后端未连接。请运行 start.bat 或 SoloTrpg.exe。');
-return;
-}
-// 2026-08-06：GM 玩家名（房主身份=玩家名；持久于本机，同名重进=同一 GM）
-var gmName = prompt('你的玩家名（房主/GM，可在角色面板改名）', (Network.getMyName && Network.getMyName()) || '房主');
-if (gmName === null) return;
-gmName = (gmName || '').trim() || '房主';
-// 2026-08-05：房间绑定 GM 当前规则书+冒险
-Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmName);
-});
+    _el('btn-create-room').addEventListener('click', function() {
+      if (!Network.isConnected()) {
+        addChatMessage('system', '房间', 'SoloTrpg后端未连接。请运行 start.bat 或 SoloTrpg.exe。');
+        return;
+      }
+      var nameEl = _el('create-room-name');
+      if (nameEl) nameEl.value = (Network.getMyName && Network.getMyName()) || '';
+      loadCreateRoomOptions();
+      openModal('create-room-modal');
+    });
+
+    function loadCreateRoomOptions() {
+      // 规则系统下拉
+      fetch(getServerUrl() + '/api/rules/list').then(function(r) { return r.json(); })
+        .then(function(list) {
+          var sysSel = _el('create-room-system');
+          if (!sysSel) return;
+          sysSel.innerHTML = '<option value="">— 选择规则系统 —</option>' +
+            (Array.isArray(list) ? list.map(function(s) { return '<option value="' + _esc(s.name) + '">' + _esc(s.name) + '</option>'; }).join('') : '');
+          var cur = _selectedRuleSystem || '';
+          if (cur) sysSel.value = cur;
+          loadCreateRoomAdventures(sysSel.value);
+        })
+        .catch(function() {});
+      // 默认名字（房主名）
+      var nm = _el('create-room-name');
+      if (nm && !nm.value) nm.value = (Network.getMyName && Network.getMyName()) || '房主';
+    }
+    function loadCreateRoomAdventures(system) {
+      var advSel = _el('create-room-adventure');
+      if (!advSel) return;
+      advSel.innerHTML = '<option value="默认">默认</option>';
+      if (!system) return;
+      fetch(getServerUrl() + '/api/adventures/list?system=' + encodeURIComponent(system)).then(function(r) { return r.json(); })
+        .then(function(list) {
+          if (!Array.isArray(list) || !list.length) return;
+          var active = list.filter(function(a) { return !a.archived; });
+          advSel.innerHTML = '<option value="默认">默认</option>' +
+            active.map(function(a) { return '<option value="' + _esc(a.name) + '">' + _esc(a.name) + '</option>'; }).join('');
+        })
+        .catch(function() {});
+    }
+    var createSysSel = _el('create-room-system');
+    if (createSysSel) createSysSel.addEventListener('change', function() { loadCreateRoomAdventures(this.value); });
+
+    _el('btn-create-confirm').addEventListener('click', function() {
+      var sys = _el('create-room-system').value;
+      var adv = _el('create-room-adventure').value || '默认';
+      var name = (_el('create-room-name').value || '').trim() || '房主';
+      var role = _el('create-room-role').value === 'gm' ? 'gm' : 'player';
+      if (!sys) {
+        if (window.UIManager.dialog) window.UIManager.dialog.alert('创建房间', '请先选择规则系统。');
+        else dlgAlert('提示', '请先选择规则系统');
+        return;
+      }
+      Network.createRoom(sys, adv, name, role);
+      closeModal('create-room-modal');
+    });
+
+    _el('btn-create-cancel').addEventListener('click', function() {
+      closeModal('create-room-modal');
+    });
 
     _el('btn-join-room').addEventListener('click', function() {
-      // 2026-08-06：预填已有玩家名（玩家名=身份，同名进入=同一玩家）；加载注册表（离线玩家下拉 + 输入匹配）
       var nameEl = _el('join-room-name');
       if (nameEl) {
         var saved = (Network.getMyName && Network.getMyName()) || '';
@@ -3904,7 +4878,6 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
       openModal('join-room-modal');
     });
 
-    // 2026-08-06：加载玩家名注册表——"当前无人的玩家"下拉 + 输入自动匹配（方便本人重进）
     function loadPlayerNameOptions() {
       fetch(getServerUrl() + '/api/players/names').then(function (r) { return r.json(); })
         .then(function (data) {
@@ -3945,19 +4918,21 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     // 关闭服务（GUI 无控制台时的退出途径，仅本机生效）
     var shutdownBtn = _el('btn-shutdown-server');
     if (shutdownBtn) shutdownBtn.addEventListener('click', function() {
-      if (!confirm('确定要关闭 SoloTrpg 服务并退出吗？')) return;
-      fetch(getServerUrl() + '/api/shutdown', { method: 'POST' })
-        .then(function(r) { return r.json().catch(function() { return {}; }); })
-        .then(function(d) {
-          if (d.success) {
-            addChatMessage('system', '服务', '服务正在关闭，页面即将失效。');
-          } else {
-            addChatMessage('system', '服务', '关闭失败：' + (d.error || '未知错误'));
-          }
-        })
-        .catch(function() {
-          addChatMessage('system', '服务', '关闭请求失败（服务可能已停止）。');
-        });
+      dlgConfirm('关闭服务', '确定要关闭 SoloTrpg 服务并退出吗？', function(ok) {
+        if (!ok) return;
+        fetch(getServerUrl() + '/api/shutdown', { method: 'POST' })
+          .then(function(r) { return r.json().catch(function() { return {}; }); })
+          .then(function(d) {
+            if (d.success) {
+              addChatMessage('system', '服务', '服务正在关闭，页面即将失效。');
+            } else {
+              addChatMessage('system', '服务', '关闭失败：' + (d.error || '未知错误'));
+            }
+          })
+          .catch(function() {
+            addChatMessage('system', '服务', '关闭请求失败（服务可能已停止）。');
+          });
+      });
     });
 
     // 点击房间码复制链接
@@ -3969,32 +4944,39 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
         _el('room-display').innerHTML = '已复制！';
         setTimeout(function() { _el('room-display').innerHTML = orig; }, 1500);
       }).catch(function() {
-        prompt('复制此链接发给朋友：', url);
+        dlgPrompt('房间链接', '复制此链接发给朋友：', url, function() {});
       });
     });
 
-    // 钩子：标记操作时同步到网络（2026-08-06：角色归属=创建者玩家名；本地预检只读，服务端校验兜底；
-    // canEditCharacter/getMyCharacterName/writePermSnapshot 为模块级函数，见角色列表区）
     var _suppressNet = false; // 回滚/远端应用时跳过网络广播
 
     var origAddToken = MapEngine.addToken;
     MapEngine.addToken = function(opts) {
       var token = origAddToken(opts);
-      // 2026-08-06：归属=创建者玩家名；新建角色自动成为"我的角色"
       if (Network.isConnected()) {
         if (!token.owner) token.owner = (Network.getMyName && Network.getMyName()) || '';
-        try { localStorage.setItem('trpg_my_character', token.id); } catch (e) {}
+        if ((token.kind || 'character') === 'character') {
+          try { localStorage.setItem(advKey('trpg_my_character'), token.id); localStorage.removeItem('trpg_my_character'); } catch (e) {}
+        }
         Network.sendTokenAdd(token);
       }
       return token;
     };
     var origRemoveToken = MapEngine.removeToken;
     MapEngine.removeToken = function(id) {
-      // 2026-08-06：删除角色本地预检（只读角色不可删；服务端校验兜底）
-      if (!_suppressNet && Network.isConnected() && !canEditCharacter(id)) {
-        var td = MapEngine.getTokenById(id);
-        addChatMessage('system', '权限', '该角色由「' + (td && td.owner ? td.owner : '其他玩家') + '」创建，只有创建者或 GM 可删除（当前为只读）。');
-        return;
+      var td = MapEngine.getTokenById(id);
+      if (!_suppressNet && Network.isConnected()) {
+        if (td && (td.kind || 'character') === 'character' && !canEditCharacter(id)) {
+          addChatMessage('system', '权限', '该角色由「' + (td.owner || '其他玩家') + '」创建，只有创建者或 GM 可删除（当前为只读）。');
+          return;
+        }
+        if (td && (td.kind || 'character') !== 'character') {
+          var myName = (Network.getMyName && Network.getMyName()) || '';
+          if (!isGMUser() && td.owner && td.owner !== myName) {
+            addChatMessage('system', '权限', '只有该地图标记的创建者或真人 GM 可以删除。');
+            return;
+          }
+        }
       }
       origRemoveToken(id);
       if (Network.isConnected() && !_suppressNet) Network.sendTokenRemove(id);
@@ -4006,9 +4988,16 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
         // 数据修改（非地图位置）预检权限：只读角色直接拦截并提示
         if (!isMove) {
           var t0 = MapEngine.getTokenById(id);
-          if (t0 && !canEditCharacter(id)) {
+          if (t0 && (t0.kind || 'character') === 'character' && !canEditCharacter(id)) {
             addChatMessage('system', '权限', '该角色由「' + (t0.owner || '其他玩家') + '」创建，只有创建者或 GM 可修改（当前为只读）。');
             return t0;
+          }
+          if (t0 && (t0.kind || 'character') !== 'character') {
+            var myName0 = (Network.getMyName && Network.getMyName()) || '';
+            if (!isGMUser() && t0.owner && t0.owner !== myName0) {
+              addChatMessage('system', '权限', '只有该地图标记的创建者或真人 GM 可以修改。');
+              return t0;
+            }
           }
         }
       }
@@ -4024,7 +5013,6 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     };
   }
 
-  // 覆写addChatMessage以同步到网络（2026-08-06：聊天携带当前绑定角色名，远端显示"角色名（玩家名）"；骰子走 sendDiceRoll 专用通道）
   var _origAddChat = addChatMessage;
   addChatMessage = function(type, sender, text, channelId) {
     _origAddChat(type, sender, text, channelId);
@@ -4085,8 +5073,6 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
   var checkItems = [];
 
   function setupCheckTool() {
-    // 2026-08-05 引擎化：检定工具入口已迁移到 GM 面板（规则书 ui/panels/gm.html，经 parent.UIManager.openDiceModal 调用）；
-    // 宿主仅保留模态框本体逻辑，入口按钮绑定做 null 安全（旧布局残留时仍可用）
     var btn = _el('btn-check-tool');
     if (btn) btn.addEventListener('click', function() {
       openModal('check-modal');
@@ -4187,23 +5173,34 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     closeModal('check-modal');
   }
 
-  function onMapTokenSelected(token) {
-    if (token) {
+  function onMapTokenSelected(token, anchor) {
+    if (token && (token.kind || 'character') === 'character') {
+      closeMapFloatEditor(false);
       var rightTab = document.querySelector('.panel-tab[data-tab="characters"]');
       if (rightTab && typeof rightTab.click === 'function') rightTab.click();
       selectCharacter(token.id);
-    } else {
-      _lastDetailTokenId = null;
-      var le = _el('character-list'); if (le) le.querySelectorAll('.character-list-item').forEach(function(i) { i.classList.remove('selected'); });
+      return;
     }
+    _lastDetailTokenId = null;
+    var le = _el('character-list');
+    if (le) le.querySelectorAll('.character-list-item').forEach(function(i) { i.classList.remove('selected'); });
+    if (token) showMapTokenEditor(token, anchor || { clientX: 80, clientY: 80 });
+    else closeMapFloatEditor(false);
   }
 
-  function onMapCoordUpdate(gx, gy) {
+  function onMapTokenMoved(token) {
+    if (!token) return;
+    if (Network && Network.isConnected && Network.isConnected() && Network.sendTokenMove) {
+      Network.sendTokenMove(token.id, token.gridX, token.gridY);
+    }
+    if ((token.kind || 'character') === 'character') persistCharacters();
+  }
+
+  function onMapCoordUpdate(gx, gy, info) {
     var cd = _el('coord-display');
-    if (cd) cd.innerHTML = 'X: ' + Math.round(gx) + ' &nbsp; Y: ' + Math.round(gy);
+    if (cd) cd.innerHTML = 'X: ' + Math.round(gx) + ' &nbsp; Y: ' + Math.round(gy) + (info && info.map ? ' &nbsp; ' + _esc(info.map.scaleLabel) : '');
   }
 
-  // ── AVG 双人立绘舞台（2026-08-05 全站重构）──
   // 规则：开始对话的角色出现在左侧，第二个不同角色出现在右侧；
   // 当前发言者立绘正常高亮，另一方压暗（filter: brightness）；<portrait clear> 清空舞台。
   // 频道需标记 avg（剧情频道默认开启；创建频道时可勾选"显示发言立绘"）。
@@ -4235,7 +5232,7 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
 
   // 按角色名在当前角色卡中找到立绘/头像源（精确匹配 → 包含匹配）
   function findPortraitSource(name) {
-    var tokens = MapEngine.getAllTokens() || [];
+    var tokens = (MapEngine.getAllCharacterTokens ? MapEngine.getAllCharacterTokens() : MapEngine.getAllTokens()) || [];
     var t = null;
     for (var i = 0; i < tokens.length; i++) {
       var n = tokens[i].displayName || tokens[i].name || '';
@@ -4345,9 +5342,6 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     cont.appendChild(div);
   }
 
-  // ── 插图系统（2026-08-05）：GM/AI 以插图临时代替地图（过场/无需移动的场景）──
-  // AI 指令：<illustration src="URL或模组路径" caption="标题">...</illustration> 或 <illustration clear>
-  // GM 工具：UIManager.showIllustration(url, caption) / hideIllustration()
   function showIllustration(url, caption) {
     try {
       hideIllustration();
@@ -4405,8 +5399,6 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
   function simpleMarkdown(text) {
     if (!text) return '';
     var html = _esc(text);
-    // ── GM标记渲染层（AI输出标记→宿主渲染精美界面，对标SillyTavern正则自动卡） ──
-    // 1) <dice> 检定卡片（6行固定字段：发动技能/目标/情境/检定细节/判定结果/结果描述）
     html = html.replace(/&lt;dice&gt;([\s\S]*?)&lt;\/dice&gt;/gi, function(m, body) {
       return renderDiceCard(body);
     });
@@ -4431,7 +5423,6 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/(?<!\w)\*(.+?)\*(?!\w)/g, '<em>$1</em>');
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    // 2026-08-05：图片语法 ![alt](url) → <img>（AI 引用模组/规则资源时动态加载显示，如 /api/module/file?...）
     html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:6px 0;" loading="lazy">');
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
     html = html.replace(/\n/g, '<br>');
@@ -4605,7 +5596,7 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
       }
     } else {
       // 无当前选中角色：尝试从 token 集合中找第一个
-      var all = MapEngine.getAllTokens();
+      var all = MapEngine.getAllCharacterTokens ? MapEngine.getAllCharacterTokens() : MapEngine.getAllTokens();
       if (all && all.length === 1) {
         targetToken = all[0];
         result = applyUpdateVariable(body, targetToken);
@@ -4738,10 +5729,467 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     return html;
   }
 
+
+  var _mapFloatRangeId = null;
+  var _mapFloatTokenId = null;
+  var _mapFloatDraft = false;
+  var _mapTokenImageData = '';
+
+  function setupModernMapWorkspace() {
+    var bind = function(id, evt, fn) { var el = _el(id); if (el) el.addEventListener(evt, fn); };
+    bind('btn-map-add', 'click', function() {
+      var count = (MapEngine.getMaps ? MapEngine.getMaps().length : 0) + 1;
+      MapEngine.addMap({ name: '地图 ' + count });
+      openMapSettings();
+    });
+    bind('btn-map-settings', 'click', openMapSettings);
+    bind('btn-add-map-token', 'click', openMapTokenModal);
+    bind('btn-map-settings-cancel', 'click', function() { closeModal('map-settings-modal'); });
+    bind('btn-map-settings-save', 'click', saveMapSettings);
+    bind('btn-map-delete', 'click', function() {
+      var current = MapEngine.getActiveMapSummary();
+      if (!current) return;
+      dlgConfirm('删除地图', '删除地图「' + current.name + '」？地图内的标记、范围与测量也会删除。', function(ok) {
+        if (!ok) return;
+        if (!MapEngine.removeMap(current.id)) { addChatMessage('system', '地图', '至少保留一张地图。'); return; }
+        closeModal('map-settings-modal');
+      });
+    });
+    bind('btn-map-bg-remove', 'click', function() {
+      MapEngine.removeBackgroundImage();
+      var url = _el('map-setting-bg-url'); if (url) url.value = '';
+      var file = _el('map-setting-bg-file'); if (file) file.value = '';
+    });
+    bind('btn-map-token-cancel', 'click', function() { closeModal('map-token-modal'); });
+    bind('btn-map-token-save', 'click', saveMapToken);
+    bind('map-token-image', 'change', function() {
+      var file = this.files && this.files[0];
+      _mapTokenImageData = '';
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) { _mapTokenImageData = String(e.target.result || ''); };
+      reader.readAsDataURL(file);
+    });
+    var tabs = _el('map-tabs');
+    if (tabs) tabs.addEventListener('click', function(e) {
+      var tab = e.target.closest && e.target.closest('[data-map-id]');
+      if (!tab) return;
+      MapEngine.switchMap(tab.getAttribute('data-map-id'));
+      refreshCharacterList();
+    });
+    if (tabs) tabs.addEventListener('contextmenu', function(e) {
+      var tab = e.target.closest && e.target.closest('[data-map-id]');
+      if (!tab) return;
+      e.preventDefault();
+      var mid = tab.getAttribute('data-map-id');
+      var summary = MapEngine.getMaps().find(function(m) { return m.id === mid; });
+      if (summary) onMapContextMenu({ clientX: e.clientX, clientY: e.clientY, map: summary });
+    });
+    renderMapTabs(MapEngine.getMaps ? MapEngine.getMaps() : [], MapEngine.getActiveMapSummary ? MapEngine.getActiveMapSummary().id : '');
+  }
+
+  var _mapCtxMenuEl = null;
+  function onMapContextMenu(info) {
+    if (!info) return;
+    // 标签右键：先切换到目标地图，再以该地图为操作对象
+    if (info.map && info.map.id && MapEngine.getActiveMapSummary && MapEngine.getActiveMapSummary().id !== info.map.id) {
+      MapEngine.switchMap(info.map.id);
+      refreshCharacterList();
+    }
+    var current = MapEngine.getActiveMapSummary ? MapEngine.getActiveMapSummary() : null;
+    if (!current) return;
+    // 关闭旧菜单
+    if (_mapCtxMenuEl) { _mapCtxMenuEl.remove(); _mapCtxMenuEl = null; }
+    var menu = document.createElement('div');
+    menu.className = 'map-ctx-menu';
+    menu.style.left = Math.max(8, Math.min(window.innerWidth - 210, info.clientX)) + 'px';
+    menu.style.top = Math.max(8, Math.min(window.innerHeight - 210, info.clientY)) + 'px';
+    var item = function (label, icon, fn, danger) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'map-ctx-item' + (danger ? ' danger' : '');
+      b.innerHTML = '<span class="map-ctx-ic">' + icon + '</span><span>' + label + '</span>';
+      b.addEventListener('click', function () { closeMapCtxMenu(); fn(); });
+      menu.appendChild(b);
+    };
+    item('地图设置', '⚙', function () { openMapSettings(); });
+    item('设置背景', '🖼', function () { openBgModal(); });
+    item('新建地图', '＋', function () { _el('btn-map-add').click(); });
+    if (MapEngine.getMaps && MapEngine.getMaps().length > 1) {
+      item('删除当前地图「' + current.name + '」', '🗑', function () {
+        dlgConfirm('删除地图', '删除地图「' + current.name + '」？地图内的标记、范围与测量也会删除。', function(ok) {
+          if (!ok) return;
+          if (!MapEngine.removeMap(current.id)) { addChatMessage('system', '地图', '至少保留一张地图。'); return; }
+          closeModal('map-settings-modal');
+        });
+      }, true);
+    }
+    document.body.appendChild(menu);
+    _mapCtxMenuEl = menu;
+    setTimeout(function () {
+      document.addEventListener('pointerdown', closeMapCtxMenuOuter, true);
+      window.addEventListener('blur', closeMapCtxMenu, true);
+    }, 0);
+  }
+  function closeMapCtxMenuOuter(e) {
+    if (_mapCtxMenuEl && !_mapCtxMenuEl.contains(e.target)) closeMapCtxMenu();
+  }
+  function closeMapCtxMenu() {
+    document.removeEventListener('pointerdown', closeMapCtxMenuOuter, true);
+    window.removeEventListener('blur', closeMapCtxMenu, true);
+    if (_mapCtxMenuEl) { _mapCtxMenuEl.remove(); _mapCtxMenuEl = null; }
+  }
+
+  function mapKindLabel(kind) {
+    return { battle: '小队', scene: '场景', world: '世界', dungeon: '区域', custom: '自定义' }[kind] || '地图';
+  }
+
+  function renderMapTabs(maps, activeId) {
+    var el = _el('map-tabs'); if (!el) return;
+    el.innerHTML = (maps || []).map(function(map) {
+      return '<button type="button" class="map-tab' + (map.id === activeId ? ' active' : '') + '" data-map-id="' + _esc(map.id) + '" title="切换到 ' + _esc(map.name) + '">' +
+        '<span class="map-tab-name">' + _esc(map.name) + '</span></button>';
+    }).join('');
+  }
+
+  function onActiveMapChanged(map) {
+    if (!map) return;
+    renderMapTabs(MapEngine.getMaps(), map.id);
+    var grid = _el('toggle-grid'); if (grid) grid.checked = map.settings.showGrid !== false;
+    var snap = _el('toggle-snap'); if (snap) snap.checked = map.settings.snapToGrid !== false;
+    var size = _el('grid-size-select'); if (size) {
+      var value = String(map.settings.cellSize || 50);
+      if (!Array.prototype.some.call(size.options, function(o) { return o.value === value; })) size.appendChild(new Option(value, value));
+      size.value = value;
+    }
+    updateZoomLabel();
+  }
+
+  function openMapSettings() {
+    var map = MapEngine.getActiveMapSummary(); if (!map) return;
+    var st = map.settings || {};
+    var set = function(id, value) { var el = _el(id); if (el) el.value = value == null ? '' : value; };
+    set('map-setting-name', map.name);
+    set('map-setting-scale', st.scaleDistance || 5);
+    set('map-setting-unit', st.scaleUnit || 'ft');
+    set('map-setting-cell', st.cellSize || 50);
+    set('map-setting-bg-url', st.backgroundSrc && !/^data:/i.test(st.backgroundSrc) ? st.backgroundSrc : '');
+    set('map-setting-bg-opacity', st.backgroundOpacity == null ? 0.82 : st.backgroundOpacity);
+    set('map-setting-bg-x', st.bgOffsetGridX || 0);
+    set('map-setting-bg-y', st.bgOffsetGridY || 0);
+    set('map-setting-bg-color', st.bgColor || '#1a1a2e');
+    set('map-setting-grid-color', st.gridColor || '#3a3a5c');
+    set('map-setting-range-color', st.rangeColor || '#ff6b6b');
+    var grid = _el('map-setting-grid'); if (grid) grid.checked = st.showGrid !== false;
+    var snap = _el('map-setting-snap'); if (snap) snap.checked = st.snapToGrid !== false;
+    var f = _el('map-setting-bg-file'); if (f) f.value = '';
+    openModal('map-settings-modal');
+  }
+
+  function readFileDataUrl(input) {
+    return new Promise(function(resolve) {
+      var file = input && input.files && input.files[0];
+      if (!file) { resolve(''); return; }
+      var reader = new FileReader();
+      reader.onload = function(e) { resolve(String(e.target.result || '')); };
+      reader.onerror = function() { resolve(''); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function saveMapSettings() {
+    var map = MapEngine.getActiveMapSummary(); if (!map) return;
+    var n = function(id, fallback) { var el = _el(id); var v = el ? Number(el.value) : NaN; return isFinite(v) ? v : fallback; };
+    var v = function(id, fallback) { var el = _el(id); return el ? el.value : fallback; };
+    var fileSrc = await readFileDataUrl(_el('map-setting-bg-file'));
+    var urlSrc = String(v('map-setting-bg-url', '') || '').trim();
+    var oldSrc = map.settings.backgroundSrc || '';
+    var backgroundSrc = fileSrc || urlSrc || oldSrc;
+    MapEngine.updateMap(map.id, {
+      name: String(v('map-setting-name', map.name) || '').trim() || map.name,
+      settings: {
+        scaleDistance: Math.max(0.0001, n('map-setting-scale', 5)),
+        scaleUnit: v('map-setting-unit', 'ft'),
+        cellSize: Math.max(10, n('map-setting-cell', 50)),
+        showGrid: !!(_el('map-setting-grid') && _el('map-setting-grid').checked),
+        snapToGrid: !!(_el('map-setting-snap') && _el('map-setting-snap').checked),
+        backgroundSrc: backgroundSrc,
+        backgroundOpacity: Math.max(0, Math.min(1, n('map-setting-bg-opacity', .82))),
+        bgOffsetGridX: n('map-setting-bg-x', 0),
+        bgOffsetGridY: n('map-setting-bg-y', 0),
+        bgColor: v('map-setting-bg-color', '#1a1a2e'),
+        gridColor: v('map-setting-grid-color', '#3a3a5c'),
+        rangeColor: v('map-setting-range-color', '#ff6b6b')
+      }
+    });
+    closeModal('map-settings-modal');
+    onActiveMapChanged(MapEngine.getActiveMapSummary());
+  }
+
+  function openMapTokenModal() {
+    _mapTokenImageData = '';
+    var name = _el('map-token-name'); if (name) name.value = '';
+    var icon = _el('map-token-icon'); if (icon) icon.value = '●';
+    var note = _el('map-token-note'); if (note) note.value = '';
+    var image = _el('map-token-image'); if (image) image.value = '';
+    openModal('map-token-modal');
+    setTimeout(function() { if (name) name.focus(); }, 80);
+  }
+
+  function saveMapToken() {
+    var name = String((_el('map-token-name') || {}).value || '').trim();
+    if (!name) { addChatMessage('system', '地图', '请填写地图标记名称。'); return; }
+    var wrapper = _el('map-wrapper');
+    var rect = wrapper ? wrapper.getBoundingClientRect() : { left: 0, top: 42, width: window.innerWidth, height: window.innerHeight - 42 };
+    var center = MapEngine.screenToGrid(rect.width / 2, rect.height / 2);
+    var token = MapEngine.addToken({
+      kind: (_el('map-token-kind') || {}).value || 'object',
+      name: name, displayName: name,
+      icon: String((_el('map-token-icon') || {}).value || '●'),
+      color: (_el('map-token-color') || {}).value || '#4ecdc4',
+      shape: (_el('map-token-shape') || {}).value || 'circle',
+      size: Math.max(.25, Number((_el('map-token-size') || {}).value) || 1),
+      avatarUrl: _mapTokenImageData,
+      gridX: Math.round(center.x), gridY: Math.round(center.y),
+      data: { mapToken: true, note: String((_el('map-token-note') || {}).value || '') }
+    });
+    closeModal('map-token-modal');
+  }
+
+  function mapTokenEditorHtml(token) {
+    var data = token.data || {};
+    return '<div class="map-float-head"><span>◆ 地图标记</span><span class="spacer"></span><button type="button" class="map-float-close" data-map-float-close>✕</button></div>' +
+      '<div class="map-float-grid">' +
+      '<label>名称</label><input data-token-field="name" value="' + _esc(token.displayName || token.name || '') + '">' +
+      '<label>类型</label><select data-token-field="kind"><option value="object">物体</option><option value="party">小队</option><option value="location">地点</option><option value="hazard">危险</option><option value="note">标注</option></select>' +
+      '<label>图标</label><input data-token-field="icon" maxlength="6" value="' + _esc(token.icon || '●') + '">' +
+      '<label>形状</label><select data-token-field="shape"><option value="circle">圆形</option><option value="square">方形</option></select>' +
+      '<label>大小</label><input data-token-field="size" type="number" min="0.25" step="0.25" value="' + _esc(String(token.size || 1)) + '">' +
+      '<label>颜色</label><input data-token-field="color" type="color" value="' + _esc(token.color || '#4ecdc4') + '">' +
+      '<label>说明</label><textarea data-token-note rows="3" placeholder="记录该标记代表的对象或地点">' + _esc(data.note || '') + '</textarea>' +
+      '</div><div class="map-float-hint">左键选中与拖动标记；右键拖动地图；对顶部地图条目右键可设置/删除地图。</div>' +
+      '<div class="map-float-actions"><button type="button" class="btn-small danger" data-token-delete>删除标记</button></div>';
+  }
+
+  function showMapTokenEditor(token, anchor) {
+    if (!token || (token.kind || 'character') === 'character') return;
+    var box = _el('map-float-editor'); if (!box) return;
+    _mapFloatDraft = false; _mapFloatRangeId = null; _mapFloatTokenId = token.id;
+    box.innerHTML = mapTokenEditorHtml(token);
+    var kind = box.querySelector('[data-token-field="kind"]'); if (kind) kind.value = token.kind || 'object';
+    var shape = box.querySelector('[data-token-field="shape"]'); if (shape) shape.value = token.shape || 'circle';
+    var apply = function() {
+      var current = MapEngine.getTokenById(_mapFloatTokenId); if (!current) return;
+      var patch = {};
+      box.querySelectorAll('[data-token-field]').forEach(function(el) {
+        var key = el.getAttribute('data-token-field');
+        var value = key === 'size' ? Math.max(.25, Number(el.value) || 1) : el.value;
+        if (key === 'name') { patch.name = value || '未命名标记'; patch.displayName = patch.name; }
+        else patch[key] = value;
+      });
+      var note = box.querySelector('[data-token-note]');
+      patch.data = Object.assign({}, current.data || {}, { mapToken: true, note: note ? note.value : '' });
+      MapEngine.updateToken(_mapFloatTokenId, patch);
+    };
+    box.querySelectorAll('[data-token-field],[data-token-note]').forEach(function(el) { el.addEventListener(el.tagName === 'TEXTAREA' || el.type === 'text' ? 'input' : 'change', apply); });
+    var close = box.querySelector('[data-map-float-close]'); if (close) close.onclick = function() { closeMapFloatEditor(false); };
+    var del = box.querySelector('[data-token-delete]'); if (del) del.onclick = function() {
+      if (_mapFloatTokenId) MapEngine.removeToken(_mapFloatTokenId);
+      closeMapFloatEditor(false);
+    };
+    positionMapFloat(anchor);
+  }
+
+  function positionMapFloat(anchor) {
+    var box = _el('map-float-editor'); if (!box || !anchor) return;
+    box.style.display = 'block';
+    var left = Math.min(window.innerWidth - 342, Math.max(8, Number(anchor.clientX || 0) + 12));
+    var top = Math.min(window.innerHeight - 390, Math.max(50, Number(anchor.clientY || 0) + 12));
+    box.style.left = left + 'px'; box.style.top = top + 'px';
+  }
+
+  function rangeEditorHtml(range, draft) {
+    var unitOptions = '<option value="ft">尺</option><option value="m">米</option><option value="km">公里</option><option value="mi">英里</option>';
+    return '<div class="map-float-head"><span>' + (draft ? '◎ 新范围' : '◎ 范围设置') + '</span><span class="spacer"></span><button type="button" class="map-float-close" data-map-float-close>✕</button></div>' +
+      '<div class="map-float-grid">' +
+      '<label>类型</label><select data-range-field="type"><option value="circle">圆形/球体</option><option value="cone">锥形</option><option value="line">线形</option><option value="cube">方形/立方体</option></select>' +
+      '<label>实际范围</label><div class="inline-fields"><input data-range-field="distance" type="number" min="0.01" step="any" value="' + _esc(String(range.distance || 20)) + '"><select data-range-field="unit">' + unitOptions + '</select></div>' +
+      '<label data-range-width-label>线宽</label><div class="inline-fields" data-range-width-row><input data-range-field="width" type="number" min="0.01" step="any" value="' + _esc(String(range.width || 5)) + '"><select data-range-field="widthUnit">' + unitOptions + '</select></div>' +
+      '<label data-range-angle-label>锥角</label><input data-range-field="angle" type="number" min="1" max="360" value="' + _esc(String(range.angle || 60)) + '">' +
+      '<label>颜色</label><input data-range-field="color" type="color" value="' + _esc(range.color || '#ff6b6b') + '">' +
+      '<label>材质</label><select data-range-field="material"><option value="soft">半透明</option><option value="solid">实体色</option><option value="hatch">虚线/网纹</option><option value="outline">仅轮廓</option></select>' +
+      '<label>透明度</label><input data-range-field="opacity" type="range" min="0.05" max="0.75" step="0.05" value="' + _esc(String(range.opacity == null ? .22 : range.opacity)) + '">' +
+      '<label>注释</label><textarea data-range-field="note" rows="2" placeholder="例如：黑暗术、警戒区、毒雾">' + _esc(range.note || '') + '</textarea>' +
+      '</div>' +
+      '<div class="map-float-hint">1 格 = ' + _esc(String(MapEngine.getActiveMapSummary().settings.scaleDistance)) + ' ' + _esc(({ft:'尺',m:'米',km:'公里',mi:'英里'})[MapEngine.getActiveMapSummary().settings.scaleUnit] || MapEngine.getActiveMapSummary().settings.scaleUnit) + '。' + (draft ? '移动鼠标确定方向，再次左键固定范围。' : '修改会立即写入当前地图。') + '</div>' +
+      '<div class="map-float-actions">' + (!draft ? '<button type="button" class="btn-small danger" data-range-delete>删除范围</button>' : '<button type="button" class="btn-small" data-range-cancel>取消</button>') + '</div>';
+  }
+
+  function bindRangeEditor(range, draft) {
+    var box = _el('map-float-editor'); if (!box) return;
+    var apply = function() {
+      var patch = {};
+      box.querySelectorAll('[data-range-field]').forEach(function(el) {
+        var key = el.getAttribute('data-range-field');
+        patch[key] = ['distance','width','angle','opacity'].indexOf(key) >= 0 ? Number(el.value) : el.value;
+      });
+      if (draft) MapEngine.updateDraftRange(patch); else if (_mapFloatRangeId) MapEngine.updateRange(_mapFloatRangeId, patch);
+      updateRangeConditionalRows(box, patch.type);
+    };
+    box.querySelectorAll('[data-range-field]').forEach(function(el) { el.addEventListener(el.type === 'range' ? 'input' : 'change', apply); });
+    var type = box.querySelector('[data-range-field="type"]'); if (type) type.value = range.type || 'circle';
+    var unit = box.querySelector('[data-range-field="unit"]'); if (unit) unit.value = range.unit || 'ft';
+    var wu = box.querySelector('[data-range-field="widthUnit"]'); if (wu) wu.value = range.widthUnit || range.unit || 'ft';
+    var material = box.querySelector('[data-range-field="material"]'); if (material) material.value = range.material || 'soft';
+    updateRangeConditionalRows(box, range.type);
+    var close = box.querySelector('[data-map-float-close]'); if (close) close.onclick = closeMapFloatEditor;
+    var cancel = box.querySelector('[data-range-cancel]'); if (cancel) cancel.onclick = closeMapFloatEditor;
+    var del = box.querySelector('[data-range-delete]'); if (del) del.onclick = function() { if (_mapFloatRangeId) MapEngine.removeRange(_mapFloatRangeId); closeMapFloatEditor(); };
+  }
+
+  function updateRangeConditionalRows(box, type) {
+    var showWidth = type === 'line', showAngle = type === 'cone';
+    var wr = box.querySelector('[data-range-width-row]'), wl = box.querySelector('[data-range-width-label]');
+    var al = box.querySelector('[data-range-angle-label]'), ai = box.querySelector('[data-range-field="angle"]');
+    if (wr) wr.style.display = showWidth ? 'flex' : 'none'; if (wl) wl.style.display = showWidth ? '' : 'none';
+    if (al) al.style.display = showAngle ? '' : 'none'; if (ai) ai.style.display = showAngle ? '' : 'none';
+  }
+
+  function closeMapFloatEditor(cancelDraft) {
+    var box = _el('map-float-editor'); if (box) box.style.display = 'none';
+    _mapFloatRangeId = null; _mapFloatTokenId = null; _mapFloatDraft = false;
+    if (cancelDraft !== false && MapEngine.getDraftRange && MapEngine.getDraftRange()) MapEngine.cancelDrafts();
+  }
+
+  function onRangeDraft(range, anchor) {
+    var box = _el('map-float-editor'); if (!box) return;
+    if (!range) { if (_mapFloatDraft) box.style.display = 'none'; _mapFloatDraft = false; return; }
+    if (anchor && anchor.phase === 'start') {
+      _mapFloatDraft = true; _mapFloatRangeId = null; _mapFloatTokenId = null;
+      box.innerHTML = rangeEditorHtml(range, true); bindRangeEditor(range, true); positionMapFloat(anchor);
+    }
+  }
+
+  function onRangeSelected(range, anchor) {
+    if (!range) return;
+    var box = _el('map-float-editor'); if (!box) return;
+    _mapFloatDraft = false; _mapFloatRangeId = range.id; _mapFloatTokenId = null;
+    box.innerHTML = rangeEditorHtml(range, false); bindRangeEditor(range, false);
+    positionMapFloat(anchor || { clientX: 80, clientY: 80 });
+  }
+
+  function onMeasureUpdate(info, anchor) {
+    var hud = _el('map-measure-hud'); if (!hud) return;
+    if (!info) { hud.style.display = 'none'; return; }
+    hud.innerHTML = '<b>📏 ' + _esc(info.label) + '</b><br><span>再次左键固定测量 · Esc 取消</span>';
+    hud.style.display = 'block';
+    if (anchor) {
+      hud.style.left = Math.min(window.innerWidth - 190, Math.max(8, anchor.clientX + 12)) + 'px';
+      hud.style.top = Math.min(window.innerHeight - 80, Math.max(50, anchor.clientY + 12)) + 'px';
+    }
+  }
+
+  function onMeasureComplete(info) {
+    onMeasureUpdate(null);
+    if (info) addChatMessage('system', '测量', '距离：' + info.label + '（' + info.map.name + '）');
+  }
+
+  var _mapSyncTimer = null;
+  var _mapOverlaySyncTimer = null;
+
+  function syncMapStateToRoom() {
+    if (!Network || !Network.isConnected || !Network.isConnected() || !Network.sendMapState) return;
+    if (!(Network.amIHost && Network.amIHost()) && !(Network.amIGM && Network.amIGM())) return;
+    Network.sendMapState(MapEngine.exportState());
+  }
+
+  function syncMapOverlayToRoom() {
+    if (!Network || !Network.isConnected || !Network.isConnected() || !Network.sendMapOverlay || !MapEngine.exportOverlayState) return;
+    Network.sendMapOverlay(MapEngine.exportOverlayState());
+  }
+
+  // ── 世界状态持久化（world-state.json）：地图/token/位置/背景落盘，AI GM 工具可读写；前端双向同步 ──
+  var _worldRev = 0;
+  var _worldSaveTimer = null;
+  var _worldPollStarted = false;
+
+  function saveWorldState() {
+    var sys = _selectedRuleSystem || '', adv = _currentAdventure || '默认';
+    if (!sys) return;
+    try {
+      var state = MapEngine.exportState();
+      fetch(getServerUrl() + '/api/world-state/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: sys, adventure: adv, state: state }) })
+        .then(function(r) { return r.json(); })
+        .then(function(d) { if (d && d.rev) _worldRev = d.rev; })
+        .catch(function() {});
+    } catch (e) {}
+  }
+  function scheduleWorldSave() {
+    clearTimeout(_worldSaveTimer);
+    _worldSaveTimer = setTimeout(saveWorldState, 600);
+  }
+  function pollWorldState() {
+    var sys = _selectedRuleSystem || '', adv = _currentAdventure || '默认';
+    if (!sys) { setTimeout(pollWorldState, 2000); return; }
+    fetch(getServerUrl() + '/api/world-state?system=' + encodeURIComponent(sys) + '&adventure=' + encodeURIComponent(adv))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d && d.success && d.rev && d.state && d.rev !== _worldRev) {
+          // 保护：world-state 为空 token 的过期状态（重置后残留），本地已有角色时不得导入清空列表
+          var localTokens = 0;
+          try { localTokens = MapEngine.getAllCharacterTokens().length; } catch (e) {}
+          var worldTokens = 0;
+          try { (d.state.maps || []).forEach(function(m) { worldTokens += (Array.isArray(m.tokens) ? m.tokens.length : 0); }); } catch (e) {}
+          if (localTokens > 0 && worldTokens === 0) {
+            // 文件是过期空状态：用本地状态覆盖修复，不导入
+            saveWorldState();
+            try { fetch('/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'worldstate-empty-guard', localTokens: localTokens, t: Date.now() }) }).catch(function() {}); } catch (e2) {}
+            return;
+          }
+          _worldRev = d.rev;
+          try {
+            MapEngine.importState(d.state, { preserveView: true });
+            refreshCharacterList();
+            // 联机：GM 端把 AI 修改的世界广播给玩家（token_sync_all 仅房主/GM 可发）
+            if (Network && Network.isConnected && Network.isConnected() && Network.getRoomCode && Network.getRoomCode()) {
+              if (Network.sendTokenSyncAll) Network.sendTokenSyncAll();
+              if (Network.sendMapState) Network.sendMapState(d.state);
+            }
+          } catch (e) {}
+        }
+      })
+      .catch(function() {})
+      .then(function() { setTimeout(pollWorldState, 2000); });
+  }
+
+  function onMapStateChanged(state, reason) {
+    if (reason === 'view') return;
+    if (reason !== 'token') {
+      if (reason === 'overlay') {
+        clearTimeout(_mapOverlaySyncTimer);
+        _mapOverlaySyncTimer = setTimeout(syncMapOverlayToRoom, 120);
+      } else {
+        clearTimeout(_mapSyncTimer);
+        _mapSyncTimer = setTimeout(syncMapStateToRoom, 220);
+      }
+    }
+    // token 增删移、背景切换、地图结构变化：一律落盘 world-state（AI GM 工具可读写）
+    scheduleWorldSave();
+    if (!_worldPollStarted) { _worldPollStarted = true; pollWorldState(); }
+  }
+
   return {
     init: init,
     updateToolButtons: updateToolButtons,
     updateZoomLabel: updateZoomLabel,
+    renderMapTabs: renderMapTabs,
+    onActiveMapChanged: onActiveMapChanged,
+    onMapContextMenu: onMapContextMenu,
+    onRangeDraft: onRangeDraft,
+    onRangeSelected: onRangeSelected,
+    onMeasureUpdate: onMeasureUpdate,
+    onMeasureComplete: onMeasureComplete,
+    onMapStateChanged: onMapStateChanged,
     updateServerStatus: updateServerStatus,
     sendToAI: sendToAI,
     setupRules: setupRules,
@@ -4757,7 +6205,15 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     applyHPChange: applyHPChange,
     openCharacterModal: openCharacterModal,
     openCharacterModalForEdit: openCharacterModalForEdit,
-    canEditCharacter: canEditCharacter, // 2026-08-06：联机权限（创建者或 GM 可编辑）
+    canEditCharacter: canEditCharacter,
+    isGMUser: isGMUser,
+    isRoomHost: isRoomHost,
+    canManageRuleContent: canManageRuleContent,
+    getCurrentRuleSystem: function() { return _selectedRuleSystem || ''; },
+    getModuleAccessView: getModuleAccessView,
+    openGmDirectiveWindow: openGmDirectiveWindow,
+    sendGmDirective: sendGmDirective,
+    getChannels: getChannels,
     setMyCharacter: setMyCharacter,
     transferCharacter: transferCharacter,
     saveCharacter: saveCharacter,
@@ -4779,10 +6235,10 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
     exportAllData: exportAllData,
     importAllData: importAllData,
     onMapTokenSelected: onMapTokenSelected,
+    onMapTokenMoved: onMapTokenMoved,
     onMapCoordUpdate: onMapCoordUpdate,
     addChatMessage: addChatMessage,
     simpleMarkdown: simpleMarkdown,
-    // 2026-08-05 全站重构：AVG 舞台与插图系统（GM 面板/规则插件/系统频道 AI 通用）
     showIllustration: showIllustration,
     hideIllustration: hideIllustration,
     renderAvgStageBar: renderAvgStageBar,
@@ -4792,4 +6248,18 @@ Network.createRoom(_selectedRuleSystem || '', _currentAdventure || '默认', gmN
   };
 })();
 
-if (typeof window !== 'undefined') { window.UIManager = UIManager; }
+if (typeof window !== 'undefined') {
+  window.UIManager = UIManager;
+  // 供拆分的 UI 模块（ui-modules/*）共享内部能力：战斗/反应模块经此接入
+  UIManager._internal = {
+    el: _el,
+    esc: _esc,
+    addChatMessage: addChatMessage,
+    sendToAI: sendToAI,
+    sendToAIWithHandoff: sendToAIWithHandoff,
+    getServerUrl: getServerUrl,
+    activeChannelId: function() { return _activeChannelId; },
+    selectedRuleSystem: function() { return _selectedRuleSystem; },
+    currentAdventure: function() { return _currentAdventure; }
+  };
+}

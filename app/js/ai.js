@@ -15,6 +15,7 @@ const AIClient = (() => {
     return 'http://localhost:3000';
   })();
   let isConnected = false;
+  let lastConnError = '';  // 最近一次连接检测失败原因（诊断用）
   let activeProvider = 'gpt';
   let conversationHistory = [];   // 完整对话历史（系统自动存档用）
   let contextWindow = [];         // 注入AI的极简上下文（仅最近2-3轮）
@@ -70,22 +71,36 @@ const AIClient = (() => {
   }
 
   async function checkConnection() {
+    // 启动链路标记：checkConnection 已执行（诊断用，写入后端日志）
     try {
-      const resp = await fetch(`${serverUrl}/api/health`);
+      fetch(serverUrl + '/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'check-conn', t: Date.now(), url: serverUrl }) }).catch(function () {});
+    } catch (e) {}
+    try {
+      const resp = await fetch(`${serverUrl}/api/health`, { cache: 'no-store' });
       if (resp.ok) {
         isConnected = true;
+        lastConnError = '';
         if (onStatusChange) onStatusChange('connected');
         return true;
       }
+      lastConnError = 'HTTP ' + resp.status;
     } catch (e) {
-      // 统一在下方更新离线状态
+      lastConnError = String((e && e.message) || e);
+      console.error('[AIClient] 连接检测失败:', lastConnError, 'serverUrl:', serverUrl);
+      // 尽力上报诊断到后端日志（同源 POST；若网络层失败则静默）
+      try {
+        fetch(serverUrl + '/api/diag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ err: lastConnError, url: serverUrl, time: new Date().toISOString(), origin: window.location.origin, href: window.location.href })
+        }).catch(function () {});
+      } catch (e2) { /* 静默 */ }
     }
     isConnected = false;
     if (onStatusChange) onStatusChange('disconnected');
     return false;
   }
 
-  // ── 极小化上下文构建（对标opencode compaction自动整理） ──────
 
   let compactTurns = 15;       // 多少轮自动整理一次（设置可调）
   let compactSummary = '';     // 早期对话的整理摘要
@@ -119,15 +134,20 @@ const AIClient = (() => {
 
     // 1. 系统提示：GM带团标准（CORE_PROMPT）固定注入一次在对话开头，之后不重复注入（节约token）；
     //    自定义提示（频道模式/频道提示词）作为补充附加其后
+    //    缓存优化：固定内容（系统提示/整理摘要/历史）必须放在最前形成稳定前缀，变化的块（游戏状态/骰点）后置，
+    //    否则每次变化都会使后续全部前缀失效（DeepSeek 前缀缓存全断，全价计费）
     const custom = options.customSystemPrompt ? String(options.customSystemPrompt).trim() : '';
     messages.push({ role: 'system', content: custom ? (CORE_PROMPT + '\n\n' + custom) : CORE_PROMPT });
 
-    // 2. 早期对话整理摘要（对标opencode compaction）
     if (compactSummary) {
       messages.push({ role: 'system', content: '此前对话整理：' + compactSummary });
     }
 
-    // 3. 游戏状态（一行式压缩）
+    // 2. 最近对话（整理间隔内的轮次）——会话内累积追加，前缀稳定命中缓存
+    const recentHistory = contextWindow.slice(-(compactTurns * 2));
+    messages.push(...recentHistory);
+
+    // 3. 游戏状态（一行式压缩）——变化块后置，不破坏固定前缀
     if (gameState && gameState.tokens && gameState.tokens.length > 0) {
       const stateLine = gameState.tokens.map(t => {
         const hp = t.hp !== undefined && t.maxHp ? `${t.hp}/${t.maxHp}` : '?';
@@ -136,16 +156,12 @@ const AIClient = (() => {
       messages.push({ role: 'system', content: `角色: ${stateLine}` });
     }
 
-    // 最新骰点（仅最近3条）
+    // 4. 最新骰点（仅最近3条）
     const recentRolls = verifiedRolls.slice(-3);
     if (recentRolls.length > 0) {
       const rollStr = recentRolls.map(r => `${r.expression}=${r.result.total}`).join(', ');
       messages.push({ role: 'system', content: `掷骰: ${rollStr}` });
     }
-
-    // 4. 最近对话（整理间隔内的轮次）
-    const recentHistory = contextWindow.slice(-(compactTurns * 2));
-    messages.push(...recentHistory);
 
     // 5. 当前用户消息
     messages.push({ role: 'user', content: userMessage });
@@ -191,8 +207,6 @@ const AIClient = (() => {
     const gameState = options.includeGameState !== false ? collectGameState() : null;
     const messages = buildMessages(userMessage, gameState, options);
 
-    // 续接：把上次中断时已生成的部分内容作为assistant消息插入（用户消息之前），让AI从断点继续
-    // 同时携带中断时的思考内容（reasoning_content），使AI能看到之前的思考上下文（对标opencode）
     if (options.resumeFrom) {
       const resumeMsg = { role: 'assistant', content: String(options.resumeFrom || '') };
       if (options.resumeReasoning) resumeMsg.reasoning_content = String(options.resumeReasoning);
@@ -212,7 +226,10 @@ const AIClient = (() => {
           provider: options.provider || activeProvider,
           system: options.system || '',
           adventure: options.adventure || '默认',
-          channel: options.channel || ''
+          channel: options.channel || '',
+          promptProfile: options.promptProfile || '',
+          gmTools: !!options.gmTools,
+          private: !!options.private
         }),
         signal: options.signal || null
       });
@@ -235,7 +252,8 @@ const AIClient = (() => {
             provider: options.provider || activeProvider,
             system: options.system || '',
             adventure: options.adventure || '默认',
-            channel: options.channel || ''
+            channel: options.channel || '',
+            promptProfile: options.promptProfile || ''
           })
         });
         if (!plain.ok) {
@@ -254,12 +272,12 @@ const AIClient = (() => {
         throw new Error(err.error || 'AI请求失败');
       }
 
-      // 检测工具调用 [[search:...]] / [[module:...]] / [[rules:delete:系统名]] / [[rules:reparse:系统名]]
-      const toolMatch = content.match(/\[\[(search|module|rules):(.+?)\]\]/);
+      // 检测工具调用 [[search:...]] / [[module:...]] / [[rules:delete:系统名]] / [[rules:reparse:系统名]] / [[map:bg:图片路径]]
+      const toolMatch = content.match(/\[\[(search|module|rules|map):(.+?)\]\]/);
       if (toolMatch) {
         const toolType = toolMatch[1];
         const rawQuery = toolMatch[2].trim();
-        const displayContent = content.replace(/\[\[(search|module|rules):.+?\]\]/g, '').trim();
+        const displayContent = content.replace(/\[\[(search|module|rules|map):.+?\]\]/g, '').trim();
         if (displayContent && onMessage) {
           onMessage(displayContent, 'ai');
         }
@@ -292,6 +310,20 @@ const AIClient = (() => {
             }
             if (onToolExecuted) onToolExecuted(action, targetSystem, resultText);
           }
+        } else if (toolType === 'map') {
+          // 地图背景切换 [[map:bg:图片路径]]：应用后保留正文，不中断对话
+          content = displayContent || content.replace(/\[\[map:.+?\]\]/g, '').trim();
+          try {
+            const bgPath = rawQuery.replace(/^bg:/, '').trim();
+            let url = bgPath;
+            if (bgPath.indexOf('module:') === 0) {
+              url = '/api/module/file?system=' + encodeURIComponent(options.system || '') + '&path=' + encodeURIComponent(bgPath.slice(7).replace(/^\/+/, ''));
+            }
+            if (window.MapEngine && typeof window.MapEngine.setBackgroundSource === 'function') {
+              window.MapEngine.setBackgroundSource(url);
+              if (onMessage) onMessage('🗺 已切换地图背景：' + bgPath, 'system');
+            }
+          } catch (e) { /* 背景应用失败不打断对话 */ }
         } else if (onToolCall) {
           // 执行搜索
           const query = rawQuery;
@@ -338,7 +370,6 @@ const AIClient = (() => {
       contextWindow.push({ role: 'user', content: userMessage });
       contextWindow.push({ ...assistantMessage });
 
-      // 自动整理（对标opencode compaction）：超过整理间隔轮数时压缩早期对话为摘要
       maybeCompactContext();
       while (conversationHistory.length > 200) conversationHistory.shift();
 
@@ -370,7 +401,9 @@ const AIClient = (() => {
         provider: options.provider || activeProvider,
         system: options.system || '',
         adventure: options.adventure || '默认',
-        channel: options.channel || ''
+        channel: options.channel || '',
+        promptProfile: options.promptProfile || '',
+        private: !!options.private
       }),
       signal: options.signal || null
     });
@@ -379,6 +412,7 @@ const AIClient = (() => {
       try { const e = await resp.json(); errText = e.error || errText; } catch (e2) { /* ignore */ }
       throw new Error(errText);
     }
+    if (!resp.body) throw new Error('AI 响应为空，请重试');
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -405,7 +439,6 @@ const AIClient = (() => {
           content += json.delta || '';
           if (options.onStream) options.onStream({ type: 'content', text: json.delta });
         } else if (json.type === 'ai_thinking') {
-          // 对标opencode：思考内容完整推送（系统频道）
           reasoningContent += json.text || '';
           if (options.onStream) options.onStream({ type: 'reasoning', text: json.text });
         } else if (json.type === 'ai_text') {
@@ -430,6 +463,7 @@ const AIClient = (() => {
 
   // 读取SSE流，解析reasoning/content增量；网络中断时返回已收到的部分内容
   async function readStream(resp, onStream) {
+    if (!resp || !resp.body) throw new Error('AI 响应为空，请重试');
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -457,6 +491,10 @@ const AIClient = (() => {
           } else if (msg.type === 'content') {
             fullContent += msg.delta || '';
             if (onStream) onStream({ type: 'content', text: fullContent });
+          } else if (msg.type === 'tool') {
+            if (onStream) onStream({ type: 'tool', name: msg.name || '' });
+          } else if (msg.type === 'tool_result') {
+            if (onStream) onStream({ type: 'tool_result', name: msg.name || '', ok: !!msg.ok });
           } else if (msg.type === 'done') {
             if (msg.content) fullContent = msg.content;
             if (msg.reasoningContent) fullReasoning = msg.reasoningContent;
@@ -501,7 +539,10 @@ const AIClient = (() => {
   async function searchModule(query) {
     if (!isConnected) return null;
     try {
-      const resp = await fetch(`${serverUrl}/api/module/search?q=${encodeURIComponent(query)}`);
+      const system = window.UIManager && window.UIManager.getCurrentRuleSystem ? window.UIManager.getCurrentRuleSystem() : '';
+      const view = window.UIManager && window.UIManager.getModuleAccessView ? window.UIManager.getModuleAccessView() : 'player';
+      if (!system) return null;
+      const resp = await fetch(`${serverUrl}/api/module/search?system=${encodeURIComponent(system)}&view=${encodeURIComponent(view)}&q=${encodeURIComponent(query)}`);
       if (!resp.ok) return null;
       const data = await resp.json();
       if (data.results && data.results.length > 0) {
@@ -772,6 +813,7 @@ const AIClient = (() => {
     init,
     checkConnection,
     isConnected: () => isConnected,
+    getLastConnError: () => lastConnError,
     setServerUrl: (url) => { if (url) serverUrl = String(url).replace(/\/+$/, ''); },
     getServerUrl: () => serverUrl,
 

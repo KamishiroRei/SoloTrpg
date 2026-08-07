@@ -1,0 +1,153 @@
+{
+  "moduleName": "5eDnD_龙后宝山HDQ_中译v1.0",
+  "system": "DND五版不全书",
+  "audience": "gm",
+  "secret": true,
+  "source": "5eDnD_龙后宝山HDQ_中译v1.0.pdf",
+  "publication": { "released": [], "updatedAt": "2026-08-06T15:30:00.000Z" },
+  "levelRange": "1→8（里程碑）；建议1级开始",
+  "overview": "龙巫教在费伦各地劫掠财宝，计划在龙之井召唤提亚马特。角色从被袭的至绿镇出发，追踪车队经博德之门→深水城→卡纳特客栈→涅瑞塔堡→狩猎旅舍→通天堡，最终破坏其宝库运输。",
+  "arc": [
+    { "id": "arc-1", "title": "火中至绿", "chapter": 1, "location": "至绿镇", "milestone": "2级", "summary": "蓝龙兰尼松与龙巫教袭击至绿镇；角色护送镇民、守楼堡、救磨坊、救神庙、战半龙青怒。" },
+    { "id": "arc-2", "title": "劫掠者营地", "chapter": 2, "location": "绿色原野高原营地", "milestone": "3级", "summary": "追踪劫掠者至马蹄形洼地营地，潜入搜集情报并救出武僧莱奥森。" },
+    { "id": "arc-3", "title": "育龙场", "chapter": 3, "location": "废弃营地洞穴", "milestone": "4级", "summary": "返回时营地已撤，洞穴内藏三枚黑龙蛋；战青怒、毁龙蛋、得蒙达斯紫衫与北运线索。" },
+    { "id": "arc-4", "title": "商路", "chapter": 4, "location": "贸易公路（博德之门→深水城）", "milestone": "5级", "summary": "受雇随车队北上，乔装侦查邪教马车；阿兹巴拉·乔斯与贾姆娜·烁银中途加入；40日旅程12类随机道路事件。" },
+    { "id": "arc-5", "title": "前方施工", "chapter": 5, "location": "卡纳特客栈（亡者沼泽边缘）", "milestone": "6级", "summary": "护送筑路队至卡纳特客栈，发现其为龙巫教走私中转站；保险库下有通往涅瑞塔堡的500码地道。" },
+    { "id": "arc-6", "title": "涅瑞塔堡", "chapter": 6, "location": "涅瑞塔堡（亡者沼泽）", "milestone": "6级", "summary": "穿越沼泽至古堡；三方势力（龙巫教/狂蛙人/蜥蜴人）不稳联盟；争取钳嘴与蜥蜴人；经地下传送门（口令德雷齐尔）前往灰峰山脉。" },
+    { "id": "arc-7", "title": "狩猎旅舍", "chapter": 7, "location": "灰峰山脉狩猎旅舍", "milestone": "7级", "summary": "白之塔利斯掌管的邪教中枢；可战可谈；得五色标旗与通行口号，获得登上通天堡的途径。" },
+    { "id": "arc-8", "title": "云中城堡", "chapter": 8, "location": "帕纳斯特村+通天堡", "milestone": "8级", "summary": "云巨人布拉戈提库斯的飞行城堡；战白龙格拉兹哈尔、瑞兹米尔、拉斯·莫达；夺堡或坠堡，战役完结。" }
+  ],
+  "scenes": [
+    { "id": "sc-greenest", "name": "至绿镇 Greenest", "chapter": 1, "page": "P6-12", "secret": false, "desc": "乌尔登商道上的小镇，被蓝龙与龙巫教夜袭。微光光照、多处火焰、三条浅溪。", "keywords": ["至绿", "Greenest", "夜山", "楼堡"] },
+    { "id": "sc-camp", "name": "劫掠者营地 Raiders' Camp", "chapter": 2, "page": "P13-18", "secret": false, "desc": "马蹄形洼地高原营地，约100狗头人+80人类；警戒塔、囚犯区、后方禁入洞穴（保育场）。", "keywords": ["营地", "Raiders", "保育场"] },
+    { "id": "sc-hatchery", "name": "育龙场 Dragon Hatchery", "chapter": 3, "page": "P19-25", "secret": false, "desc": "废弃营地后的洞穴群，13区域；三枚黑龙蛋将在一周内孵化；圣坛、强酸陷阱、树绳妖。", "keywords": ["育龙场", "Hatchery", "龙蛋"] },
+    { "id": "sc-road", "name": "商路 On the Road", "chapter": 4, "page": "P26-36", "secret": false, "desc": "博德之门→深水城750里，约两个月；12类随机道路事件；死亡之地夜行危险。", "keywords": ["商路", "贸易公路", "Trade Way"] },
+    { "id": "sc-roadhouse", "name": "卡纳特客栈 Carnath Roadhouse", "chapter": 5, "page": "P37-40", "secret": true, "desc": "深水城北的修路补给站，实为龙巫教走私中转站；博格·卢克掌管保险库，下有500码地道通沼泽。", "keywords": ["卡纳特", "Roadhouse", "博格·卢克", "保险库"] },
+    { "id": "sc-naerytar", "name": "涅瑞塔堡 Castle Naerytar", "chapter": 6, "page": "P41-58", "secret": true, "desc": "亡者沼泽中的废弃石堡，三层+地底洞窟13区域；龙巫教/狂蛙人/蜥蜴人三方；地底13号房有传送门。", "keywords": ["涅瑞塔", "Naerytar", "灰生", "法布列斯", "传送门"] },
+    { "id": "sc-lodge", "name": "狩猎旅舍 Hunting Lodge", "chapter": 7, "page": "P59-67", "secret": true, "desc": "灰峰山脉中的邪教中枢，塔利斯掌舵；5个传送门石阵；龙后密室、鹿鹰兽巢、战利品室。", "keywords": ["旅舍", "Lodge", "塔利斯", "传送门石阵"] },
+    { "id": "sc-parnast", "name": "帕纳斯特村 Village of Parnast", "chapter": 8, "page": "P68-70", "secret": true, "desc": "被龙巫教暗中控制的山村；金色大酒杯酒馆（拉格纳·红牙）、马厩藏两头飞龙、斧之圣坛。", "keywords": ["帕纳斯特", "Parnast", "奥瑟斯坦"] },
+    { "id": "sc-skyreach", "name": "通天堡 Skyreach Castle", "chapter": 8, "page": "P71-81", "secret": true, "desc": "云巨人飞行冰堡，25区域；白龙格拉兹哈尔守主宝库；控制塔18符文；艾丝克拉萝塔精魄。", "keywords": ["通天堡", "Skyreach", "布拉戈提库斯", "格拉兹哈尔", "控制塔"] }
+  ],
+  "npcs": [
+    { "id": "npc-rezmir", "name": "瑞兹米尔 Rezmir", "kind": "半黑龙·黑之龙语者", "role": "幕后主使/最终Boss之一", "chapter": [1,2,4,6,8], "page": "P43,83-88(附录B)", "secret": true, "desc": "半黑龙，龙巫教五位龙语者之一（黑）。谋划劫掠与北运财宝；着黑龙面具；箱锁魔法同调，死后内容物传送至龙之井。挑战等级7。", "stats": "AC13(面具15) HP90 CR7 巨剑哈兹瑞恩+9 2d6+6+2d6黯蚀；酸蚀矢+8 4d8；酸吐息30尺线 DC14 5d8" },
+    { "id": "npc-mondath", "name": "弗鲁兰·蒙达斯 Frulam Mondath", "kind": "人类·紫衫·牧师", "role": "第1-3章反派", "chapter": [1,2,3], "page": "P12,84-85(附录B)", "secret": false, "desc": "龙巫教紫衫（牧师），负责至绿袭击与育龙场留守；房间藏北运线索与紫衫装束。挑战等级2。", "stats": "AC16(链甲) HP44 CR2 牧师5级 长戟+5 1d10+2" },
+    { "id": "npc-cyanwrath", "name": "兰德卓萨·青怒 Langdedrosa Cyanwrath", "kind": "半蓝龙·战士", "role": "第1/3章决斗反派", "chapter": [1,3], "page": "P11-12,86(附录B)", "secret": false, "desc": "半蓝龙勇士，荣誉感强的一对一决斗者；至绿门前挑战、育龙场圣坛再战。挑战等级4。", "stats": "AC17(板甲) HP57 CR4 巨剑+6 2d6+4；精通重击19-20；闪电吐息充能5-6 DC13 4d10" },
+    { "id": "npc-leosin", "name": "莱奥森·厄兰泽 Leosin Erlanthar", "kind": "人类武僧·竖琴手", "role": "盟友/情报源", "chapter": [1,2,3,4], "page": "P13,17-19,26-27", "secret": false, "desc": "竖琴手武僧，研究龙巫教数月；自愿被俘潜入营地；获救后引导角色前往艾尔托瑞尔见弗鲁姆。" },
+    { "id": "npc-frume", "name": "安塔尔·弗鲁姆 Ontharr Frume", "kind": "人类圣武士·臂铠教团", "role": "盟友/任务发布者", "chapter": [4], "page": "P26-28", "secret": false, "desc": "托姆圣武士，臂铠教团成员；在艾尔托瑞尔一对黑鹿角酒馆召集会议，安排角色混入北上车队。" },
+    { "id": "npc-jos", "name": "阿兹巴拉·乔斯 Azbara Jos", "kind": "人类·红袍法师", "role": "双面间谍/反派", "chapter": [4,6,8], "page": "P29,83(附录B)", "secret": true, "desc": "塞尔红袍法师，伪装难民搭上邪教马车；实为红袍与龙巫教联络员，对传送门极感兴趣。挑战等级4。", "stats": "AC13(法师护甲16) HP39 CR4 法师6级 火球术" },
+    { "id": "npc-jamna", "name": "贾姆娜·烁银 Jamna Gleamsilver", "kind": "侏儒·散塔林会（暗黑情报网）", "role": "亦敌亦友/潜在凶手", "chapter": [4,5,6], "page": "P29-30,36,86(附录B)", "secret": true, "desc": "散塔林会密探，任务查清邪教货物去向；『最卑劣的谋杀』真凶（杀警卫灭口）；伪装竖琴手身份。挑战等级1。", "stats": "AC15(皮甲) HP22 CR1 短剑+5 1d6+3；4级法师" },
+    { "id": "npc-talis", "name": "白之塔利斯 Talis the White", "kind": "半精灵·紫衫", "role": "第7章反派/可谈判对象", "chapter": [7], "page": "P60,64-65,88(附录B)", "secret": true, "desc": "紫衫，怨恨矮人瓦拉姆夺走白龙面具；可谈判换取登堡机会；战败会投降求饶。挑战等级5。", "stats": "AC18(+1鳞甲+盾) HP58 CR5 牧师9级 凛冬魔杖" },
+    { "id": "npc-borngray", "name": "德拉莫瑞·灰生 Dralmorrer Borngray", "kind": "高等精灵·胜利之刃成员", "role": "第6章反派/涅瑞塔堡实际管理者", "chapter": [6], "page": "P44,84(附录B)", "secret": true, "desc": "精灵法师，厌恶人类，效忠龙巫教并期盼提亚马特；偏爱蜥蜴人胜过狂蛙人；教蜥蜴人冶金。挑战等级3。", "stats": "AC16(镶钉皮甲+盾) HP52 CR3 法师7级 战争魔法" },
+    { "id": "npc-spattergoo", "name": "法布列斯·溅黏 Pharblex Spattergoo", "kind": "狂蛙人·萨满", "role": "第6章反派", "chapter": [6], "page": "P44,87(附录B)", "secret": true, "desc": "罕见掌握萨满魔法的狂蛙人，统领狂蛙人部族；觊觎涅瑞塔堡统治权；地底蛙湖养巨蛙。挑战等级3。", "stats": "AC15(镶钉皮甲+盾) HP59 CR3 德鲁伊6级 毒击3/日" },
+    { "id": "npc-snapjaw", "name": "钳嘴 Snapjaw", "kind": "蜥蜴人·死鳞部族", "role": "潜在盟友", "chapter": [6], "page": "P42-46", "secret": true, "desc": "对龙巫教/狂蛙人不满的蜥蜴人，可发展为起义盟友；提供路标情报、说服蜥蜴人倒戈。" },
+    { "id": "npc-bogluck", "name": "博格·卢克 Bog Luck", "kind": "半兽人·营地负责人", "role": "第5章看守/可绕过的障碍", "chapter": [5], "page": "P38-40", "secret": true, "desc": "卡纳特客栈负责人，持保险库钥匙；私藏工人们贵重物品；钥匙挂身，锁DC10盗贼工具。" },
+    { "id": "npc-trepsin", "name": "特雷普森 Trepsin", "kind": "四臂巨魔·恶魔崇拜者", "role": "第7章犬舍看守", "chapter": [7], "page": "P61", "secret": true, "desc": "崇拜巴弗灭的四臂巨魔，率6伏击龙兽守犬舍；湿披肩免疫前10点火焰伤害。挑战等级6(2300XP)。", "stats": "多重攻击5次（1咬+4爪），2爪命中同目标+2d6挥砍" },
+    { "id": "npc-ratmodar", "name": "拉斯·莫达 Rath Modar", "kind": "人类·红袍法师", "role": "第8章反派/提亚马特召唤策划", "chapter": [8], "page": "P75-76,87(附录B)", "secret": true, "desc": "红袍法师，协助监督财宝运往龙之井并策划召唤提亚马特；携火焰法杖；败则隐形+飞行术逃走。挑战等级6。", "stats": "AC13(16) HP71 CR6 法师11级 6环法术" },
+    { "id": "npc-morgia", "name": "桑德塞尔·莫吉亚 Sandesyl Morgia", "kind": "月精灵·吸血鬼", "role": "第8章夜巡反派", "chapter": [8], "page": "P76-77", "secret": true, "desc": "老辈龙巫教吸血鬼，怀恋龙巫妖时代；夜间巡逻庭院；可召唤2吸血鬼衍体；塔楼顶层墓室。" },
+    { "id": "npc-blagothkus", "name": "布拉戈提库斯 Blagothkus", "kind": "云巨人", "role": "通天堡主人/可谈判", "chapter": [8], "page": "P71-73,79-80,83(附录B)", "secret": true, "desc": "通天堡云巨人主人，与龙巫教结盟以激励巨人复兴；可谈判倒戈；死后其精魄夺堡并令其坠毁。挑战等级9。", "stats": "AC17(板条甲) HP138 CR9 云巨人 钉头锤+10 3d8+8" },
+    { "id": "npc-glazhael", "name": "格拉兹哈尔·逐云者 Glazhael the Cloudchaser", "kind": "成年白龙", "role": "第8章Boss之一", "chapter": [8], "page": "P81", "secret": true, "desc": "守护主宝库的成年白龙，忠于提亚马特；HP降至40会逃跑；狭窄地道中近战攻击有劣势。" },
+    { "id": "npc-othelstan", "name": "奥瑟斯坦队长 Captain Othelstan", "kind": "人类·龙魂", "role": "帕纳斯特守军指挥官", "chapter": [8], "page": "P68-71,84(附录B)", "secret": true, "desc": "瑞兹米尔副手，龙魂位阶，指挥帕纳斯特龙巫教部队；提亚马特复仇祝福（濒死回20HP）。挑战等级5。", "stats": "AC19(板甲+盾) HP93 CR5 动作如潮" },
+    { "id": "npc-nighthill", "name": "夜山镇长 Governor Nighthill", "kind": "人类·镇长", "role": "第1章委托人", "chapter": [1], "page": "P6-7", "secret": false, "desc": "塔巴·夜山，60岁人类镇长，袭击中受伤；发布各任务并支付报酬（营地情报任务250gp/人）。" },
+    { "id": "npc-escabert", "name": "红发·埃斯科伯特 Castellan Escobert the Red", "kind": "盾矮人·楼堡总管", "role": "第1章向导", "chapter": [1], "page": "P7", "secret": false, "desc": "红发盾矮人，掌握地道与暗门情报；持一大铁环铜钥匙。" },
+    { "id": "npc-lennithon", "name": "兰尼松 Lennithon", "kind": "成年蓝龙", "role": "第1章攻城龙", "chapter": [1], "page": "P9", "secret": false, "desc": "参与劫掠的成年蓝龙，兴致不高；受24+伤害或重击后离去；吐息每次杀1d4守兵。" },
+    { "id": "npc-twin-dragons", "name": "沃拉格哈曼萨/瓦尔法兰多 Voaraghamanthar & Waervaerendor", "kind": "双生黑龙", "role": "第6章背景势力", "chapter": [6], "page": "P45-46", "secret": true, "desc": "亡者沼泽双生成年黑龙，伪装成一条龙；瑞兹米尔知悉秘密；本次冒险不直面。" },
+    { "id": "npc-esclarotta", "name": "艾丝克拉萝塔 Esclarotta", "kind": "云巨人精魄", "role": "通天堡动力/可求助", "chapter": [8], "page": "P78", "secret": true, "desc": "布拉戈提库斯亡妻精魄，控制城堡动力与浮力；可交谈求助；被破坏后城堡漂向米克罗斯冰川坠毁。" }
+  ],
+  "locations": [
+    { "id": "loc-greenest-keep", "name": "至绿楼堡", "chapter": 1, "page": "P7-9", "secret": false, "desc": "安全据点；老旧地道（区域2溪岸出口）、隘口西墙；埃斯科伯特掌钥。" },
+    { "id": "loc-greenest-temple", "name": "裳提亚神庙", "chapter": 1, "page": "P11", "secret": false, "desc": "数十镇民避难处，遭攻城锤围攻；祭司伊迪安·隼月；A/B/C三组敌人。" },
+    { "id": "loc-greenest-mill", "name": "磨坊", "chapter": 1, "page": "P10", "secret": false, "desc": "水车磨坊；点火是诱出英雄的陷阱，阁楼藏伏击者。" },
+    { "id": "loc-camp-zones", "name": "营地分区", "chapter": 2, "page": "P15-18", "secret": false, "desc": "1层狗头人营帐（粗糙）、2层邪教营帐+首领大帐（四老兵+四护卫龙兽看守）、区域1囚犯、区域3莱奥森木桩、区域4保育场洞穴（禁区）。" },
+    { "id": "loc-hatchery-cave", "name": "育龙场洞穴（区域1-13）", "chapter": 3, "page": "P20-25", "secret": true, "desc": "洞口(1)/隐藏通道(2)/真菌花园(3)/蚊蝠巢穴(4)/战蜥人入侵(5)/储肉室(6)/龙兽孵育场(7)/狗头人营房(8)/巨龙圣坛(9)/育龙场10A黑龙蛋+10B躲藏狗头人/蒙达斯房间(11)/警卫营房(12)/藏宝室(13)。" },
+    { "id": "loc-waterdeep", "name": "深水城 Waterdeep", "chapter": 4, "page": "P37", "secret": false, "desc": "车队终点；邪教马车改道城北扎营；北门仓库为建材转运始发站。" },
+    { "id": "loc-roadhouse-zones", "name": "卡纳特客栈分区（区域1-8）", "chapter": 5, "page": "P38-40", "secret": true, "desc": "内院(1)/马厩(2)/仓库(3)/保险库(4,活板门→500码地道)/客房(5)/博格房间(6)/阿德瑞德房间(7)/厨房(8,厨师格雷索·皮特)。" },
+    { "id": "loc-naerytar-floors", "name": "涅瑞塔堡内分区", "chapter": 6, "page": "P48-58", "secret": true, "desc": "一层1A-1V（外堡/堤道/外庭/内庭/西北塔楼/马厩/营房/锻炉/礼拜室/大厅/西南塔楼等）；二层2A-2V（书房/军火库/灰生房间）；三层3E-3U（幽灵密室/蜘蛛巢/瑞兹米尔房间/观象台）；地底1-13（洞窟入口/灰泥怪/蛙湖/圣坛/传送门）。" },
+    { "id": "loc-lodge-zones", "name": "狩猎旅舍分区（区域1-22）", "chapter": 7, "page": "P60-67", "secret": true, "desc": "传送门石阵(1)/犬舍(2)/马厩井(3)/小厅(5)/三只猎犬会客厅(6,恐怖铠甲+传送挂毯)/厨房(7)/地下室(9,三囚犯)/白鹿会客厅(11)/塔利斯会客厅(16)/军械库(17)/龙后密室(20)/战利品室(21)/鹿鹰兽巢(22)。" },
+    { "id": "loc-skyreach-zones", "name": "通天堡分区（区域1-25）", "chapter": 8, "page": "P71-81", "secret": true, "desc": "帕纳斯特村(1-5)；城堡：正门(6)/门廊魔像(6A)/门楼(6B)/下层庭院(7)/马厩(8)/邪教营房(9)/石巨人房(10)/瑞兹米尔房(11)/红袍法师房(12)/上层庭院(16)/蓝塔(17)/摇塔(18,吸血鬼)/控制塔(19,18符文)/云巨人塔(22)/主宝库(25,白龙)。" }
+  ],
+  "encounters": [
+    { "id": "enc-ch1", "name": "第1章遭遇表", "table": "d8", "chapter": 1, "page": "P7", "secret": false, "entries": "1:6狗头人 2:3狗头人+1伏击龙兽 3:6邪教徒 4:4邪教徒+1警卫 5:2邪教徒+1侍僧 6:3警卫+1侍僧 7:1d6镇民被猎杀 8:1d6镇民躲藏" },
+    { "id": "enc-ch3", "name": "第3章遭遇表", "table": "d6", "chapter": 3, "page": "P20", "secret": false, "entries": "1:4狗头人 2:6狗头人+2带翼 3:3带翼 4:5带翼 5:2带翼+1护卫龙兽 6:2伏击龙兽" },
+    { "id": "enc-waterdeep", "name": "深水城以北遭遇表", "table": "d20", "chapter": 5, "page": "P38", "secret": false, "entries": "1-14:无 15:12强盗 16:1巨魔 17:4兽人+1食人魔 18:2食人魔 19:3蜥蜴人+3巨蜥蜴 20:6蜥蜴人 21:8巨蛙 22:12狂蛙人；战后1d4-2名NPC阵亡" },
+    { "id": "enc-swamp", "name": "亡者沼泽遭遇表", "table": "d12", "chapter": 6, "page": "P42", "secret": false, "entries": "1-2:狂蛙人(每角色2-3) 3:鳄鱼(2) 4:巨蛙(2) 5:巨蜥(2) 6:巨蜘蛛(2) 7-8:蜥蜴人(2-3) 9:流沙 10:蔓生怪 11:鬼火×3 12:原体蛇人狩猎队" },
+    { "id": "enc-road-events", "name": "贸易公路事件表", "table": "d12", "chapter": 4, "page": "P31-36", "secret": false, "entries": "1冒险生涯 2虐畜 3山祸 4走私 5总有个价 6巨大真菌 7金色牡鹿 8报复 9旅店客满 10路边邂逅 11蜘蛛森林 12困境；每事件建议300XP/人，完成8-9个" },
+    { "id": "enc-planned", "name": "规划道路事件（3个必然事件）", "chapter": 4, "page": "P35-36", "secret": true, "entries": "识破(被邪教徒认出)/不必要的关注(烁银监视)/是敌是友(骨片示警)→最卑劣的谋杀(烁银杀警卫嫁祸)" }
+  ],
+  "items": [
+    { "id": "itm-black-mask", "name": "黑龙面具 Black Dragon Mask", "kind": "奇物·传奇·需同调", "chapter": [6,8], "page": "P75,89(附录C)", "secret": true, "desc": "瑞兹米尔持有；强酸吸收/龙形威严(无甲+魅调AC)/龙息充能6/龙之视界/龙言/传奇抗性1日/水下呼吸。" },
+    { "id": "itm-hazirawn", "name": "哈兹瑞恩 Hazirawn", "kind": "巨剑·传奇·智能·需同调", "chapter": [8], "page": "P89(附录C)", "secret": true, "desc": "中立邪恶智能巨剑，通用语+耐色瑞尔语；未同调+1/1d6黯蚀，同调+2/2d6黯蚀；4充能施法(侦测魔法/善恶/思想)；致伤禁疗。" },
+    { "id": "itm-claw-insignia", "name": "利爪徽章 Insignia of Claws", "kind": "奇物·不常见", "chapter": [6,8], "page": "P54,89(附录C)", "secret": true, "desc": "徒手/天生武器攻击与伤害+1，视为魔法；瑞兹米尔戴；可解除其衣柜陷阱。" },
+    { "id": "itm-winter-wand", "name": "凛冬魔杖 Wand of Winter", "kind": "魔杖·罕见·需同调", "chapter": [7], "page": "P64,89(附录C)", "secret": true, "desc": "7充能；冷冻射线(0/1充能5环)/雪雨暴(3)/冰风暴(4)；黎明回1d6+1；耗尽骰20则融化。" },
+    { "id": "itm-dagger-venom", "name": "淬毒匕首 Dagger of Venom", "kind": "武器·罕见", "chapter": [6], "page": "P50", "secret": true, "desc": "藏于提亚马特黑龙头下夹层，DC15调查找到。" },
+    { "id": "itm-farseer", "name": "伊路斯坎远望者 Farseer of Illusk", "kind": "魔法装置", "chapter": [6], "page": "P55", "secret": true, "desc": "观象台天文装置，可作秘法眼查看50里；40磅脆弱；操作DC15奥秘+巧手。" },
+    { "id": "itm-staff-fire", "name": "火焰法杖 Staff of Fire", "kind": "法杖·罕见", "chapter": [8], "page": "P76", "secret": true, "desc": "拉斯·莫达持有；另携任意门/羽落术/火球术卷轴。" },
+    { "id": "itm-tankard-plenty", "name": "丰足酒杯 Tankard of Plenty", "kind": "奇物·不常见", "chapter": [8], "page": "P70", "secret": true, "desc": "金色大酒杯酒馆主珍藏；口令『伊尔法兰』每日3次满3品脱矮人烈酒。" },
+    { "id": "itm-dragongleam", "name": "龙耀 Dragongleam（秘银矛）", "kind": "武器·魔法矛", "chapter": [7], "page": "P66", "secret": true, "desc": "军械库锈矛之一，10充能昼明术；命令语『提亚马特目光闪耀』。" },
+    { "id": "itm-arrow-catch", "name": "吸矢盾 Arrow-Catching Shield", "kind": "护甲(盾)·罕见", "chapter": [7], "page": "P67", "secret": true, "desc": "鹿鹰兽巢中挖得；另有100gp旧银餐具。" },
+    { "id": "itm-helmed-horror", "name": "恐怖铠甲 Helmed Horror（黑色护甲）", "kind": "构装·魔法甲", "chapter": [7], "page": "P62", "secret": true, "desc": "伪装成普通护甲的构装体，受扰或受紫袍命令攻击；自带1发艾伐黑触手。" },
+    { "id": "itm-rug-smothering", "name": "闷人毯 Rug of Smothering", "kind": "奇物·构装", "chapter": [8], "page": "P75", "secret": true, "desc": "瑞兹米尔房门内地毯，人踏上即攻击。" },
+    { "id": "itm-vault-hoard", "name": "主宝库财宝（冰封）", "kind": "财宝", "chapter": [8], "page": "P81", "secret": true, "desc": "500000cp/100000sp/5000gp/800pp+21蓝宝石(300gp/颗)/气化形体药水/+1长剑/+1长弓/+1皮甲/防御护腕；需火焰融冰。" },
+    { "id": "itm-naerytar-treasures", "name": "涅瑞塔堡散宝", "kind": "财宝", "chapter": [6], "page": "P49-55", "secret": true, "desc": "营房三箱30000cp+500sp+700gp珠宝+治疗药水×2+以太化之油；大厅450gp+520sp+80pp+22半宝石+高等治疗药水；灰生保险箱200gp+200sp+10奇石100gp；瑞兹米尔宝箱金链400gp+银项圈200gp+6月长石+3000gp珍珠链+钱币。" },
+    { "id": "itm-talisman-loot", "name": "狩猎旅舍散宝", "kind": "财宝", "chapter": [7], "page": "P62-67", "secret": true, "desc": "犬舍特雷普森：6貂皮(100gp)+3狐皮(25gp)+冬狼披风250gp+爪形搭扣750gp；食品室银餐具300gp；塔利斯箱+1链甲+4000gp+灼热射线卷轴；龙后密室5挂毯(500gp/幅)+提亚马特挂毯2500gp+宝石800gp；白鹿厅挂毯400gp+2治疗药水。" }
+  ],
+  "clues": [
+    { "id": "clue-map-mondath", "name": "蒙达斯的北运地图与纸条", "chapter": 3, "page": "P25", "secret": true, "desc": "地图箭头自绿色原野向西经贝尔苟斯特转北；纸条『所有东西装箱运往北方的涅瑞塔。瑞兹米尔允许我们保留一些珍珠、一个戒指和一把小石头。』" },
+    { "id": "clue-portal-word", "name": "传送门口令『德雷齐尔 Draezir』", "chapter": 6, "page": "P54,58", "secret": true, "desc": "涅瑞塔堡地底13号房传送门命令语；见瑞兹米尔3L书桌笔记；通狩猎旅舍传送门石阵。" },
+    { "id": "clue-passwords", "name": "通行口号×2", "chapter": 7, "page": "P65,69", "secret": true, "desc": "『敬吾等之母亲与力量之源，提亚马特』与『布拉戈提库斯万岁』；通过石魔像门与帕纳斯特盘查。" },
+    { "id": "clue-banner", "name": "五色标旗（黑蓝绿红白）", "chapter": 7, "page": "P64-65", "secret": true, "desc": "被褥间15号房；挂矛上可作通天堡友方识别信号；塔利斯给角色用于登堡。" },
+    { "id": "clue-twin-dragons", "name": "双生黑龙秘密", "chapter": 6, "page": "P45-46,55", "secret": true, "desc": "沃拉格哈曼萨与瓦尔法兰多孪生伪装一条龙；瑞兹米尔用远望者发现；远望者正对瓦尔法兰多巢穴。" },
+    { "id": "clue-varram", "name": "瓦拉姆 Varram 与白龙面具", "chapter": 7, "page": "P59-60", "secret": true, "desc": "矮人瓦拉姆为白之龙语者，持白龙面具；塔利斯憎恨他并欲夺位。" },
+    { "id": "clue-ritual-book", "name": "《铁门之外》召唤书", "chapter": 8, "page": "P76", "secret": true, "desc": "炼狱语书写，描述召唤魔鬼与数百灵魂将提亚马特从九层地狱带到现世；无具体时间表。" },
+    { "id": "clue-letters", "name": "塞维林致拉斯·莫达的信", "chapter": 8, "page": "P76", "secret": true, "desc": "揭示邪教与红袍法师深交；交予莱奥森/弗鲁姆等组织可得1000XP。" },
+    { "id": "clue-purple-robe", "name": "蒙达斯的紫衫装束", "chapter": 3, "page": "P25", "secret": true, "desc": "可伪装成紫衫；但高阶教徒能认出装束来源，蒙达斯死后必暴露。" }
+  ],
+  "branches": [
+    { "id": "br-talis", "name": "与塔利斯谈判", "chapter": 7, "page": "P64-65", "secret": true, "options": ["接受交易：得标旗+口令，登堡（她暗中监视并伺机背叛）", "拒绝交易：触发战斗（石像鬼/恐怖铠甲/狗头人/特雷普森增援，她爬窗逃走）", "击败审讯：DC15游说系列，得龙语者名单/标旗/城堡情报/白龙情报"] },
+    { "id": "br-snapjaw", "name": "钳嘴与蜥蜴人起义", "chapter": 6, "page": "P42-46", "secret": true, "options": ["善待钳嘴→他引路+说服警卫放行", "建立强信任→号召蜥蜴人起义倒戈", "虐待/不信任→蜥蜴人攻击"] },
+    { "id": "br-eggs", "name": "龙蛋处置", "chapter": 3, "page": "P25", "secret": true, "options": ["摧毁或带走：每枚250XP", "留下：一周内孵化", "砸/碾压/刺击即死，打开则雏龙窒息而亡"] },
+    { "id": "br-blagothkus", "name": "与云巨人谈判", "chapter": 8, "page": "P72-73,80", "secret": true, "options": ["争取倒戈→他锁控制塔驶向北方，角色自行对付邪教与白龙", "强夺城堡→他去控制塔令城堡坠毁", "杀死他→其精魄接管城堡坠向米克罗斯冰川"] },
+    { "id": "br-lodge-portal", "name": "旅舍其他传送门", "chapter": 7, "page": "P61", "secret": true, "options": ["北方(白龙盟友处)/塞尔/穆尔霍兰德沙漠", "无口令无法激活，除非找到研究（如拉斯·莫达密室）"] }
+  ],
+  "monsters": [
+    { "id": "mon-ambush-drake", "name": "伏击龙兽 Ambush Drake", "cr": "1/2(100XP)", "page": "P83", "desc": "AC13 HP22 集群战术/突袭打击" },
+    { "id": "mon-guard-drake", "name": "护卫龙兽 Guard Drake", "cr": "2(450XP)", "page": "P85", "desc": "AC14 HP52 多重攻击咬+尾；闪电抗性" },
+    { "id": "mon-dragonclaw", "name": "龙爪 Dragonclaw", "cr": "1(200XP)", "page": "P84", "desc": "AC14 HP16 狂热优势/集群战术；弯刀×2" },
+    { "id": "mon-dragonwing", "name": "龙翼 Dragonwing", "cr": "2(450XP)", "page": "P84-85", "desc": "龙爪基础翻倍HP与HD，CR2" },
+    { "id": "mon-fourarm-troll", "name": "四臂巨魔（特雷普森）", "cr": "6(2300XP)", "page": "P61", "desc": "多重攻击5次；2爪命中同目标+2d6" },
+    { "id": "mon-troglodyte", "name": "战蜥人 Troglodyte", "cr": "1/2", "page": "P21", "desc": "育龙场5区4只，从裂缝入侵" },
+    { "id": "mon-roper", "name": "树绳妖 Roper", "cr": "5", "page": "P24", "desc": "育龙场10A，喂肉可和平相处" },
+    { "id": "mon-otyugh", "name": "食腐兽 Otyugh", "cr": "5", "page": "P49", "desc": "涅瑞塔堡西北塔楼陷坑" }
+  ],
+  "media": [
+    { "id": "media-pdf-map-greenest", "name": "至绿镇地图", "kind": "地图", "page": "P6", "usage": "第1章", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" },
+    { "id": "media-pdf-map-camp", "name": "劫掠者营地地图", "kind": "地图", "page": "P15", "usage": "第2章", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" },
+    { "id": "media-pdf-map-hatchery", "name": "育龙场洞穴地图", "kind": "地图", "page": "P20", "usage": "第3章", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" },
+    { "id": "media-pdf-map-roadhouse", "name": "卡纳特客栈地图", "kind": "地图", "page": "P38", "usage": "第5章", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" },
+    { "id": "media-pdf-map-naerytar", "name": "涅瑞塔堡地图（外/各层/地底）", "kind": "地图", "page": "P46-57", "usage": "第6章", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" },
+    { "id": "media-pdf-map-lodge", "name": "狩猎旅舍地图", "kind": "地图", "page": "P60", "usage": "第7章", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" },
+    { "id": "media-pdf-map-skyreach", "name": "通天堡地图（各层）", "kind": "地图", "page": "P72-81", "usage": "第8章", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" },
+    { "id": "media-pdf-art-npcs", "name": "NPC插图（青怒/蒙达斯/瑞兹米尔/塔利斯/布拉戈提库斯等）", "kind": "插图", "page": "全书", "usage": "角色立绘参考", "audience": "gm", "path": "5eDnD_龙后宝山HDQ_中译v1.0.pdf" }
+  ],
+  "secrets": [
+    { "id": "sec-murderer", "name": "『最卑劣的谋杀』真凶", "secret": true, "desc": "凶手是贾姆娜·烁银，非任何角色。她偷窃时被警卫撞破而灭口；若无人提议查箱，指控会转淡。" },
+    { "id": "sec-bone-trick", "name": "『是敌是友』骨片实为自演", "secret": true, "desc": "烁银用藏于匕首后的骨片自戳入粥，粥里并无更多骨片；DC15调查可发现。" },
+    { "id": "sec-twin-dragons", "name": "双生黑龙", "secret": true, "desc": "沃拉格哈曼萨与瓦尔法兰多为孪生兄弟，共同伪装一条龙；瑞兹米尔用远望者发现秘密。" },
+    { "id": "sec-rezmir-box", "name": "瑞兹米尔宝箱魔法同调", "secret": true, "desc": "宝箱与其同调，她死后内容物自动传送至龙之井；挂锁带毒针陷阱（飞龙毒 DC13 7d6）。" },
+    { "id": "sec-mondath-plans", "name": "蒙达斯私心", "secret": true, "desc": "她劝瑞兹米尔让自己保管珠宝，实际打算伺机私吞（从未言明）。" },
+    { "id": "sec-grey-library", "name": "灰生私藏书房", "secret": true, "desc": "他从财宝中抽取百册书籍手稿归己研究，声称最后上交提亚马特宝库；瑞兹米尔知情。" },
+    { "id": "sec-esclarotta", "name": "艾丝克拉萝塔精魄", "secret": true, "desc": "城堡动力来自布拉戈提库斯亡妻精魄，精魄不服从邪教；他死后精魄被其取代并令城堡坠毁。" },
+    { "id": "sec-jamna-plans", "name": "烁银B计划", "secret": true, "desc": "若到深水城仍未得情报，她将启动大规模谋杀计划（伪装强盗截杀车队）。" }
+  ],
+  "ruleLinks": [
+    { "id": "rule-monsters", "name": "怪物规则（DND5E怪物手册）", "path": "Ruler/DND五版不全书/source/", "note": "本模组附录B含新怪物资料卡；其余通用怪物（狗头人/邪教徒/警卫等）见规则系统怪物资料。" },
+    { "id": "rule-spells", "name": "法术规则（玩家手册）", "path": "Ruler/DND五版不全书/source/", "note": "模组内涉及法术（火球术/传送门/昼明术等）均可在规则系统法术索引中查阅。" },
+    { "id": "rule-items", "name": "魔法物品规则（城主指南）", "path": "Ruler/DND五版不全书/source/", "note": "附录C魔法物品为模组专属；同调/充能等通用规则见城主指南。" }
+  ],
+  "notes": [
+    "本模组为《巨龙僭政》第一部分，接续《提亚马特崛起 The Rise of Tiamat》。",
+    "PDF 文本经 _tools/hdq_extract.txt 提取（GBK→UTF8），页码以『===== PAGE n =====』标记为准。",
+    "media.path 均指向模组根目录 PDF；如需独立图片资源需另行从 PDF 拆分。",
+    "public-index.json 初始为空，GM 按剧情进度发布（如各章场景描述、已遭遇 NPC 名等）。"
+  ],
+  "updatedAt": "2026-08-06T15:30:00.000Z"
+}

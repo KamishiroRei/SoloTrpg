@@ -1,0 +1,1832 @@
+{
+  "system": "DND五版不全书",
+  "source": "generated/equipment-details",
+  "equipment": {
+    "短棒": {
+      "name": "短棒",
+      "category": "简易近战武器",
+      "price": 0.1,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d4",
+      "damageType": "钝击",
+      "properties": [
+        "轻型"
+      ],
+      "mastery": "缓速",
+      "weight": "2磅",
+      "desc": "伤害 1d4 钝击；武器属性：轻型；精通：缓速"
+    },
+    "匕首": {
+      "name": "匕首",
+      "category": "简易近战武器",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d4",
+      "damageType": "穿刺",
+      "properties": [
+        "灵巧",
+        "轻型",
+        "投掷（射程 20/60）"
+      ],
+      "mastery": "迅击",
+      "weight": "1磅",
+      "desc": "伤害 1d4 穿刺；武器属性：灵巧、轻型、投掷（射程 20/60）；精通：迅击"
+    },
+    "巨棒": {
+      "name": "巨棒",
+      "category": "简易近战武器",
+      "price": 0.2,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "钝击",
+      "properties": [
+        "双手"
+      ],
+      "mastery": "推离",
+      "weight": "10磅",
+      "desc": "伤害 1d8 钝击；武器属性：双手；精通：推离"
+    },
+    "手斧": {
+      "name": "手斧",
+      "category": "简易近战武器",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "挥砍",
+      "properties": [
+        "轻型",
+        "投掷（射程 20/60）"
+      ],
+      "mastery": "侵扰",
+      "weight": "2磅",
+      "desc": "伤害 1d6 挥砍；武器属性：轻型、投掷（射程 20/60）；精通：侵扰"
+    },
+    "标枪": {
+      "name": "标枪",
+      "category": "简易近战武器",
+      "price": 0.5,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "穿刺",
+      "properties": [
+        "投掷（射程 30/120）"
+      ],
+      "mastery": "缓速",
+      "weight": "2磅",
+      "desc": "伤害 1d6 穿刺；武器属性：投掷（射程 30/120）；精通：缓速"
+    },
+    "轻锤": {
+      "name": "轻锤",
+      "category": "简易近战武器",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d4",
+      "damageType": "钝击",
+      "properties": [
+        "轻型",
+        "投掷（射程 20/60）"
+      ],
+      "mastery": "迅击",
+      "weight": "2磅",
+      "desc": "伤害 1d4 钝击；武器属性：轻型、投掷（射程 20/60）；精通：迅击"
+    },
+    "硬头锤": {
+      "name": "硬头锤",
+      "category": "简易近战武器",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "钝击",
+      "properties": [],
+      "mastery": "削弱",
+      "weight": "4磅",
+      "desc": "伤害 1d6 钝击；精通：削弱"
+    },
+    "长棍": {
+      "name": "长棍",
+      "category": "简易近战武器",
+      "price": 0.2,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "钝击",
+      "properties": [
+        "多用（1d8）"
+      ],
+      "mastery": "失衡",
+      "weight": "4磅",
+      "desc": "伤害 1d6 钝击；武器属性：多用（1d8）；精通：失衡"
+    },
+    "镰刀": {
+      "name": "镰刀",
+      "category": "简易近战武器",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d4",
+      "damageType": "挥砍",
+      "properties": [
+        "轻型"
+      ],
+      "mastery": "迅击",
+      "weight": "2磅",
+      "desc": "伤害 1d4 挥砍；武器属性：轻型；精通：迅击"
+    },
+    "矛": {
+      "name": "矛",
+      "category": "简易近战武器",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "穿刺",
+      "properties": [
+        "投掷（射程 20/60）",
+        "多用（1d8）"
+      ],
+      "mastery": "削弱",
+      "weight": "3磅",
+      "desc": "伤害 1d6 穿刺；武器属性：投掷（射程 20/60）、多用（1d8）；精通：削弱"
+    },
+    "飞镖": {
+      "name": "飞镖",
+      "category": "简易远程武器",
+      "price": 0.05,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d4",
+      "damageType": "穿刺",
+      "properties": [
+        "灵巧",
+        "投掷（射程 20/60）"
+      ],
+      "mastery": "侵扰",
+      "weight": "1/4磅",
+      "desc": "伤害 1d4 穿刺；武器属性：灵巧、投掷（射程 20/60）；精通：侵扰"
+    },
+    "轻弩": {
+      "name": "轻弩",
+      "category": "简易远程武器",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 80/320；弩矢）",
+        "装填",
+        "双手"
+      ],
+      "mastery": "缓速",
+      "weight": "5磅",
+      "desc": "伤害 1d8 穿刺；武器属性：弹药（射程 80/320；弩矢）、装填、双手；精通：缓速"
+    },
+    "短弓": {
+      "name": "短弓",
+      "category": "简易远程武器",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 80/320；箭矢）",
+        "双手"
+      ],
+      "mastery": "侵扰",
+      "weight": "2磅",
+      "desc": "伤害 1d6 穿刺；武器属性：弹药（射程 80/320；箭矢）、双手；精通：侵扰"
+    },
+    "投石索": {
+      "name": "投石索",
+      "category": "简易远程武器",
+      "price": 0.1,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d4",
+      "damageType": "钝击",
+      "properties": [
+        "弹药（射程 30/120；子弹）"
+      ],
+      "mastery": "缓速",
+      "weight": "—",
+      "desc": "伤害 1d4 钝击；武器属性：弹药（射程 30/120；子弹）；精通：缓速"
+    },
+    "战斧": {
+      "name": "战斧",
+      "category": "军用近战武器",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "挥砍",
+      "properties": [
+        "多用（1d10）"
+      ],
+      "mastery": "失衡",
+      "weight": "4磅",
+      "desc": "伤害 1d8 挥砍；武器属性：多用（1d10）；精通：失衡"
+    },
+    "链枷": {
+      "name": "链枷",
+      "category": "军用近战武器",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "钝击",
+      "properties": [],
+      "mastery": "削弱",
+      "weight": "2磅",
+      "desc": "伤害 1d8 钝击；精通：削弱"
+    },
+    "长柄刀": {
+      "name": "长柄刀",
+      "category": "军用近战武器",
+      "price": 20.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d10",
+      "damageType": "挥砍",
+      "properties": [
+        "重型",
+        "触及",
+        "双手"
+      ],
+      "mastery": "擦掠",
+      "weight": "6磅",
+      "desc": "伤害 1d10 挥砍；武器属性：重型、触及、双手；精通：擦掠"
+    },
+    "巨斧": {
+      "name": "巨斧",
+      "category": "军用近战武器",
+      "price": 30.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d12",
+      "damageType": "挥砍",
+      "properties": [
+        "重型",
+        "双手"
+      ],
+      "mastery": "横扫",
+      "weight": "7磅",
+      "desc": "伤害 1d12 挥砍；武器属性：重型、双手；精通：横扫"
+    },
+    "巨剑": {
+      "name": "巨剑",
+      "category": "军用近战武器",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "2d6",
+      "damageType": "挥砍",
+      "properties": [
+        "重型",
+        "双手"
+      ],
+      "mastery": "擦掠",
+      "weight": "6磅",
+      "desc": "伤害 2d6 挥砍；武器属性：重型、双手；精通：擦掠"
+    },
+    "戟": {
+      "name": "戟",
+      "category": "军用近战武器",
+      "price": 20.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d10",
+      "damageType": "挥砍",
+      "properties": [
+        "重型",
+        "触及",
+        "双手"
+      ],
+      "mastery": "横扫",
+      "weight": "6磅",
+      "desc": "伤害 1d10 挥砍；武器属性：重型、触及、双手；精通：横扫"
+    },
+    "骑枪": {
+      "name": "骑枪",
+      "category": "军用近战武器",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d10",
+      "damageType": "穿刺",
+      "properties": [
+        "重型",
+        "触及",
+        "双手（骑乘时除外）"
+      ],
+      "mastery": "失衡",
+      "weight": "6磅",
+      "desc": "伤害 1d10 穿刺；武器属性：重型、触及、双手（骑乘时除外）；精通：失衡"
+    },
+    "长剑": {
+      "name": "长剑",
+      "category": "军用近战武器",
+      "price": 15.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "挥砍",
+      "properties": [
+        "多用（1d10）"
+      ],
+      "mastery": "削弱",
+      "weight": "3磅",
+      "desc": "伤害 1d8 挥砍；武器属性：多用（1d10）；精通：削弱"
+    },
+    "巨锤": {
+      "name": "巨锤",
+      "category": "军用近战武器",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "2d6",
+      "damageType": "钝击",
+      "properties": [
+        "重型",
+        "双手"
+      ],
+      "mastery": "失衡",
+      "weight": "10磅",
+      "desc": "伤害 2d6 钝击；武器属性：重型、双手；精通：失衡"
+    },
+    "钉头锤": {
+      "name": "钉头锤",
+      "category": "军用近战武器",
+      "price": 15.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "穿刺",
+      "properties": [],
+      "mastery": "削弱",
+      "weight": "4磅",
+      "desc": "伤害 1d8 穿刺；精通：削弱"
+    },
+    "长矛": {
+      "name": "长矛",
+      "category": "军用近战武器",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d10",
+      "damageType": "穿刺",
+      "properties": [
+        "重型",
+        "触及",
+        "双手"
+      ],
+      "mastery": "推离",
+      "weight": "18磅",
+      "desc": "伤害 1d10 穿刺；武器属性：重型、触及、双手；精通：推离"
+    },
+    "刺剑": {
+      "name": "刺剑",
+      "category": "军用近战武器",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "穿刺",
+      "properties": [
+        "灵巧"
+      ],
+      "mastery": "侵扰",
+      "weight": "2磅",
+      "desc": "伤害 1d8 穿刺；武器属性：灵巧；精通：侵扰"
+    },
+    "弯刀": {
+      "name": "弯刀",
+      "category": "军用近战武器",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "挥砍",
+      "properties": [
+        "灵巧",
+        "轻型"
+      ],
+      "mastery": "迅击",
+      "weight": "3磅",
+      "desc": "伤害 1d6 挥砍；武器属性：灵巧、轻型；精通：迅击"
+    },
+    "短剑": {
+      "name": "短剑",
+      "category": "军用近战武器",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "穿刺",
+      "properties": [
+        "灵巧",
+        "轻型"
+      ],
+      "mastery": "侵扰",
+      "weight": "2磅",
+      "desc": "伤害 1d6 穿刺；武器属性：灵巧、轻型；精通：侵扰"
+    },
+    "三叉戟": {
+      "name": "三叉戟",
+      "category": "军用近战武器",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "穿刺",
+      "properties": [
+        "投掷（射程 20/60）",
+        "多用（1d10）"
+      ],
+      "mastery": "失衡",
+      "weight": "4磅",
+      "desc": "伤害 1d8 穿刺；武器属性：投掷（射程 20/60）、多用（1d10）；精通：失衡"
+    },
+    "战镐": {
+      "name": "战镐",
+      "category": "军用近战武器",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "穿刺",
+      "properties": [
+        "多用（1d10）"
+      ],
+      "mastery": "削弱",
+      "weight": "2磅",
+      "desc": "伤害 1d8 穿刺；武器属性：多用（1d10）；精通：削弱"
+    },
+    "战锤": {
+      "name": "战锤",
+      "category": "军用近战武器",
+      "price": 15.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "钝击",
+      "properties": [
+        "多用（1d10）"
+      ],
+      "mastery": "推离",
+      "weight": "2磅",
+      "desc": "伤害 1d8 钝击；武器属性：多用（1d10）；精通：推离"
+    },
+    "鞭": {
+      "name": "鞭",
+      "category": "军用近战武器",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d4",
+      "damageType": "挥砍",
+      "properties": [
+        "灵巧",
+        "触及"
+      ],
+      "mastery": "缓速",
+      "weight": "3磅",
+      "desc": "伤害 1d4 挥砍；武器属性：灵巧、触及；精通：缓速"
+    },
+    "吹箭筒": {
+      "name": "吹箭筒",
+      "category": "军用远程武器",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 25/100；吹矢）",
+        "装填"
+      ],
+      "mastery": "侵扰",
+      "weight": "1磅",
+      "desc": "伤害 1 穿刺；武器属性：弹药（射程 25/100；吹矢）、装填；精通：侵扰"
+    },
+    "手弩": {
+      "name": "手弩",
+      "category": "军用远程武器",
+      "price": 75.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d6",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 30/120；弩矢）",
+        "轻型",
+        "装填"
+      ],
+      "mastery": "侵扰",
+      "weight": "3磅",
+      "desc": "伤害 1d6 穿刺；武器属性：弹药（射程 30/120；弩矢）、轻型、装填；精通：侵扰"
+    },
+    "重弩": {
+      "name": "重弩",
+      "category": "军用远程武器",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d10",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 100/400；弩矢）",
+        "重型",
+        "装填",
+        "双手"
+      ],
+      "mastery": "推离",
+      "weight": "18磅",
+      "desc": "伤害 1d10 穿刺；武器属性：弹药（射程 100/400；弩矢）、重型、装填、双手；精通：推离"
+    },
+    "长弓": {
+      "name": "长弓",
+      "category": "军用远程武器",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d8",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 150/600；箭矢）",
+        "重型",
+        "双手"
+      ],
+      "mastery": "缓速",
+      "weight": "2磅",
+      "desc": "伤害 1d8 穿刺；武器属性：弹药（射程 150/600；箭矢）、重型、双手；精通：缓速"
+    },
+    "火铳": {
+      "name": "火铳",
+      "category": "军用远程武器",
+      "price": 500.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d12",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 40/120；子弹）",
+        "装填",
+        "双手"
+      ],
+      "mastery": "缓速",
+      "weight": "10磅",
+      "desc": "伤害 1d12 穿刺；武器属性：弹药（射程 40/120；子弹）、装填、双手；精通：缓速"
+    },
+    "手铳": {
+      "name": "手铳",
+      "category": "军用远程武器",
+      "price": 250.0,
+      "source": "玩家手册2024/装备/武器.htm",
+      "equipSlot": "weapon",
+      "canEquip": true,
+      "damage": "1d10",
+      "damageType": "穿刺",
+      "properties": [
+        "弹药（射程 30/90；子弹）",
+        "装填"
+      ],
+      "mastery": "侵扰",
+      "weight": "3磅",
+      "desc": "伤害 1d10 穿刺；武器属性：弹药（射程 30/90；子弹）、装填；精通：侵扰"
+    },
+    "盾牌": {
+      "name": "盾牌",
+      "category": "盾牌",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "shield",
+      "canEquip": true,
+      "desc": "持用后护甲等级 AC +2。"
+    },
+    "布甲": {
+      "name": "布甲",
+      "category": "轻甲",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 11,
+      "maxDex": 99,
+      "strReq": 0,
+      "desc": "基础护甲等级 11"
+    },
+    "皮甲": {
+      "name": "皮甲",
+      "category": "轻甲",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 11,
+      "maxDex": 99,
+      "strReq": 0,
+      "desc": "基础护甲等级 11"
+    },
+    "镶钉皮甲": {
+      "name": "镶钉皮甲",
+      "category": "轻甲",
+      "price": 45.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 12,
+      "maxDex": 99,
+      "strReq": 0,
+      "desc": "基础护甲等级 12"
+    },
+    "兽皮甲": {
+      "name": "兽皮甲",
+      "category": "中甲",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 12,
+      "maxDex": 2,
+      "strReq": 0,
+      "desc": "基础护甲等级 12；敏捷加值上限 +2"
+    },
+    "链甲衫": {
+      "name": "链甲衫",
+      "category": "中甲",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 13,
+      "maxDex": 2,
+      "strReq": 0,
+      "desc": "基础护甲等级 13；敏捷加值上限 +2"
+    },
+    "鳞甲": {
+      "name": "鳞甲",
+      "category": "中甲",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 14,
+      "maxDex": 2,
+      "strReq": 0,
+      "desc": "基础护甲等级 14；敏捷加值上限 +2"
+    },
+    "胸甲": {
+      "name": "胸甲",
+      "category": "中甲",
+      "price": 400.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 14,
+      "maxDex": 2,
+      "strReq": 0,
+      "desc": "基础护甲等级 14；敏捷加值上限 +2"
+    },
+    "半身板甲": {
+      "name": "半身板甲",
+      "category": "中甲",
+      "price": 750.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 15,
+      "maxDex": 2,
+      "strReq": 0,
+      "desc": "基础护甲等级 15；敏捷加值上限 +2"
+    },
+    "环甲": {
+      "name": "环甲",
+      "category": "重甲",
+      "price": 30.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 14,
+      "maxDex": 0,
+      "strReq": 0,
+      "desc": "基础护甲等级 14；敏捷加值上限 +0"
+    },
+    "链甲": {
+      "name": "链甲",
+      "category": "重甲",
+      "price": 75.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 16,
+      "maxDex": 0,
+      "strReq": 13,
+      "desc": "基础护甲等级 16；敏捷加值上限 +0；力量需求 13"
+    },
+    "板条甲": {
+      "name": "板条甲",
+      "category": "重甲",
+      "price": 200.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 17,
+      "maxDex": 0,
+      "strReq": 15,
+      "desc": "基础护甲等级 17；敏捷加值上限 +0；力量需求 15"
+    },
+    "板甲": {
+      "name": "板甲",
+      "category": "重甲",
+      "price": 1500.0,
+      "source": "玩家手册2024/装备/护甲.htm",
+      "equipSlot": "armor",
+      "canEquip": true,
+      "baseAC": 18,
+      "maxDex": 0,
+      "strReq": 15,
+      "desc": "基础护甲等级 18；敏捷加值上限 +0；力量需求 15"
+    },
+    "强酸": {
+      "name": "强酸",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "墨水笔": {
+      "name": "墨水笔",
+      "category": "冒险装备",
+      "price": 0.02,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "炽火胶": {
+      "name": "炽火胶",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "壶": {
+      "name": "壶",
+      "category": "冒险装备",
+      "price": 0.02,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "弹药": {
+      "name": "弹药",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "梯子": {
+      "name": "梯子",
+      "category": "冒险装备",
+      "price": 0.1,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "抗毒剂": {
+      "name": "抗毒剂",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "喝下后在一段时间内抵抗毒素影响，具体效果以规则条目为准。"
+    },
+    "油灯": {
+      "name": "油灯",
+      "category": "冒险装备",
+      "price": 0.5,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "奥术法器": {
+      "name": "奥术法器",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "牛眼提灯": {
+      "name": "牛眼提灯",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "背包": {
+      "name": "背包",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "附盖提灯": {
+      "name": "附盖提灯",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "滚珠": {
+      "name": "滚珠",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "锁": {
+      "name": "锁",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "木桶": {
+      "name": "木桶",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "放大镜": {
+      "name": "放大镜",
+      "category": "冒险装备",
+      "price": 100.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "篮子": {
+      "name": "篮子",
+      "category": "冒险装备",
+      "price": 0.4,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "镣铐": {
+      "name": "镣铐",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "铺盖": {
+      "name": "铺盖",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "地图": {
+      "name": "地图",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "铃铛": {
+      "name": "铃铛",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "镜子": {
+      "name": "镜子",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "毯子": {
+      "name": "毯子",
+      "category": "冒险装备",
+      "price": 0.5,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "捕网": {
+      "name": "捕网",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "滑轮组": {
+      "name": "滑轮组",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "燃油": {
+      "name": "燃油",
+      "category": "冒险装备",
+      "price": 0.1,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "书籍": {
+      "name": "书籍",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "纸张": {
+      "name": "纸张",
+      "category": "冒险装备",
+      "price": 0.2,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "玻璃瓶": {
+      "name": "玻璃瓶",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "羊皮纸": {
+      "name": "羊皮纸",
+      "category": "冒险装备",
+      "price": 0.1,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "吊桶": {
+      "name": "吊桶",
+      "category": "冒险装备",
+      "price": 0.05,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "香水": {
+      "name": "香水",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "窃贼套组": {
+      "name": "窃贼套组",
+      "category": "冒险套组",
+      "price": 16,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "潜入、撬锁、制造干扰和短期行动用的套组。",
+      "contents": [
+        "背包",
+        "滚珠",
+        "铃铛",
+        "10根蜡烛",
+        "撬棍",
+        "附盖提灯",
+        "7扁瓶燃油",
+        "五天份的口粮",
+        "绳索",
+        "火绒盒和水袋"
+      ],
+      "equipSlot": "",
+      "canEquip": false
+    },
+    "基础毒药": {
+      "name": "基础毒药",
+      "category": "冒险装备",
+      "price": 100.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "铁蒺藜": {
+      "name": "铁蒺藜",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "长杆": {
+      "name": "长杆",
+      "category": "冒险装备",
+      "price": 0.05,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "蜡烛": {
+      "name": "蜡烛",
+      "category": "冒险装备",
+      "price": 0.01,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "铁锅": {
+      "name": "铁锅",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "弩矢匣": {
+      "name": "弩矢匣",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "治疗药水": {
+      "name": "治疗药水",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "饮用后恢复生命值的常见魔法消耗品。"
+    },
+    "地图或卷轴匣": {
+      "name": "地图或卷轴匣",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "小包": {
+      "name": "小包",
+      "category": "冒险装备",
+      "price": 0.5,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "链条": {
+      "name": "链条",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "祭司套组": {
+      "name": "祭司套组",
+      "category": "冒险套组",
+      "price": 33,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "contents": [
+        "背包",
+        "毯子",
+        "圣水",
+        "油灯",
+        "7天份的口粮",
+        "长袍和火绒盒"
+      ],
+      "equipSlot": "",
+      "canEquip": false,
+      "desc": "包含：背包、毯子、圣水、油灯、7天份的口粮、长袍和火绒盒"
+    },
+    "箱子": {
+      "name": "箱子",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "箭袋": {
+      "name": "箭袋",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "攀爬工具": {
+      "name": "攀爬工具",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "便携式攻城锤": {
+      "name": "便携式攻城锤",
+      "category": "冒险装备",
+      "price": 4.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "高档服装": {
+      "name": "高档服装",
+      "category": "冒险装备",
+      "price": 15.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "口粮": {
+      "name": "口粮",
+      "category": "冒险装备",
+      "price": 0.5,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "旅行服装": {
+      "name": "旅行服装",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "长袍": {
+      "name": "长袍",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "材料包": {
+      "name": "材料包",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "绳索": {
+      "name": "绳索",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "戏服": {
+      "name": "戏服",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "麻袋": {
+      "name": "麻袋",
+      "category": "冒险装备",
+      "price": 0.01,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "撬棍": {
+      "name": "撬棍",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "学者套组": {
+      "name": "学者套组",
+      "category": "冒险套组",
+      "price": 40,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "书写、研究和保存文稿用的套组。",
+      "contents": [
+        "背包",
+        "书",
+        "墨水",
+        "墨水笔",
+        "油灯",
+        "10扁瓶燃油",
+        "10张羊皮纸和火绒盒"
+      ],
+      "equipSlot": "",
+      "canEquip": false
+    },
+    "外交套组": {
+      "name": "外交套组",
+      "category": "冒险套组",
+      "price": 39,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "社交、文书、差旅和礼仪场景用的套组。",
+      "contents": [
+        "箱子",
+        "高档服装",
+        "墨水",
+        "5支墨水笔",
+        "油灯",
+        "2个地图或卷轴匣",
+        "4扁瓶燃油",
+        "5张纸张",
+        "5张羊皮纸",
+        "香水和火绒盒"
+      ],
+      "equipSlot": "",
+      "canEquip": false
+    },
+    "铲子": {
+      "name": "铲子",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "德鲁伊法器": {
+      "name": "德鲁伊法器",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "信号笛": {
+      "name": "信号笛",
+      "category": "冒险装备",
+      "price": 0.05,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "小型哨笛，用于发出清晰、可辨认的信号。可用于警戒、集合、求援或约定暗号，实际距离由场景环境裁定。"
+    },
+    "地城套组": {
+      "name": "地城套组",
+      "category": "冒险套组",
+      "price": 12,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "contents": [
+        "背包",
+        "铁蒺藜",
+        "撬棍",
+        "2扁瓶燃油",
+        "10天份的口粮",
+        "绳索",
+        "火绒盒",
+        "10根火把和水袋"
+      ],
+      "equipSlot": "",
+      "canEquip": false,
+      "desc": "包含：背包、铁蒺藜、撬棍、2扁瓶燃油、10天份的口粮、绳索、火绒盒、10根火把和水袋"
+    },
+    "戏法卷轴": {
+      "name": "戏法卷轴",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "艺人套组": {
+      "name": "艺人套组",
+      "category": "冒险套组",
+      "price": 40,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "contents": [
+        "背包",
+        "铺盖",
+        "铃铛",
+        "牛眼提灯",
+        "3套戏服",
+        "镜子",
+        "8扁瓶燃油",
+        "9天份的口粮",
+        "火绒盒和水袋"
+      ],
+      "equipSlot": "",
+      "canEquip": false,
+      "desc": "包含：背包、铺盖、铃铛、牛眼提灯、3套戏服、镜子、8扁瓶燃油、9天份的口粮、火绒盒和水袋"
+    },
+    "一环卷轴": {
+      "name": "一环卷轴",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "探索套组": {
+      "name": "探索套组",
+      "category": "冒险套组",
+      "price": 10,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "常用冒险装备的打包套组，适合地下城、野外探索和长途旅行。",
+      "contents": [
+        "背包",
+        "铺盖",
+        "2扁瓶燃油",
+        "10天份的口粮",
+        "绳索",
+        "火绒盒",
+        "10根火把和水袋"
+      ],
+      "equipSlot": "",
+      "canEquip": false
+    },
+    "铁钉": {
+      "name": "铁钉",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "扁瓶": {
+      "name": "扁瓶",
+      "category": "冒险装备",
+      "price": 0.02,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "望远镜": {
+      "name": "望远镜",
+      "category": "冒险装备",
+      "price": 0.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "爪钩": {
+      "name": "爪钩",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "细线": {
+      "name": "细线",
+      "category": "冒险装备",
+      "price": 0.1,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "医疗包": {
+      "name": "医疗包",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "帐篷": {
+      "name": "帐篷",
+      "category": "冒险装备",
+      "price": 2.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "圣徽": {
+      "name": "圣徽",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "火绒盒": {
+      "name": "火绒盒",
+      "category": "冒险装备",
+      "price": 0.5,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "圣水": {
+      "name": "圣水",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "装在小瓶中的圣水，常用于对付不死生物或邪恶存在。"
+    },
+    "火把": {
+      "name": "火把",
+      "category": "冒险装备",
+      "price": 0.01,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "捕猎陷阱": {
+      "name": "捕猎陷阱",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "小瓶": {
+      "name": "小瓶",
+      "category": "冒险装备",
+      "price": null,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "墨水": {
+      "name": "墨水",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "水袋": {
+      "name": "水袋",
+      "category": "冒险装备",
+      "price": 0.2,
+      "source": "玩家手册2024/装备/冒险装备.htm"
+    },
+    "箭矢": {
+      "name": "箭矢",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "弩矢": {
+      "name": "弩矢",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "枪械子弹": {
+      "name": "枪械子弹",
+      "category": "冒险装备",
+      "price": 3.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "投石索子弹": {
+      "name": "投石索子弹",
+      "category": "冒险装备",
+      "price": 0.04,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "吹矢": {
+      "name": "吹矢",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "水晶": {
+      "name": "水晶",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "法球": {
+      "name": "法球",
+      "category": "冒险装备",
+      "price": 20.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "权杖": {
+      "name": "权杖",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "法杖": {
+      "name": "法杖",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "魔杖": {
+      "name": "魔杖",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "槲寄生枝条": {
+      "name": "槲寄生枝条",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "木质法杖": {
+      "name": "木质法杖",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "紫衫魔杖": {
+      "name": "紫衫魔杖",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "护符": {
+      "name": "护符",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "纹章": {
+      "name": "纹章",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "圣物匣": {
+      "name": "圣物匣",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "法术卷轴": {
+      "name": "法术卷轴",
+      "category": "冒险装备",
+      "price": 30.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "炼金工具": {
+      "name": "炼金工具",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "酿酒工具": {
+      "name": "酿酒工具",
+      "category": "冒险装备",
+      "price": 20.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "书法工具": {
+      "name": "书法工具",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "木匠工具": {
+      "name": "木匠工具",
+      "category": "冒险装备",
+      "price": 8.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "制图工具": {
+      "name": "制图工具",
+      "category": "冒险装备",
+      "price": 15.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "鞋匠工具": {
+      "name": "鞋匠工具",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "厨师工具": {
+      "name": "厨师工具",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "玻璃匠工具": {
+      "name": "玻璃匠工具",
+      "category": "冒险装备",
+      "price": 30.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "珠宝匠工具": {
+      "name": "珠宝匠工具",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "皮匠工具": {
+      "name": "皮匠工具",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "石匠工具": {
+      "name": "石匠工具",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "画家工具": {
+      "name": "画家工具",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "陶匠工具": {
+      "name": "陶匠工具",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "铁匠工具": {
+      "name": "铁匠工具",
+      "category": "冒险装备",
+      "price": 20.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "修补工具": {
+      "name": "修补工具",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "织布工具": {
+      "name": "织布工具",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "木雕工具": {
+      "name": "木雕工具",
+      "category": "冒险装备",
+      "price": 1.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "易容工具": {
+      "name": "易容工具",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "文书伪造工具": {
+      "name": "文书伪造工具",
+      "category": "冒险装备",
+      "price": 15.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "草药工具": {
+      "name": "草药工具",
+      "category": "冒险装备",
+      "price": 5.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "领航工具": {
+      "name": "领航工具",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "毒药工具": {
+      "name": "毒药工具",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "盗贼工具": {
+      "name": "盗贼工具",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "大象": {
+      "name": "大象",
+      "category": "冒险装备",
+      "price": 200.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "战马": {
+      "name": "战马",
+      "category": "冒险装备",
+      "price": 400.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "驮用马": {
+      "name": "驮用马",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "乘用马": {
+      "name": "乘用马",
+      "category": "冒险装备",
+      "price": 75.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "骆驼": {
+      "name": "骆驼",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "骡子": {
+      "name": "骡子",
+      "category": "冒险装备",
+      "price": 8.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "矮种马": {
+      "name": "矮种马",
+      "category": "冒险装备",
+      "price": 30.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "獒犬": {
+      "name": "獒犬",
+      "category": "冒险装备",
+      "price": 25.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "客车": {
+      "name": "客车",
+      "category": "冒险装备",
+      "price": 100.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "货车": {
+      "name": "货车",
+      "category": "冒险装备",
+      "price": 35.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "雪橇": {
+      "name": "雪橇",
+      "category": "冒险装备",
+      "price": 20.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "战车": {
+      "name": "战车",
+      "category": "冒险装备",
+      "price": 250.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "饲料": {
+      "name": "饲料",
+      "category": "冒险装备",
+      "price": 0.05,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "马厩": {
+      "name": "马厩",
+      "category": "冒险装备",
+      "price": 0.5,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "特种": {
+      "name": "特种",
+      "category": "冒险装备",
+      "price": 60.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "军用": {
+      "name": "军用",
+      "category": "冒险装备",
+      "price": 20.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "乘用": {
+      "name": "乘用",
+      "category": "冒险装备",
+      "price": 10.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "戏法": {
+      "name": "戏法",
+      "category": "冒险装备",
+      "price": 30.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "一环": {
+      "name": "一环",
+      "category": "冒险装备",
+      "price": 50.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "二环": {
+      "name": "二环",
+      "category": "冒险装备",
+      "price": 200.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "三环": {
+      "name": "三环",
+      "category": "冒险装备",
+      "price": 300.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "四到五环": {
+      "name": "四到五环",
+      "category": "冒险装备",
+      "price": 2000.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "六到八环": {
+      "name": "六到八环",
+      "category": "冒险装备",
+      "price": 20000.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    },
+    "九环": {
+      "name": "九环",
+      "category": "冒险装备",
+      "price": 100000.0,
+      "source": "玩家手册2024/装备/冒险装备.htm",
+      "desc": "规则装备条目。"
+    }
+  }
+}

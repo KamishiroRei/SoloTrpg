@@ -21,27 +21,67 @@
       gridColor: '#3a3a5c',
       bgColor: '#1a1a2e',
       rangeColor: '#ff6b6b',
-      onTokenSelected: (token) => {
-        window.UIManager.onMapTokenSelected(token);
+      onTokenSelected: (token, anchor) => {
+        window.UIManager.onMapTokenSelected(token, anchor);
       },
-      onCoordUpdate: (gx, gy) => {
-        window.UIManager.onMapCoordUpdate(gx, gy);
-      }
+      onTokenMoved: (token, mapId) => window.UIManager.onMapTokenMoved(token, mapId),
+      onCoordUpdate: (gx, gy, info) => {
+        window.UIManager.onMapCoordUpdate(gx, gy, info);
+      },
+      onZoomChanged: () => window.UIManager.updateZoomLabel(),
+      onMapsChanged: (maps, activeId) => window.UIManager.renderMapTabs(maps, activeId),
+      onMapChanged: (map) => window.UIManager.onActiveMapChanged(map),
+      onRangeDraft: (range, anchor) => window.UIManager.onRangeDraft(range, anchor),
+      onRangeSelected: (range, anchor) => window.UIManager.onRangeSelected(range, anchor),
+      onMeasureUpdate: (info, anchor) => window.UIManager.onMeasureUpdate(info, anchor),
+      onMeasureComplete: (info) => window.UIManager.onMeasureComplete(info),
+      onStateChanged: (state, reason) => window.UIManager.onMapStateChanged(state, reason)
     });
 
     // 初始化聊天历史（供AI上下文使用）
     window._chatHistory = [];
 
     // 初始化UI（包含AI、规则书等所有面板）
-    window.UIManager.init();
+    // 攻坚修复：UI 初始化异常不得阻断后续连接检测（此前 UIManager.init 内任一抛错
+    // 都会中断 init → initAIClient 不执行 → isConnected 永远 false → "世界尚未苏醒"）
+    try {
+      window.UIManager.init();
+    } catch (err) {
+      try {
+        fetch('/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'ui-init-error', err: String((err && err.message) || err), stack: String((err && err.stack) || '').slice(0, 600), t: Date.now() }) }).catch(function () {});
+      } catch (e2) {}
+      console.error('[App] UIManager.init 异常（已隔离，继续连接检测）:', err);
+    }
 
-    // 初始化AI客户端（尝试连接后端）
+    // 初始化AI客户端（尝试连接后端）——无条件执行
     initAIClient();
+    // 启动链路标记：app.js init 已执行到 initAIClient 之后（诊断用，写入后端日志）
+    try {
+      fetch('/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'app-init', t: Date.now() }) }).catch(function () {});
+    } catch (e) {}
 
     // 窗口大小变化
     window.addEventListener('resize', () => {
       window.MapEngine.resize();
     });
+    // 兜底：监听地图相关容器尺寸变化（WebView2 原生窗口缩放/侧栏调整等场景 window resize 可能不触发），
+    // 保证被浮动面板遮挡的地图区域在窗口变化后立即重绘，避免出现未渲染的黑色区域。
+    // 地图固定完整渲染原则：不做任何渲染节省，任何可能影响地图显示尺寸的变化都强制全量重绘。
+    if (window.ResizeObserver) {
+      try {
+        var _ro = new ResizeObserver(() => {
+          if (window.MapEngine && typeof window.MapEngine.resize === 'function') {
+            try { window.MapEngine.resize(); } catch (e) {}
+          }
+        });
+        ['map-canvas', 'map-wrapper', 'map-container', 'main-area', 'body'].forEach(function (id) {
+          var el = id === 'body' ? document.body : document.getElementById(id);
+          if (el) _ro.observe(el);
+        });
+      } catch (e) {
+        // ResizeObserver 不可用时退化为 window resize 兜底
+      }
+    }
 
     // 加载本地存储的数据
     loadFromLocalStorage();
@@ -52,18 +92,25 @@
   // ── AI客户端初始化 ────────────────────────────────
 
   function initAIClient() {
-    // AI客户端的回调已在ui.js的setupAI中设置
-    // 这里只做延迟连接检查
-    setTimeout(async () => {
-      if (window.AIClient) {
-        const connected = await window.AIClient.checkConnection();
+    // 立即连接检测（用户要求：开了就是开了，立刻响应立刻启动；禁止 setTimeout 硬编码延迟）
+    try {
+      fetch('/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'init-ai-now', t: Date.now() }) }).catch(function () {});
+    } catch (e) {}
+    if (window.AIClient) {
+      window.AIClient.checkConnection().then(function (connected) {
         if (connected) {
           console.log('[App] AI服务器已连接');
         } else {
           console.log('[App] AI服务器未连接（可稍后在设置中配置）');
         }
-      }
-    }, 1000);
+      }).catch(function () {
+        console.log('[App] AI连接检测异常');
+      });
+    } else {
+      try {
+        fetch('/api/diag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ evt: 'aiclient-missing', t: Date.now() }) }).catch(function () {});
+      } catch (e) {}
+    }
   }
 
   // ── 本地存储 ──────────────────────────────────────

@@ -146,11 +146,20 @@
     if (editId) payload.id = editId;
     try { localStorage.setItem('trpg_pending_character', JSON.stringify(payload)); } catch (e) { showMsg('保存失败：无法写入本地存储', true); return; }
     showMsg('已保存！本窗口即将关闭，主窗口将创建/更新角色。');
-    setTimeout(function () { window.close(); }, 1500);
+    setTimeout(function () { window.close(); }, 80);
   };
 
   // 优先加载规则专属表单，否则默认表单
-  loadPlugin().then(function (handler) {
+  function showDisconnected() {
+    document.getElementById('title').textContent = '世界未苏醒';
+    formEl.innerHTML = '<div class="msg" style="color:#99a4ca;text-align:center;padding:40px 0;">世界尚未苏醒：运行 SoloTrpg 后才能新建角色。</div>';
+    document.getElementById('btn-save').disabled = true;
+  }
+  fetch('/', { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+    if (!r.ok) { showDisconnected(); return null; }
+    return loadPlugin();
+  }).catch(function () { showDisconnected(); return null; }).then(function (handler) {
+    if (handler === null) return;
     if (handler && typeof handler.renderCreate === 'function') {
       sheetHandler = handler;
       formEl.innerHTML = '';

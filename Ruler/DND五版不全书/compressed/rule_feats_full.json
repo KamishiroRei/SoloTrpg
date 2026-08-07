@@ -1,0 +1,1663 @@
+{
+ "version": "2026.08.06-expanded-feats",
+ "source": "compiled from source references without raw source files",
+ "total": 280,
+ "feats": {
+  "新晋龙巫教徒": {
+   "name": "新晋龙巫教徒",
+   "desc": "新晋龙巫教徒 Cult of the Dragon Initiate 起源专长 你获得以下增益。 龙之舌Dragon's Tongue。 你懂得龙语。若你选取此专长时已懂得龙语，你自《玩家手册》或本书第二章的语言表中选择一门语言习得以替代龙语。 龙之威Dragon's Terror。 你能够以魔法动作将恐惧灌输给一名位于你30尺内的你可见的生物。目标必须成功通过一次感知豁免（DC等于8+你的感知调整值+你的熟练加值），否则陷入恐慌状态，持续至你的下个回合结束。若目标的此豁免成功或当其身上的此效应结束时，目标在24小时内免疫此效应。 饮惧为励Inspire by Fear。 当你令一名生物陷入恐慌状态且恐惧源为你时，若你没有英雄激励，你可以获得之。此增益一经使用，直至你完成短休或长休都无法再次使用。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "翠绿闲庭新羽": {
+   "name": "翠绿闲庭新羽",
+   "desc": "翠绿闲庭新羽 Emerald Enclave Fledgling 起源专长 你获得以下增益。 动物交谈Speak with Animals。 你始终准备着法术 动物交谈Speak with Animals ，且能以你拥有的任意法术位施展该法术。你施展该法术的施法属性是智力、感知或魅力（在你选取此专长时选择）。当你将该法术作为仪式施展时，其持续时间为8小时。 双人轮打Tag Team。 当你执行协助动作时，作为此动作的一部分，你能够与一名位于你5尺内的自愿盟友交换位置。此次移动不会引发借机攻击。若该盟友陷入失能状态，你无法使用此增益。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "竖琴手特工": {
+   "name": "竖琴手特工",
+   "desc": "竖琴手特工 Harper Agent 起源专长 你获得以下增益。 盗贼黑话Thieves' Cant。 你懂得盗贼黑话。 乐器训练Instrument Training。 你获得一项你选择乐器的熟练。 分神旋律Distracting Melody。 当你执行协助动作辅助盟友的攻击检定时，你可以分散位于你30尺内而非5尺内敌人的注意力，只要该敌人能看见或听见你。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "领主联盟特工": {
+   "name": "领主联盟特工",
+   "desc": "领主联盟特工 Lords’ Alliance Agent 起源专长 你获得以下增益。 激励打击Inspiring Strike。 每回合一次，当你对生物造成重击时，你能够选择一名盟友，其需位于你30尺内，能看见或听见你且不具有英雄激励。该盟友获得英雄激励。 重获荣誉Reassert Honor。 当一名你可见的敌人对你5尺内的盟友造成伤害时，你的下个回合结束前，你对该敌人的下次攻击检定具有优势。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "紫龙新兵": {
+   "name": "紫龙新兵",
+   "desc": "紫龙新兵 Purple Dragon Rook 起源专长 你获得以下增益。 待人接物Entreat。 你获得以下技能之一的熟练：洞悉、表演或游说。 振军战吼Rallying Cry。 当你投掷先攻时，若你未陷入失能状态，你能够选择数量等于你的熟练加值的你可见且位于你30尺内的生物。这些生物获得英雄激励。 此增益一经使用，直至完成长休你都无法再次使用。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "咒火火花": {
+   "name": "咒火火花",
+   "desc": "咒火火花 Spellfire Spark 起源专长 你获得以下增益。 魔法吸收Magic Absorption。 每回合一次，当你受到来自法术或魔法效应的伤害时，你令你受到的总伤害减少1d4。你无法在陷入失能状态期间使用该增益。 咒火之焰Spellfire Flame。 你习得戏法 圣火术Sacred Flame 。该法术的施法属性是智力、感知或魅力（当你选取此专长时选择）。你也能够以附赠动作施展该戏法，次数等于你的熟练加值，当你完成长休时重获所有已消耗的使用次数。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "新锻臂铠": {
+   "name": "新锻臂铠",
+   "desc": "新锻臂铠 Tyro of the Gauntlet 起源专长 你获得以下增益。 比肩而立Stand as One。 当一名位于你5尺内的盟友将受到推离或拉近其的效应时，你能够以反应防止该盟友被推离或拉近。若盟友陷入失能状态，其无法获得此增益。 警惕Vigilant。 当你执行预备动作时，在你的下个回合开始前对你进行的下次攻击检定具有劣势。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "散塔林会暴徒": {
+   "name": "散塔林会暴徒",
+   "desc": "散塔林会暴徒 Zhentarim Ruffian 起源专长 你获得以下增益。 见缝插针Exploit Opening。 当你为借机攻击进行伤害掷骰时，你能够投掷两次伤害骰并对目标使用其中一个结果。 家人至上Family First。 当你投掷先攻时，若你具有英雄激励，你能够消耗英雄激励令你和你的盟友的此次先攻检定具有优势。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "血海漂橹之恩惠": {
+   "name": "血海漂橹之恩惠",
+   "desc": "血海漂橹之恩惠 Boon of Bloodshed 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 杀手机运Killer's Fortune。 当一名你可见的敌人生命值降至0时，你的下次攻击检定获得优势，持续至你的下个回合结束。 痛心切骨Power from Pain。 每回合一次，当你在浴血期间进行攻击检定时，你可以额外对目标造成等于熟练加值的伤害。额外伤害的伤害类型与该攻击的伤害类型一致。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "生机勃发之恩惠": {
+   "name": "生机勃发之恩惠",
+   "desc": "生机勃发之恩惠 Boon of Bountiful Health 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 超健康Augmented Health。 当你获得临时生命值时，该临时生命值数值提升5。 超恢复Superior Recuperation。 当你消耗一枚或更多生命骰恢复生命值时，你能够以每枚骰子可能掷出的最高值替代其骰值。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "八面玲珑之恩惠": {
+   "name": "八面玲珑之恩惠",
+   "desc": "八面玲珑之恩惠 Boon of Communication 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至30。 巧妙讲演Cunning Speaker。 你影响敌对生物时进行的属性检定不具有劣势。 天赐译员Gifted Interpreter。 你理解你看见或听见的任意语言手势的字面意思。你理解你看见的任意语言文字的字面意思。 心灵沟通Mental Communication。 你获得120尺心灵感应。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "绝境逢生之恩惠": {
+   "name": "绝境逢生之恩惠",
+   "desc": "绝境逢生之恩惠 Boon of Desperate Resilience 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或体质提升1，至多提升至30。 心体防护Defense of Body and Mind。 浴血期间，你对除力场伤害外的所有类型伤害具有抗性。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "熠熠生辉之恩惠": {
+   "name": "熠熠生辉之恩惠",
+   "desc": "熠熠生辉之恩惠 Boon of Exquisite Radiance 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 永恒安眠Eternal Rest。 被你降至0生命值的生物无法变为亡灵。 磊落光明Powerful Radiance。 当你进行一次造成光耀伤害的伤害掷骰时，你能够以每枚骰子可能掷出的最高值替代其骰值。此增益一经使用，直至完成长休你都无法再次使用。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "变幻无常之恩惠": {
+   "name": "变幻无常之恩惠",
+   "desc": "变幻无常之恩惠 Boon of Fluid Forms 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至30。 变形生物Shapechanger。 你能够以魔法动作变形为挑战等级不高于10的野兽、类人或怪兽。当你变形时，你获得等于新形态生命值的临时生命值。变形效应持续1小时，并在你不具有剩余的临时生命值时或在你执行魔法动作变回真实形态时提前结束。 你的游戏数据被你选择形态的数据卡所替换，但你保留你的生物类型；阵营；个性；智力、感知和魅力属性值；生命值；生命骰；熟练项；交流能力。若你具有施法或契约魔法特性，你同样保留之。变形时，由你决定着装或携带的每件装备是掉落在地上或是适应你的新形态调整大小与形状（仅当你置身其中期间）。 此增益一经使用，直至完成长休你都无法再次使用。 变化适性Hardy Transformation。 当你在变形时获得临时生命值时，该临时生命值数值提升20。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "命运眷顾之恩惠": {
+   "name": "命运眷顾之恩惠",
+   "desc": "命运眷顾之恩惠 Boon of Fortune's Favor 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 豁免重骰Saving Throw Reroll。 当你的豁免检定失败时，你能够重新掷骰但必须使用新的结果。此增益一经使用，直至你的下个回合开始你都无法再次使用。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "毒手殁心之恩惠": {
+   "name": "毒手殁心之恩惠",
+   "desc": "毒手殁心之恩惠 Boon of Poison Mastery 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 百毒不侵Antitoxic。 你具有对毒素伤害和中毒状态的免疫。 完美毒师Perfect Poisoner。 每回合一次，当你掷骰以决定生物因你的攻击、法术或特性受到的毒素伤害时，你能够以每枚骰子可能掷出的最高值替代其骰值。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "夜宴狂欢之恩惠": {
+   "name": "夜宴狂欢之恩惠",
+   "desc": "夜宴狂欢之恩惠 Boon of Revelry 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至30。 舞动灵感Inspire Dance。 你始终准备着法术 奥图迷舞Otto's Irresistible Dance 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。 当你施展该法术时无需法术成分，且受到伤害不会打断你该法术的专注。 （译注：本专长未写明法术的施法属性，原文如此） 放声歌唱Sing Out。 若一名生物因对抗你的 奥图迷舞Otto's Irresistible Dance 豁免失败而陷入该法术造成的魅惑状态，其无法施展需要言语成分的法术，且若其能够唱歌，其将哼唱无意义的悦耳小调。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "惊魂落魄之恩惠": {
+   "name": "惊魂落魄之恩惠",
+   "desc": "惊魂落魄之恩惠 Boon of Terror 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的魅力提升1，至多提升至30。 无所畏惧Fearless。 你具有对恐慌状态的免疫。 逃吧，蠢货Flee, Fools！ 当一名陷入恐慌状态的生物在你60尺内开始其回合时，只要你可以看见该生物且其未身处全身掩护之后，你就能够以反应加剧其恐惧。若你如此做，该生物必须成功通过一次感知豁免（DC为8加你的魅力调整值加你的熟练加值），否则需要消耗其回合以可用的最快方式移动远离你。此增益一经使用，直至完成短休或长休你都无法再次使用。 令人生畏Intimidating。 若你不具有威吓技能的熟练，你获得之。你还会获得威吓专精。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "旭日骄阳之恩惠": {
+   "name": "旭日骄阳之恩惠",
+   "desc": "旭日骄阳之恩惠 Boon of the Bright Sun 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质、感知或魅力提升1，至多提升至30。 如日当空Daylight Presence。 以一个附赠动作，你在30尺光环区域内散发如同阳光的明亮光照。若任意光环区域与法术创造的黑暗区域重叠，该法术被解除。光环持续至你解除之（无需动作）、你死亡或你陷入失能状态。 守御之光Fortifying Light。 当你的如日当空激活时 （译注：原文如此，按后文看应是激活期间） ，每个你的回合开始时，你和如日当空区域内你可见的盟友获得10临时生命值。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "暴风骤岚之恩惠": {
+   "name": "暴风骤岚之恩惠",
+   "desc": "暴风骤岚之恩惠 Boon of the Furious Storm 传奇恩惠专长（先决：等级19+，施法或契约魔法特性） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至30。 暴风之眼Eye of the Storm。 你对闪电和雷鸣伤害具有抗性。浴血期间，你对闪电和雷鸣伤害具有免疫。 风暴之力Storm's Strength。 生物在对抗你造成闪电或雷鸣伤害的法术时进行的豁免检定具有劣势。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "汲魂": {
+   "name": "汲魂",
+   "desc": "汲魂 饮 魄之恩惠 Boon of the Soul Drinker 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 墓亡抗性Grave Resistance。 你对寒冷和暗蚀伤害具有抗性。 生命虹吸Siphon Life。 当一名位于你120尺内的敌人生命值降至0时，你能够以反应恢复50生命值。此增益一经使用，直至完成短休或长休你都无法再次使用。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/传奇恩惠.htm",
+   "sourceKind": "official"
+  },
+  "龙之瘢": {
+   "name": "龙之瘢",
+   "desc": "龙之瘢 Dragonscarred 通用专长（先决：等级4+，新晋龙巫教徒专长） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质或魅力提升1，至多提升至20。 伤害抗性Damage Resistance。 当你获得此专长时，你自强酸、寒冷、火焰、闪电或毒素中选择一种。你获得你选择的伤害类型的抗性。 可怖伟力Fearsome Power。 当你在你的回合中以攻击动作或魔法动作对一名生物造成伤害时，你能够在本回合以附赠动作使用新晋龙巫教徒专长的龙之威增益。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "翠色魔法": {
+   "name": "翠色魔法",
+   "desc": "翠色魔法 Enclave Magic 通用专长（先决：等级4+，翠绿闲庭新羽专长） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 动物伙伴Friend to Animals。 当你对野兽执行影响动作时，你的属性检定具有优势。 二体一心Two Hearts, One Mind。 你始终准备着法术 野兽感官Beasts Sense 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。当你以此特性 （译注：原文如此，为特性Feature，理论上应当是增益Benfits） 施展该法术时，该法术无需专注。你也能够以你拥有的合适环阶的法术位施展该法术。该法术的施法属性是你以此专长提升的属性。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "竖琴手协同": {
+   "name": "竖琴手协同",
+   "desc": "竖琴手协同 Harper Teamwork 通用专长（先决：等级4+，竖琴手特工专长） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷或魅力提升1，至多提升至20。 妙语连珠Withering Wordplay。 当你执行协助动作辅助盟友对敌人的攻击检定时，你的下个回合开始前该敌人进行的下次豁免检定也具有劣势。 意志激励Inspiring Willpower。 若你成功通过结束你身上的恐慌或麻痹状态的豁免检定，你能够选择一名30尺内你可见的具有相同状态的盟友。该盟友身上的此状态立即结束。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "教团韧性": {
+   "name": "教团韧性",
+   "desc": "教团韧性 Order's Resilience 通用专长（先决：等级4+，新锻臂铠专长） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量、感知或魅力提升1，至多提升至20。 再起Resurge。 当你陷入倒地状态时，你能够消耗仅5尺移动力起立。 团结就是力量Stronger Together。 若你位于未陷入失能状态的盟友的5尺内，你和该盟友的力量豁免检定具有优势。你陷入失能状态期间无法使用此增益。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "贵族信念": {
+   "name": "贵族信念",
+   "desc": "贵族信念 Lordly Resolve 通用专长（先决：等级4+，领主联盟特工专长） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或魅力提升1，至多提升至20。 执旗者Standard Bearer。 以一个附赠动作，选择至多三名位于你60尺内能看见你的生物。每名速度不为0的目标均能够立即以反应起立并结束倒地状态。 此外，你增强目标的信念，持续1分钟或在你陷入失能状态时提前结束。信念增强期间，目标无法被附身或是获得魅惑或恐慌状态；若目标已被附身、魅惑或恐慌，则目标对抗相关效应的任意新豁免检定具有优势。 此增益一经使用，直至完成长休你都无法再次使用。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "紫龙指挥官": {
+   "name": "紫龙指挥官",
+   "desc": "紫龙指挥官 Purple Dragon Commandant 通用专长（先决：等级4+，紫龙新兵专长或军用武器熟练） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 鼓励盟友Encourage Ally。 以一个附赠动作，你增强一名位于你30尺内你可见的盟友。该盟友获得等于2d6加你以此专长提升的属性的调整值的临时生命值。你能够使用此附赠动作的次数等于你的熟练加值，当你完成长休时重获所有已消耗的使用次数。 背水一战Last Stand。 浴血期间你的攻击检定具有优势。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "咒火专家": {
+   "name": "咒火专家",
+   "desc": "咒火专家 Spellfire Adept 通用专长（先决：等级4+，咒火火花专长或施法或契约魔法特性） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 咒火燎原Fueled Spellfire。 每回合一次，当一道你施展的法术造成光耀伤害时，你能够消耗并投掷至多两枚生命骰，将骰值总和加入该法术的其中一次伤害掷骰中。 焦灼咒火Searing Spellfire。 当你进行一次造成光耀伤害的伤害掷骰时，该伤害无视光耀伤害抗性。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "散塔林会战术": {
+   "name": "散塔林会战术",
+   "desc": "散塔林会战术 Zhentarim Tactics 通用专长（先决：等级4+，散塔林会暴徒专长） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷或魅力提升1，至多提升至20。 以血还血Retaliate。 位于你5尺内生物以近战攻击命中你后，你可以立即对该生物发动一次借机攻击。 万能佣兵Versatile Merc。 当你完成长休时，选择一项你具有熟练的技能。你具有该技能的专精，持续至你下次完成长休。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "寒地施法者": {
+   "name": "寒地施法者",
+   "desc": "寒地施法者 Cold Caster 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 戏法Cantrip。 你习得戏法 冷冻射线Ray of Frost 。若你已习得该戏法，你习得另一道你选择的法师戏法。该法术的施法属性是你以此专长提升的属性。 霜噬Frostbite。 每回合一次，当你以攻击检定命中一名生物并造成寒冷伤害时，你能够暂时削弱该生物的防御。在你的下个回合结束前，该生物进行的下次豁免检定减少1d4。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "妖精诡术": {
+   "name": "妖精诡术",
+   "desc": "妖精诡术 Fairy Trickster 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷或魅力提升1，至多提升至20。 妖精轻步Faerie Trod Trotter。 当你在你的回合内执行撤离动作时，本回合剩余的时间中，困难地形不会令你消耗额外的移动力。 惊惶打击Flustering Strike。 当你以攻击检定命中一名生物时，你能够尝试令目标惊惶失措。目标必须成功通过一次感知豁免（DC为8加你以此专长提升的属性的调整值加你的熟练加值）否则其豁免具有劣势，持续至你的下个回合结束。 你能够使用此增益的次数等于你的熟练加值，当你完成长休时重获所有已消耗的使用次数。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "巨灵魔法": {
+   "name": "巨灵魔法",
+   "desc": "巨灵魔法 Genie Magic 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 祈愿魔法Wish Magic。 你能够以魔法动作施展一道你从术士法术列表中选择的一环法术，该法术的施法时间需为动作。此增益一经使用，直至完成长休你都无法再次使用。该法术的施法属性是你以此专长提升的属性。 当你到达11级时，你以此专长施展的法术如同使用二环法术位施展。当你到达17级时，你以此专长施展的法术如同使用三环法术位施展。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "迷锁触碰": {
+   "name": "迷锁触碰",
+   "desc": "迷锁触碰 Mythal Touched 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 迷锁守护Mythal Ward。 若法术攻击命中你或你对抗法术的豁免检定失败，你能够以反应投掷迷锁触碰魔法表来创造一个魔法效应。若效应需求豁免，其DC为8加你以此专长提升的属性的调整值加你的熟练加值。你能够使用此增益的次数等于你的熟练加值，当你完成长休时重获所有已消耗的使用次数。 迷锁触碰魔法Mythal Touched Magic 1d20 效应 1-2 你和每名位于你15尺内的生物进行一次敏捷豁免，豁免失败则受到触发法术环阶1d8倍的力场伤害，豁免成功则受半伤。 3-7 你和触发法术的施法者建立心灵链接，持续1小时。 8-10 以你为中心半径15尺，高60尺柱状区域内的重力反转，持续1分钟，如同法术 反转重力Reverse Gravity 。 11-13 你和触发法术的施法者均进行一次体质豁免。豁免失败的生物陷入震慑状态直至其下个回合结束。 14-17 你的AC获得+2加值，持续1分钟，若触发法术为法术攻击，则可能使该法术改为失手。 18-19 触发法术的施法者10尺内的任意非魔法易燃物品，只要其未被其他生物着装或携带，均被火焰点燃，受到1d4火焰伤害并开始燃烧。 20 触发法术消散且不产生效应，且用于施展该法术的动作、附赠动作或反应被浪费。若该法术为使用法术位施展的，则该法术位不会被消耗。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "街头正义": {
+   "name": "街头正义",
+   "desc": "街头正义 Street Justice 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 锁头Headlock。 你的盟友对因你陷入受擒的生物进行的攻击检定具有优势。 坚固锁结Sturdy Knot。 当你使用链条、镣铐或绳索捆缚生物时，将你的熟练加值加入挣脱或破坏该链条、镣铐或绳索的DC中。 强硬言辞Tough Talk。 你影响生物时，其敌对态度不会令你的魅力（威吓）检定具有劣势。",
+   "source": "被遗忘的国度/费伦英雄/第一章/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "无休狂宴": {
+   "name": "无休狂宴",
+   "desc": "无休狂宴 Tireless Reveler 起源专长 当一名位于你60尺内可见的盟友消耗英雄激励时，若你没有英雄激励，则你获得英雄激励。你可使用此增益的次数等同于等于你的熟练加值，在完成短休或长休后你重获所有已消耗的使用次数。",
+   "source": "被遗忘的国度/阿斯代伦/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "吸血鬼猎人": {
+   "name": "吸血鬼猎人",
+   "desc": "吸血鬼猎人 Vampire Hunter 起源专长 你获得以下增益。 灵巧脱身Adroit Escape。 你为逃脱受擒状态或非魔法约束所进行的属性检定具有优势。 活力守御Vitality Ward。 当你受到暗蚀伤害时，你能以反应减少伤害。投掷数量等于你熟练加值的d6，并将结果相加。以此总和减少你受到的暗蚀伤害。此增益一经使用，直至完成短休或长休你都无法再次使用。",
+   "source": "被遗忘的国度/阿斯代伦/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "吸血鬼玩物": {
+   "name": "吸血鬼玩物",
+   "desc": "吸血鬼玩物 Vampire's Plaything 起源专长 你获得以下增益。 倾注Decanting。 当你完成长休时，只要你有空的小瓶或扁瓶，你就可以制造一瓶治疗药水Potion of Healing或一瓶抗毒剂 Antitoxin。这些液体会在你完成长休后蒸发。 及时撤退Timely Retreat。 你能够以附赠动作执行疾走或撤离动作。你能够使用此增益的次数等于你的熟练加值次，当你完成长休时，你重获所有已消耗的使用次数。 血族链接Vampiric Connection。 由DM决定你曾经的吸血鬼主人的命运。若你与你曾经的吸血鬼主人身处同一存在位面，该吸血鬼可以与你进行心灵感应沟通，并且你可以选择允许该吸血鬼通过你的感官进行感知。 你可能会问：这些把戏是用来打架的，还是用来勾引人的？我得说，亲爱的，你为什么不都试试呢？ ——多才多艺的阿斯代伦",
+   "source": "被遗忘的国度/阿斯代伦/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "炽耀黎明之恩惠": {
+   "name": "炽耀黎明之恩惠",
+   "desc": "炽耀黎明之恩惠 Boon of Blazing Dawn 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 蒙受日宠Beloved of the Sun。 你具有对光耀伤害的免疫。 炽曜打击Blazing Strike。 当你以武器攻击命中一名生物时，你可以选择将其伤害改为光耀伤害，或是维持武器原本的伤害类型。 东曦既驾Burst of Sunlight。 每回合一次，当你以造成光耀伤害的攻击检定命中一名生物时，你自身散发出半径30尺的明亮光照以及额外30尺的微光光照，持续至你的下个回合开始。这些光照是阳光。",
+   "source": "被遗忘的国度/阿斯代伦/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "厄影迫现之恩惠": {
+   "name": "厄影迫现之恩惠",
+   "desc": "厄影迫现之恩惠 Boon of Looming Shadows 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 舒阴展影Shadowy Stretch。 当你执行攻击动作时，你近战武器攻击的触及范围提升10尺，持续至你的回合结束。 舞动侧影Dacing Silhouette。 你能以附赠动作执行回避动作。",
+   "source": "被遗忘的国度/阿斯代伦/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "雾影遁形之恩惠": {
+   "name": "雾影遁形之恩惠",
+   "desc": "雾影遁形之恩惠 Boon of Misty Escape 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至30。 气化形体Gaseous Form。 若你的生命值降至0但未立即死亡，你能改为将生命值降至1并无需法术位地施展法术 气化形体Gaseous Form （无需动作）。以此法施展该法术时，你只能以你自身为目标，你的飞行速度为20尺，法术持续期间，你的每个回合开始时，你恢复10生命值。该法术的施法属性是你以此专长提升的属性。 此增益一经使用，直至完成长休你都无法再次使用。",
+   "source": "被遗忘的国度/阿斯代伦/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "嗜血": {
+   "name": "嗜血",
+   "desc": "嗜血 Bloodlust 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量、敏捷或体质提升1，至多提升至20。 强效恢复Powerful Recovery。 当你掷一枚生命骰以恢复生命值时，你可以将掷出的1和2都视为3。 血腥饕宴Sanguine Feast。 每回合一次，当你以攻击检定命中一名处于浴血的非构装非亡灵生物时，你可以消耗并投掷一枚生命骰，恢复等于骰值+你体质调整值的生命值。 你可以使用此增益的次数等同于等于你的熟练加值，完成长休后，你重获所有已消耗的使用次数。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "爆破手": {
+   "name": "爆破手",
+   "desc": "爆破手Bomber 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷提升1，至多提升至20。 远距投手Far Lobber。 当你使用攻击动作投掷一个扁瓶或小瓶时，能够以一个在你40尺范围内你可见的物件或生物作为目标。 百步穿杨Long Shots。 使用投掷武器攻击超出常规射程的目标时，你的攻击检定不会因此具有劣势。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "黏滞迷雾": {
+   "name": "黏滞迷雾",
+   "desc": "黏滞迷雾Cloying Mists 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 雾，起Arise, Fog。 你始终准备着法术 云雾术Fog Cloud 。你可以无需法术位地施展该法术一次，你必须完成长休后才能再次以此法施展该法术。你也能够以你拥有的合适环阶的法术位施展该法术。该法术的施法属性是你以此专长提升的属性。 缠云缚雾Grasping Mist。 每当你施展 云雾术Fog Cloud 时，法术球状区域内的非魔法火焰会被熄灭，并且除你与你盟友以外的生物在法术球状区域中的速度减少5尺。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "沉溺痛苦": {
+   "name": "沉溺痛苦",
+   "desc": "沉溺痛苦 Delicious Pain 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 坚韧身躯Toughened Flesh。 在受到钝击、穿刺或挥砍伤害后，你能立即以反应来获得对钝击、穿刺与挥砍伤害的抗性，持续至你的下个回合开始。此增益一经使用，直至完成短休或长休你都无法再次使用。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "光明使者": {
+   "name": "光明使者",
+   "desc": "光明使者 Light Bringer 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 神圣魔法Sacred Magic。 你习得戏法 光亮术Light ，且可以无需材料成分施展该戏法。若你已习得该戏法，你可以选择习得另一道牧师戏法。该法术的施法属性是你以此专长提升的属性。 日耀之辉Solar Luminance。 当你施展光亮术时，你可以使该法术的光芒成为日光。此增益一经使用，直至完成短休或长休你都无法再次使用。 日之疗愈Sun's Healing。 若你身处日光下，你能以附赠动作消耗一枚生命骰，掷骰并恢复等于掷骰结果的生命值。此增益一经使用，直至完成短休或长休你都无法再次使用。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "吻痕": {
+   "name": "吻痕",
+   "desc": "吻痕 Love Bites 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 甘之如饴Endearing Pain。 在你以近战武器或徒手打击对一名生物造成伤害后，你能立即以附赠动作令目标陷入魅惑状态，持续至你的下个回合开始，或在你或你的盟友对其造成伤害时提前结束。此增益一经使用，直至完成短休或长休你都无法再次使用。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "残尸败蜕": {
+   "name": "残尸败蜕",
+   "desc": "残尸败蜕 Putrefy 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 疽腐蚀骨Necrosis。 当你进行暗蚀伤害的伤害掷骰时，你能令受到此伤害的一名生物陷入中毒状态，直至你的下个回合开始。此增益一经使用，直至完成短休或长休你都无法再次使用。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "咎罪责难": {
+   "name": "咎罪责难",
+   "desc": "咎罪责难 Rebuke 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 至耀光击Radiant Strike。 当你进行光耀伤害的伤害掷骰时，你能令受到此伤害的一名不超过巨型的生物陷入倒地状态。此增益一经使用，直至完成短休或长休你都无法再次使用。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "祸国叛心": {
+   "name": "祸国叛心",
+   "desc": "祸国叛心 Treacherous Allure 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 摄心魅影Enchanting Presence。 你始终准备着 魅惑类人Charm Person 。你也能够以你拥有的合适环阶的法术位施展该法术。你可以无需法术位地施展该法术一次，你必须完成长休后才能再次以此法施展该法术。该法术的施法属性是你以此专长提升的属性。 命定之逆Inevitable Betrayal。 你对陷入魅惑状态的生物进行的攻击检定具有优势。",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "吸血鬼触碰": {
+   "name": "吸血鬼触碰",
+   "desc": "吸血鬼触碰 Vampire Touched 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 吸血鬼魔法Vampire Magic。 选择一道惑控或幻术学派的一环法术，你始终准备着你选择的这道法术与 蛛行术Spider Climb 。你可以无需法术位地施展每道法术各一次，但当你以此法施展 蛛行术Spider Climb 时，必须以你自身为目标。你必须完成长休后才能再次以此法施展这些法术。你也能够以你拥有的合适环阶的法术位施展这些法术。这些法术的施法属性是你以此专长提升的属性。 锻炼这些令人欢愉的才能。让你的敌人——或爱人——拜倒在你的身下 ——情感辅导，阿斯代伦",
+   "source": "被遗忘的国度/阿斯代伦/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "骄阳之子": {
+   "name": "骄阳之子",
+   "desc": "骄阳之子 Child of the Sun 起源专长 你获得以下增益。 艾尔杜之眼Eyes of Eirdu。 你和位于你10尺内的盟友为避免或结束目盲状态而进行豁免检定时具有优势。 妖火Faerie Fire。 你习得法术 妖火Faerie Fire 。你的该法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的任意法术位施展该法术。 当你使用该增益不消耗法术位地施展 妖火Faerie Fire 时，受到伤害不会打断你对该法术的专注。",
+   "source": "被遗忘的国度/洛温初光/专长.htm",
+   "sourceKind": "official"
+  },
+  "影原咒者": {
+   "name": "影原咒者",
+   "desc": "影原咒者 Shadowmoor Hexer 起源专长 你获得以下增益。 脆弱诅咒Hex。 你始终准备着法术 脆弱诅咒Hex 。你的该法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的任意法术位施展该法术。 诅咒魔法Curse Magic。 当一名被你以 脆弱诅咒Hex 诅咒的生物以攻击检定命中你时，该生物受到等同于你熟练加值的心灵伤害。每名生物每个回合仅会受到一次该额外伤害。",
+   "source": "被遗忘的国度/洛温初光/专长.htm",
+   "sourceKind": "official"
+  },
+  "异种龙纹": {
+   "name": "异种龙纹",
+   "desc": "异种龙纹 Abrrant Dragonmark 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 异种坚韧Aberrant Fortitude。 当你体质豁免失败时，你能以反应投掷1d4并将骰值加入豁免中。此增益一经使用，直至完成长休你都无法再次使用。 异种魔法Aberrant Magic。 你知晓一道你选择的来自术士法术列表的戏法。此外，选择一道来自术士法术列表的一环法术，你始终准备着这道法术。你可以无需法术位地施展该法术一次，当你完成长休或短休时，你重获以此法施展该法术的能力。你也能够以你拥有的任意法术位施展该法术。你的该法术的施法属性是体质。 异种浪涌Aberrant Surge。 当你施展本专长给予的一环法术时，你可以消耗一枚你的生命骰并投掷之。若结果为偶数，你获得等于骰值的临时生命值。若结果为奇数，位于你30尺内的一名生物（不包括你）受到等于骰值的力场伤害。若范围内没有其他生物，此伤害由你承受。",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "侦测龙纹": {
+   "name": "侦测龙纹",
+   "desc": "侦测龙纹 Mark of Detection 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 推理直觉Deductive Intuition。 当你进行智力（调查）或感知（洞悉）检定时，你可以投掷1d4并将骰值加入属性检定中。 魔法侦测Magical Detection。 你始终准备着法术 侦测魔法Detect Magic 和 侦测毒性和疾病Detect Poison and Disease 。你可以无需法术位地施展每道法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的合适环阶的法术位施展这些法术。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 当你角色等级到达3级时，你始终准备着法术 识破隐形See Invisibility ，并可用相同方式施展该法术。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，侦测龙纹法术表中的法术将加入那个特性的法术列表中。 侦测龙纹法术Mark of Detection Spells 法术环阶 法术 一环 侦测善恶Detect Evil and Good，鉴定术Identify 二环 侦测思想Detect Thoughts，寻找陷阱Find Traps 三环 鹰眼术Clairvoyance ，回避侦测Nondetection 四环 秘法眼Arcane Eye，预言术Divination 五环 通晓传奇Legend Lore",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "探寻龙纹": {
+   "name": "探寻龙纹",
+   "desc": "探寻龙纹 Mark of Finding 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 猎手直觉Hunter's Intuition。 当你进行感知（察觉或求生）检定时，你可以投掷1d4并将骰值加入属性检定中。 探寻魔法Finder's Magic。 你始终准备着法术 猎人印记Hunter's Mark 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。你的该法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 当你角色等级到达3级时，你始终准备着法术 物件定位术Locate Object ，并可用相同方式施展该法术。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，探寻龙纹法术表中的法术将加入那个特性的法术列表中。 探寻龙纹法术Mark of Finding Spells 法术环阶 法术 一环 妖火Faerie Fire，大步奔行Longstrider 二环 动植物定位术Locate Animals or Plants，心灵尖刺Mind Spike 三环 鹰眼术Clairvoyance，植物交谈Speak with Plants 四环 预言术Divination，生物定位术Locate Creature 五环 问道自然Commune with Nature",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "畜牧龙纹": {
+   "name": "畜牧龙纹",
+   "desc": "畜牧龙纹 Mark of Handling 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 野性直觉Wild Intuition。 当你进行智力（自然）或感知（驯兽）检定时，你可以投掷1d4并将骰值加入属性检定中。 原初联结Primal Connection。 你始终准备着法术 化兽为友Animal Friendship 和 动物交谈Speak with Animals 。你可以无需法术位地施展每道法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的任意法术位施展这些法术。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 异兽联结Monstrous Connections。 当你角色等级到达3级时，你施展法术 化兽为友Animal Friendship 和 动物交谈Speak with Animals 时，能够以智力不高于3的怪兽为目标。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，畜牧龙纹法术表中的法术将加入那个特性的法术列表中。 畜牧龙纹法术Mark of Handling Spells 法术环阶 法术 一环 命令术Command，寻获魔宠Find Familiar 二环 野兽感官Beast Sense，安定心神Calm Emotions 三环 希望信标Beacon of Hope，咒唤兽群Conjure Animals 四环 生命灵光Aura of Life，支配野兽Dominate Beast 五环 启蒙术Awaken",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "医疗龙纹": {
+   "name": "医疗龙纹",
+   "desc": "医疗龙纹 Mark of Healing 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 医学直觉Medical Intuition。 当你进行感知（医药）检定或使用草药工具的属性检定时，你可以投掷1d4并将骰值加入属性检定中。 治愈之触Healing Touch。 你始终准备着法术 疗伤术Cure Wounds 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。你的该法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 当你角色等级到达3级时，你始终准备着法术 次等复原术Lesser Restoration ，并可用相同方式施展该法术。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，医疗龙纹法术表中的法术将加入那个特性的法术列表中。 医疗龙纹法术Mark of Healing Spells 法术环阶 法术 一环 虚假生命False Life，治愈真言Healing Word 二环 复苏秘法Arcane Vigor，治疗祷言Prayer of Healing 三环 活力灵光Aura of Vitality，群体治愈真言Mass Healing Word 四环 生命灵光Aura of Life，净化灵光Aura of Purity 五环 高等复原术Greater Restoration",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "招待龙纹": {
+   "name": "招待龙纹",
+   "desc": "招待龙纹 Mark of Hospitality 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 永恒款待Ever Hospitable。 当你进行魅力（游说）检定或使用酿酒工具或厨师工具的属性检定时，你可以投掷1d4并将骰值加入属性检定中。 掌柜魔法Innkeeper's Magic。 你始终准备着法术 净化饮食Purify Food and Drink 和 隐形仆役Unseen Servant 。你可以无需法术位地施展每道法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的合适环阶的法术位施展这些法术。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 当你角色等级到达3级时，你始终准备着法术 安定心神Calm Emotions ，并可用相同方式施展该法术。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，招待龙纹法术表中的法术将加入那个特性的法术列表中。 招待龙纹法术Mark of Hospitality Spells 法术环阶 法术 一环 神莓术Goodberry，睡眠术Sleep 二环 援助术Aid，强化属性Echance Ability 三环 造粮术Create Food and Water，李欧蒙小屋Leomund's Tiny Hut 四环 净化灵光Aura of Purity，魔邓肯的私人密室Mordenkainen's Private Sanctum 五环 圣居Hallow",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "创造龙纹": {
+   "name": "创造龙纹",
+   "desc": "创造龙纹 Mark of Making 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 工匠直觉Artisan's Intuition。 当你进行智力（奥秘）检定或使用工匠工具的属性检定时，你可以投掷1d4并将骰值加入属性检定中。 法术匠人Spellsmith。 你知晓戏法 修复术Mending 。你始终准备着法术 魔化武器Magic Weapon 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的任意*法术位施展该法术。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 （译注：原文如此） 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，创造龙纹法术表中的法术将加入那个特性的法术列表中。 创造龙纹法术Mark of Making Spells 法术环阶 法术 一环 鉴定术Identify，谭森浮碟术Tenser's Floating Disk 二环 不灭明焰Continual Flame，灵体武器Spiritual Weapon 三环 箭如雨下Conjure Barrage，元素武器Elemental Weapon 四环 鬼斧神工Fabricate，塑石术Stone Shape 五环 造物术Creation",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "通行龙纹": {
+   "name": "通行龙纹",
+   "desc": "通行龙纹 Mark of Passage 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 信使极速Courier's Speed。 你的速度提升5尺。 直觉行动Intuitive Motion。 当你进行力量（运动）或敏捷（特技）检定时，你可以投掷1d4并将骰值加入属性检定中。 魔法通行Magical Passage。 你始终准备着法术 迷踪步Misty Step 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的任意*法术位施展该法术。你的该法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 （译注：原文如此） 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，通行龙纹法术表中的法术将加入那个特性的法术列表中。 通行龙纹法术Mark of Passage Spells 法术环阶 法术 一环 脚底抹油Expeditious Retreat，跳跃术Jump 二环 行动无踪Pass without Trace，寻获坐骑Find Steed 三环 闪现术Blink，魅影驹Phantom Steed 四环 任意门Dimension Door，行动自如Freedom of Movement 五环 传送法阵Teleportation Circle",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "抄录龙纹": {
+   "name": "抄录龙纹",
+   "desc": "抄录龙纹 Mark of Scribing 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 天才文员Gifted Scribe。 当你进行智力（历史）检定或使用书法工具的属性检定时，你可以投掷1d4并将骰值加入属性检定中。 文员洞见Scribe's Insight。 你知晓戏法 传讯术Message 。你始终准备着法术 通晓语言Comprehend Languages 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。你的该法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 当你角色等级到达3级时，你始终准备着法术 魔嘴术Magic Mouth ，并可用相同方式施展该法术。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，抄录龙纹法术表中的法术将加入那个特性的法术列表中。 抄录龙纹法术Mark of Scribing Spells 法术环阶 法术 一环 命令术Command，迷幻手稿Illusory Script 二环 动物信使Animal Messenger，沉默术Silence 三环 短讯术Sending，巧言术Tongues 四环 秘法眼Arcane Eye，困惑术Confusion 五环 托梦术Dream",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "哨戒龙纹": {
+   "name": "哨戒龙纹",
+   "desc": "哨戒龙纹 Mark of Sentinel 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 哨戒直觉Sentinel's Intuition。 当你进行感知（洞悉或察觉）检定时，你可以投掷1d4并将骰值加入属性检定中。 卫护之盾Guardian's Shield。 你始终准备着法术 护盾术Shield 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的任意法术位施展该法术。你的该法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 警戒哨卫Vigilant Guardian。 当一名位于你5尺内你可见的生物被攻击检定命中时，你可以执行反应来与该生物交换位置，并代替其被那次攻击命中。你能够使用此特性*的次数等于你的熟练加值，当你完成长休时，重获所有已消耗的使用次数。（译注:原文如此） 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，哨戒龙纹法术表中的法术将加入那个特性的法术列表中。 哨戒龙纹法术Mark of Sentinel Spells 法术环阶 法术 一环 强令对决Compelled Duel，虔诚护盾Shield of Faith 二环 守护之链Warding Bond，诚实之域Zone of Truth 三环 法术反制Counterspell，防护能量伤害Protection from Energy 四环 防死结界Death Ward，信仰守卫Guardian of Faith 五环 毕格比之手Bigby's Hand",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "阴影龙纹": {
+   "name": "阴影龙纹",
+   "desc": "阴影龙纹 Mark of Shadow 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 狡黠直觉Cunning Intuition。 当你进行敏捷（隐匿）或魅力（表演）检定时，你可以投掷1d4并将骰值加入属性检定中。 阴影塑形Shape Shadows。 你知晓戏法 次级幻象Minor Illusion 。你始终准备着法术 隐形术Invisibility 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，阴影龙纹法术表中的法术将加入那个特性的法术列表中。 阴影龙纹法术Mark of Shadow Spells 法术环阶 法术 一环 易容术Disguise Self，无声幻影Silent Image 二环 黑暗术Darkness，行动无踪Pass without Trace 三环 鹰眼术Clairvoyance，高级幻影Major Image 四环 高等隐形术Greater Invisibility，幻景Hallucinatory Terrain 五环 假象术Mislead",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "暴风龙纹": {
+   "name": "暴风龙纹",
+   "desc": "暴风龙纹 Mark of Storm 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 风骑直觉Windwright's Intuition。 当你进行敏捷（特技）检定或使用领航工具的属性检定时，你可以投掷1d4并将骰值加入属性检定中。 暴风恩惠Storm's Boon。 你具有对闪电伤害的抗性。 暴风魔法Storm Magic。 你知晓戏法 鸣雷破Thunderclap 。当你角色等级到达3级时，你始终准备着法术 造风术Gust of Wind 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，暴风龙纹法术表中的法术将加入那个特性的法术列表中。 暴风龙纹法术Mark of Storm Spells 法术环阶 法术 一环 羽落术Feather Fall，云雾术Fog Cloud 二环 浮空术Levitate，粉碎音波Shatter 三环 雪雨暴Sleet Storm，风墙术Wind Wall 四环 咒唤微元素群Conjure Minor Elemental，操控水体Control Water 五环 咒唤元素Conjure Elemental",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "守御龙纹": {
+   "name": "守御龙纹",
+   "desc": "守御龙纹 Mark of Warding 龙纹专长（先决：艾伯伦战役，不具有其他龙纹专长） 你获得以下增益。 御护直觉Warder's Intuition。 当你进行智力（调查）检定或使用盗贼工具的属性检定时，你可以投掷1d4并将骰值加入属性检定中。 缄守封护Wards and Seals。 你始终准备着法术 警报术Alarm 和 法师护甲Mage Armor 。你可以无需法术位地施展每道法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的合适环阶的法术位施展这些法术。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 当你角色等级到达3级时，你始终准备着法术 秘法锁Arcane Lock ，并可用相同方式施展该法术。 龙纹法术Spells of the Mark。 若你具有施法或契约魔法特性，守御龙纹法术表中的法术将加入那个特性的法术列表中。 守御龙纹法术Mark of Warding Spells 法术环阶 法术 一环 黯冰狱铠Armor of Agathys，庇护术Sanctuary 二环 敲击术Knock，涅斯图魔法灵光Nystul's Magic Aura 三环 守卫刻纹Glyph of Warding，防护法阵Magic Circle 四环 李欧蒙秘藏箱Leomund's Secret Chest，魔邓肯忠犬Mordenkainen's Faithful Hound 五环 防活物护罩Antilife Shell",
+   "source": "艾伯伦：奇械锻炉/第二章/龙纹专长.htm",
+   "sourceKind": "official"
+  },
+  "高等异种龙纹": {
+   "name": "高等异种龙纹",
+   "desc": "高等异种龙纹 Greater Aberrant Mark 通用专长（先决：等级4+，异种龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你异种龙纹的异种坚韧增益时，可以不再投掷1d4，改为投掷1d6。且现在你完成长休或短休时均会重置异种坚韧的使用权。 灵感龙纹Mark of Inspiration。 当你施展一道戏法时，你可以投掷一枚或两枚你未消耗的生命骰。你获得等于骰值加你体质调整值的临时生命值，位于你30尺内的一名生物（不包括你）受到等于骰值的力场伤害。然后这些生命骰被消耗。 你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等侦测龙纹": {
+   "name": "高等侦测龙纹",
+   "desc": "高等侦测龙纹 Greater Mark of Detection 通用专长（先决：等级4+，侦测龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你侦测龙纹的推理直觉增益时，可以不再投掷1d4，改为投掷1d6。 有识同享Shared Detection。 当你使用你侦测龙纹的魔法侦测增益不消耗法术位地施展法术 识破隐形See Invisibility 时，你选择一名位于你30尺内你可见的生物。该生物在持续时间内也获得该法术的增益。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等探寻龙纹": {
+   "name": "高等探寻龙纹",
+   "desc": "高等探寻龙纹 Greater Mark of Finding 通用专长（先决：等级4+，探寻龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你探寻龙纹的猎手直觉增益时，可以不再投掷1d4，改为投掷1d6。 探幽索隐Improved Finding。 当你使用你探寻龙纹的探寻魔法增益不消耗法术位地施展法术 猎人印记Hunter's Mark 时，法术的施法距离翻倍，且你可以调整法术，使目标在法术持续期间无法受益于隐形状态。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等畜牧龙纹": {
+   "name": "高等畜牧龙纹",
+   "desc": "高等畜牧龙纹 Greater Mark of Handiling 通用专长（先决：等级4+，畜牧龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你畜牧龙纹的野性直觉增益时，可以不再投掷1d4，改为投掷1d6。 万畜牧首Improved Handling。 骑乘期间，在你以近战攻击检定命中一名位于你坐骑5尺内的目标后，你的坐骑可以立即执行反应，移动至多等于其速度的距离或执行攻击动作来发动仅一次攻击（由你选择）。 震服万兽Subdue Animal。 以一个魔法动作，你对一名位于你30尺内你可见的野兽或怪兽施加命令。目标必须成功通过一次感知豁免（DC为8+你的感知调整值+你的熟练加值），否则陷入恐慌状态，直至你的下个回合开始。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等医疗龙纹": {
+   "name": "高等医疗龙纹",
+   "desc": "高等医疗龙纹 Greater Mark of Healing 通用专长（先决：等级4+，医疗龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你医药龙纹的医学直觉增益时，可以不再投掷1d4，改为投掷1d6。 妙手回春Improved Healing。 现在你能使用你医疗龙纹的治愈之触增益不消耗法术位地施展法术 疗伤术Cure Wounds 的次数，等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。 此外，当你施展法术 疗伤术Cure Wounds ，为决定生命值恢复量进行掷骰时，你可以将骰子投出的1和2都视为3。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等招待龙纹": {
+   "name": "高等招待龙纹",
+   "desc": "高等招待龙纹 Greater Mark of Hospitality 通用专长（先决：等级4+，招待龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你招待龙纹的永恒款待增益时，可以不再投掷1d4，改为投掷1d6。 宾至如归Inspired Hospitality。 当你施展法术 净化饮食Purify Food and Drink 时，你可以调整其效果以代替法术的原效果，改为使位于你30尺内每名你选择的生物恢复精神。每名受影响生物的力竭等级减少一级，且获得一定量的临时生命值，数值等于你的熟练加值加你的智力、魅力或感知调整值（在你选取该专长时选择）。一旦你以此增益调整该法术，直至完成长休你都无法再如此做。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等创造龙纹": {
+   "name": "高等创造龙纹",
+   "desc": "高等创造龙纹 Greater Mark of Making 通用专长（先决：等级4+，创造龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你创造龙纹的工匠直觉增益时，可以不再投掷1d4，改为投掷1d6。 鬼斧神造Improved Making。 当你使用你创造龙纹的法术匠人增益不消耗法术位地施展法术 魔化武器Magic Weapon 时，你施展该法术的三环版本。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等通行龙纹": {
+   "name": "高等通行龙纹",
+   "desc": "高等通行龙纹 Greater Mark of Passage 通用专长（先决：等级4+，通行龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你通行龙纹的直觉行动增益时，可以不再投掷1d4，改为投掷1d6。 比翼生花Inspired Passage。 当你使用你通行龙纹的魔法通行增益不消耗法术位地施展法术 迷踪步Misty Step 时，在传送前，你可以选择至多两名位于你30尺内你可见的自愿生物。其后每名目标能以反应也传送至多30尺至一处其可见的未占据空间。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等抄录龙纹": {
+   "name": "高等抄录龙纹",
+   "desc": "高等抄录龙纹 Greater Mark of Scribing 通用专长（先决：等级4+，抄录龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你抄录龙纹的天才文员增益时，可以不再投掷1d4，改为投掷1d6。 刻神牍心Inspired Scribing。 当你施展法术 通晓语言Comprehend Languages 时，你可以调整其效果，包围至多三名位于你30尺内你可见的自愿生物。每名被选生物在持续时间内也获得该法术的增益。此外，在法术持续时间内，只要你和被选生物位于彼此1里内，你们就能以心灵感应互相交流。一旦你以此增益调整该法术，直至完成长休你都无法再如此做。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等哨戒龙纹": {
+   "name": "高等哨戒龙纹",
+   "desc": "高等哨戒龙纹 Greater Mark of Sentinel 通用专长（先决：等级4+，哨戒龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你哨戒龙纹的哨戒直觉增益时，可以不再投掷1d4，改为投掷1d6。 枕戈待旦Improved Sentinel。 当你使用你哨戒龙纹的警戒哨卫增益时，作为该反应的一部分，你还能以武器或徒手打击发动一次攻击。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等阴影龙纹": {
+   "name": "高等阴影龙纹",
+   "desc": "高等阴影龙纹 Greater Mark of Shadow 通用专长（先决：等级4+，阴影龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你阴影龙纹的狡黠直觉增益时，可以不再投掷1d4，改为投掷1d6。 幽邃匿影Improved Shadow。 当你使用你阴影龙纹的阴影塑形增益不消耗法术位地施展法术 隐形术Invisibility 时，你施展该法术的三环版本。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等暴风龙纹": {
+   "name": "高等暴风龙纹",
+   "desc": "高等暴风龙纹 Greater Mark of Storm 通用专长（先决：等级4+，暴风龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你暴风龙纹的风骑直觉增益时，可以不再投掷1d4，改为投掷1d6。 长风化翼Improved Storm。 当你使用你暴风龙纹的暴风魔法增益不消耗法术位地施展法术 造风术Gust of Wind 时，你在法术持续期间还会获得60尺飞行速度。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "高等守御龙纹": {
+   "name": "高等守御龙纹",
+   "desc": "高等守御龙纹 Greater Mark of Warding 通用专长（先决：等级4+，守御龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 直觉锐化Improved Intuition。 当你使用你守御龙纹的御护直觉增益时，可以不再投掷1d4，改为投掷1d6。 固若金汤Improved Warding。 当一名生物对你或位于你30尺内你可见的生物进行攻击检定时，你能以反应迫使此检定承受劣势。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "强效龙纹": {
+   "name": "强效龙纹",
+   "desc": "强效龙纹 Potent Dragonmark 通用专长（先决：等级4+，任意龙纹专长） 你获得以下增益。 属性值提升Ability Score Increase。 你龙纹专长使用的施法属性提升1，至多提升至20。 龙纹准备Dragonmark Preparation。 你始终准备着龙纹法术列表中的法术（若有）。 龙纹施法Dragonmark Spellcasting。 你具有一个额外法术位，用于施展你的龙纹专长赋予你的法术。该法术位的环阶等于你等级的一半（向上取整），最高为五环。当你完成短休或长休时，你重获已消耗的该法术位。你使用该法术位施展的法术，只能是你因你的龙纹专长或本专长的龙纹准备增益准备着的法术。",
+   "source": "艾伯伦：奇械锻炉/第二章/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "龙类专长": {
+   "name": "龙类专长",
+   "desc": "龙类专长 Draconic Feats 专长代表着一个角色对自己已有能力的精进，或者是对全新能力的发掘。当这份力量来自龙类时 不管是真龙的馈赠，龙族传承的显现，龙神的赐福，还是猎杀真龙的结果它就可能带有超自然的奇幻效果。 以下是由巨龙之力赋予的专长，如果你选用了玩家手册中的可选规则：专长，你就可以使用它们。 色彩龙赋礼 Gift of the Chromatic Dragon 你掌握了一些色彩龙的力量，你获得以下好处： 繁彩注魔Chromatic Infusion。 以一个附赠动作，你可以触碰一把简易武器或军用武器，向它注入以下能量之一：强酸，寒冷，火焰，闪电或毒素。在之后一分钟内，该武器在命中时额外造成1d4你所选伤害类型的伤害。使用此特性后，你在完成一次长休前不能再次使用。 反应抗性Reactive Resistance。 当你受到强酸，寒冷，火焰，闪电或毒素伤害时，你可以使用你的反应，使自己在当此伤害中获得对应伤害类型的抗性。你可以使用该特性等同于你熟练加值的次数，你在完成一次长休后重获所有已使用的次数。 宝石龙赋礼 Gift of the Gem Dragon 你掌握了一些宝石龙的力量，你获得以下好处： 属性值提升Ability Score Increase。 你的智力、感知、或魅力提升1，上限20。 念力报复Telekinetic Reprisal.。 当你受到来自距离你10尺内的生物的伤害时，你可以用你的反应来驱使念动力。对你造成伤害的生物必须成功通过一次力量豁免（DC为8+你的熟练加值+你用此专长提升的属性的属性调整值），否则受到2d8力场伤害并被推离至多10尺。你可以使用此反应等同于你熟练加值的次数，你在完成一次长休后重获所有已使用的次数。 金属龙赋礼 Gift of the Metallic Dragon 你掌握了一些金属龙的力量，你获得以下好处： 龙类治疗Draconic Healing。 你习得疗伤术法术。你可以施展一次该法术而无需法术位。当你以此法施展该法术后，你不能再这样做，直至你完成一次长休。你也可以使用你拥有的法术位来施展该法术。该法术的施法属性是智力，感知或魅力（你在获得此专长时进行选择）。 庇护之翼Protective Wings。 你可以现出庇护之翼，保护你或者其他人免受攻击。在你或5尺内你可见的其他生物被一次攻击命中时，你可以使用你的反应来在你背后暂时显现出虚幻的翅膀。你使目标对抗该次攻击的AC获得加值，数值等同于你的熟练加值，此举可能导致该攻击丢失。你可以使用此反应等同于你熟练加值的次数，你在完成一次长休后重获所有已使用的次数。",
+   "source": "费资本的巨龙宝库/玩家选项/龙类专长.html",
+   "sourceKind": "official"
+  },
+  "锐眼": {
+   "name": "锐眼",
+   "desc": "锐眼 Sharp Eye 起源专长 当你执行搜索或研究动作时，你能令你作为该动作一部分的任意属性检定具有优势。你能使用此特性的次数等于你的熟练加值，当你完成长休时重获所有已消耗的使用次数。若该次属性检定失败，你不会消耗本特性的使用次数。",
+   "source": "鸦阁魔域：魔障深藏/第一章/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "幸存者": {
+   "name": "幸存者",
+   "desc": "幸存者 Survivor 起源专长 你获得以下增益。 杯弓蛇影Hypervigilance。 每当你进行先攻检定时，若D20骰值不超过9，你能够重新投掷D20。你必须使用新的结果。 我心如铁Steel Yourself。 当你为避免或结束魅惑或恐慌状态进行的豁免失败时，你能够以反应在结果中加入加值，这可能令检定改为成功。加值等于你的熟练加值。该反应一经使用，直至完成长休你都无法再如此做。",
+   "source": "鸦阁魔域：魔障深藏/第一章/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "Iconic": {
+   "name": "Iconic",
+   "desc": "Iconic Franchise Features ¨ The line between competitors and enemies can be razor thin in an Acquisitions Incorporated campaign, and franchise members will often find themselves bumping heads with the members of other Acq Inc franchises. Things might even get rough sometimes. It's just business. The following iconic features can be added to NPC or monster stat blocks to represent company positions similar to those of the characters. These features are inspired by the company positions in chapter 2 but are intended only for quick use in combat encounters, and thus do not recreate all of a position's features in NPC form. DMs creating NPCs who have company positions can use additional position features from chapter 2 for those NPCs as desired. Other factions such as the Six or Dran Enterprises have employees that take on company positions similar to those adopted by members of Acq Inc. These features can be used for members of those factions as well, either on their own or added to the faction features from the previous section. A monster or NPC that has a company position always carries the special items granted by that position (a cartographer's spyglass of clairvoyance and cartographer's map case, a hoardsperson's living loot satchel, and so forth). As normal, these items do not function for anyone else, and will be actively sought out by the organization that owns them if they are lost or stolen. Iconic Cartographer The iconic cartographer makes a point of knowing the position of every member of their team, understanding the layout of their immediate area and the location of any exits or escape routes. Recommended NPCs: Acolyte, druid, guard, scout, spy (Monster Manual); archer (Volo's Guide to Monsters) Map of Shortcuts (1/Day). As an action, the cartographer produces a map from its cartographer's map case that shows useful shortcuts in the immediate area and then vanishes. Each creature of the cartographer's choice that can see the map can take the Dash or Disengage action as a bonus action on its next turn. Iconic Decisionist The iconic decisionist constantly polls allies and foes during the ongoing battle, getting a read on what everyone thinks, and then explaining how they're all completely wrong. Recommended NPCs: Bandit captain, knight, scout (Monster Manual); archer, enchanter (Volo's Guide to Monsters) Better Odds (1/Day). As an action, this creature flips its coin of decisionry to determine the best course of action, choosing a number of creatures that can see and hear it. Each of the target creatures (in addition to this creature) rolls a d4 and adds the number rolled to the next ability check, saving throw, or attack roll it makes. Iconic Documancer An iconic documancer acts with the authority of their organization. Documancers constantly speak in legalese, referencing obscure reasons why opponents will fail or should surrender. Recommended NPCs: Acolyte, mage, priest, veteran (Monster Manual); bard (Volo's Guide to Monsters) Scroll Service (1/Day). As an action, the documancer draws a spell scroll from its documancy satchel. The scroll contains a spell of up to 3rd level of the documancer's choice. Only the documancer can use the scroll, which vanishes after 1 minute. Iconic Hoardsperson The iconic hoardsperson flaunts their wealth, knowing that foes are daunted by that which they have failed to earn. Recommended NPCs: Bandit captain, gladiator (Monster Manual); master thief, swashbuckler (Volo's Guide to Monsters) That Thing You Need (3/Day). The hoardsperson pulls one item of its choice from the living loot satchel. This can be any item found on the Adventuring Gear table in chapter 5, \"Equipment,\" of the Player's Handbook. The item must be worth no more than 15 gp. Iconic Loremonger The iconic loremonger trades in information, even when locked down in battle. A loremonger constantly tries to goad foes into revealing plans and secrets. Recommended NPCs: Cult fanatic, druid, mage, priest (Monster Manual); bard, enchanter (Volo's Guide to Monsters) Whispered Encyclopedia (1/Day). When a visible creature within 20 feet of the loremonger makes an attack roll, a saving throw, or an ability check, the loremonger can use its reaction to impose disadvantage on the roll. Iconic Obviator The iconic obviator sees foes as obstacles worthy of respect. Obviators engage in repartee, testing the minds and skills of their opponents as their own strategy is deployed. Recommended NPCs: Assassin, gladiator, priest (Monster Manual); martial arts adept, swashbuckler (Volo's Guide to Monsters) Read the Opposition (1/Day). As a bonus action, the obviator chooses one other creature it can see, then relays information about the target's tactics to all creatures that can hear this creature. Until the end of the target creature's next turn, attack rolls and contested ability checks made against the target are made with advantage. Iconic Occultant The iconic occultant believes that every action changes the world around",
+   "source": "艾奎兹玄有限责任公司/怪物/Iconic_Franchise_Features.htm",
+   "sourceKind": "official"
+  },
+  "奇械学徒": {
+   "name": "奇械学徒",
+   "desc": "奇械学徒 Artificer Initiate 你已习得些许奇械师的创造力。 · 你从奇械师法术列表中选择并习得一个戏法。此外，你从该法术列表中选择并习得一个一环法术。智力是你施展这些法术的施法属性。 · 你可以在不消耗法术位的情况下施展一次来自此专长的一环法术。你必须在完成一次长休后才能再次这样做。你也可以正常消耗法术位来施展该法术。 · 你获得你所选的一项工匠工具熟练，并且你可以将该工具作为施展任何以智力为施法属性的法术的法器。 大厨 Chef Legacy 花费在专研厨艺上的工夫已然有了回报，使你获得了以下增益： · 你的体质或感知增加1，上限为20。 · 你获得厨师工具的熟练项，如果你还没有的话。 · 作为短休的一部分，只要你手上有原料和厨师工具，你便可以烹饪特制料理。你可以为特定数量的生物准备这种食物，其数量等同于4+你的熟练加值。在本次短休结束时，任何食用了料理并且花费了一个或更多生命骰来恢复生命值的生物恢复额外1d8点生命值。 · 在花费一小时精心制作后，或者在完成一次长休时，你可以制作等同于你熟练加值个数的餐点。这些餐点在制作完成后持续八小时。任何食用餐点的生物都能获得等同于你熟练加值的临时生命值。 粉碎者 Crusher Legacy 你擅长于碾碎敌人的技艺，你获得了以下增益： · 你的力量或体质增加1，上限为20。 · 每回合一次，当你用造成钝击伤害的攻击命中一个生物时，只要目标的体型并未比你大一级以上，你就可以将目标移动五尺至一个未占据空间。 · 当你用造成钝击伤害的攻击命中一个生物并造成重击时，直至你的下一回合开始，所有针对该生物的攻击检定具有优势。",
+   "source": "塔莎的万事坩埚/玩家选项/专长.html",
+   "sourceKind": "official"
+  },
+  "魔能导师": {
+   "name": "魔能导师",
+   "desc": "魔能导师 Eldritch Adept 先决条件：施法或契约魔法特性 对神秘学的研究使你从魔契师职业中习得了一项你自选的魔能祈唤。本专长获取的魔能祈唤中使用的施法属性为你的智力、感知、或魅力（在你选择这个专长时选择它）。如果该祈唤具有任何先决条件，则仅当你是一位满足该条件的魔契师时才能选择该祈唤。 当你升级时，你可以将该祈唤更换为魔契师职业中的另一个魔能祈唤（关键属性不变）。",
+   "source": "塔莎的万事坩埚/玩家选项/专长.html",
+   "sourceKind": "official"
+  },
+  "妖精触碰": {
+   "name": "妖精触碰",
+   "desc": "妖精触碰 Fey-Touched 通用专长（先决：等级4+） 暴露在 妖精荒野Feywild 的魔法之下给予你以下增益： 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 妖精魔法Fey Magic。 选择一道预言或惑控学派的一环法术。你始终准备着你选择的这道法术与 迷踪步Misty Step 。你可以无需法术位地施展每道法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的合适环阶的法术位施展这些法术。 这些法术的施法属性是你以此专长提升的属性。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "战斗学徒": {
+   "name": "战斗学徒",
+   "desc": "战斗学徒 Fighting Initiate 先决条件：熟练于一种军用武器 你的军事训练帮助你养成了一种特定的战术风格。因此，你可以从战士职业中选择并习得一项战斗风格。如果你已经有一项战斗风格，你不能选择相同的战斗风格。 每当你升级并达到获得属性值提升特性的等级时，你可以来自此专长的战斗风格替换为战士职业中的另一项你未习得的战斗风格。 枪手 Gunner 你持枪时的手快眼明使你获得了以下增益： · 你的敏捷提升1，上限为20。 · 你获得枪械的熟练（见城主指南的“枪械”栏目）。 · 你忽略枪械的装填词条。 · 你在敌对生物5尺内进行远程攻击检定时，不会因此而具有劣势。",
+   "source": "塔莎的万事坩埚/玩家选项/专长.html",
+   "sourceKind": "official"
+  },
+  "超魔法导师": {
+   "name": "超魔法导师",
+   "desc": "超魔法导师 Metamagic Adept 先决条件：施法或契约魔法特性 你习得如何往你的法术上施加你的意志，从而改变它们的功能。 · 你从术士职业中选择并习得两项超魔法选项。除非特别说明，否则一个法术施展时只能应用一种超魔法项。当你升级并达到获得属性值提升特性的等级时，你可以将其中一项超魔法选项替换为术士职业中的另一项超魔法选项。 · 你获得2点术法点，用于施展超魔法（这些术法点和任何其他来源的术法点叠加，但只能用于超魔法）。你在完成长休后重获所有已消耗的术法点。 穿刺者 Piercer Legacy 你已经可以在战斗中造成精准的穿刺。你获得以下好处： · 你的力量或敏捷提升1，上限为20。 · 每回合一次，当你用造成穿刺伤害的攻击命中一个生物时，你可以重骰其中一个伤害骰。你必须使用重骰的结果。 · 当你用造成穿刺伤害的攻击命中一个生物并且造成重击时，你可以在计算穿刺伤害时投一个额外的伤害骰。 毒师 Poisoner Legacy 你可以准备并使用致命的毒药。你获得以下好处： · 当你投造成毒素伤害的伤害骰时，无视目标的伤害抗性。 · 你可以以一个附赠动作为一把武器或一枚弹药涂毒，而不是一个动作。 · 你获得制毒工具的熟练项，如果你还没有的话。花费一小时使用制毒工具进行制作后，并且消耗价值50gp的材料后，你可以制造一定数量的猛毒，其数量等同于你的熟练加值。当被用于一把武器或一枚弹药后，猛毒的毒性持续一分钟或直至你用该武器或弹药攻击命中后。当一个生物受到来自涂毒武器或弹药的伤害后，该生物必须成功通过DC14的体质豁免，否则将受到2d8毒素伤害并陷入中毒状态，直至你的下回合结束。",
+   "source": "塔莎的万事坩埚/玩家选项/专长.html",
+   "sourceKind": "official"
+  },
+  "影界触碰": {
+   "name": "影界触碰",
+   "desc": "影界触碰 Shadow Touched 通用专长（先决：等级4+） 暴露在 堕影冥界Shadowfell 的魔法之下给予你以下增益： 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 暗影魔法Shadow Magic。 选择一道幻术或死灵学派的一环法术。你始终准备着你选择的这道法术与 隐形术Invisibility 。你可以无需法术位地施展每道法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的合适环阶的法术位施展这些法术。 这些法术的施法属性是你以此专长提升的属性。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "念动力": {
+   "name": "念动力",
+   "desc": "念动力 Telekinetic 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 次级心灵遥控Minor Telekinesis。 你习得戏法 法师之手Mage Hand 。你施展这道戏法时，你无需言语成分与姿势成分，且可以让这只灵体手 隐形 ，还可以令它的施法距离以及其可远离你的最大距离均提升30尺。该法术的施法属性是你以此专长提升的属性。 念力推撞Telekinetic Shove。 以一个附赠动作，你可以尝试以念动力推撞一个位于你30尺内的你可见的生物。当你这样做时，目标必须通过一次力量豁免（DC等于8+你用此专长提升的属性的调整值+你的熟练加值）否则将被你拉近或推离5尺。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "心电感应": {
+   "name": "心电感应",
+   "desc": "心电感应 Telepathic Legacy 你觉醒了用意念与其他生物交流的能力。你获得以下好处： · 你的智力，感知或魅力提升1，上限为20。 · 你可以和60尺内任何你可见的生物用心灵感应进行交流。你的心电沟通以一种你已知的语言的形式进行，该生物必须懂得该语言才能理解你。你的主动沟通并未给予该生物以心灵感应的形式回复你的能力。 · 你可以施展侦测思想法术，无需法术位和法术成分。以此法施法后，你在完成一次长休前不能再这样做。该法术的施法属性是你由此专长提升的属性。如果你拥有二环或更高的法术位，你可以消耗这些法术位施展该法术。",
+   "source": "塔莎的万事坩埚/玩家选项/专长.html",
+   "sourceKind": "official"
+  },
+  "斯翠海文苑像": {
+   "name": "斯翠海文苑像",
+   "desc": "斯翠海文苑像 Strixhaven Mascot 先决条件： 等级4+， 斯翠海文学徒专长 你习得了如何 召唤斯翠海文苑像来协助你，这让你获得以下的好处： · 你获得以仪式施法的方式施展法术 寻获魔宠find familiar 的能力。你魔宠的形态能够选择与你斯翠海文学徒专长所关联的学院的苑像：魂灵塑偶苑像spirit statue mascot（衡鉴），艺元素苑像art elemental mascot（粹丽），分灵苑像fractal mascot（量析），墨灵苑像inkling mascot（银毫），害虫苑像pest mascot（靡华）。这些生物的数据卡在第七章。 · 当你在你的回合里进行攻击动作时，你能放弃一次攻击来让你的苑像魔宠使用其反应来进行一次攻击。 · 如果你的苑像魔宠与你相距60尺内，你能使用一个动作来进行传送，与你的魔宠交换位置。如果你的目的地过于狭窄以至于你不能占据那处空间的话，传送会失败并浪费掉。一旦你使用了这种传送，你需要完成一次长休之后才能再次使用，你也可以使用一个2环或更高的法术来使用该传送。",
+   "source": "斯翠海文：混沌研习/玩家选项/专长.html",
+   "sourceKind": "official"
+  },
+  "符文塑形者": {
+   "name": "符文塑形者",
+   "desc": "符文塑形者 Rune Shaper 先决: 施法特性或符文雕刻者背景 你已习得了巨人符文之魔法，这为你带来了如下增益： 通晓语言Comprehend Languages。 你习得法术 通晓语言comprehend languages 。你可以无需法术位的施展这个法术一次，之后你必须完成一次长休才能再次以此施展它。你同样可以用任何你拥有的法术位去施展这个法术。 符文魔法Rune Magic。 你知晓了一定数量的符文，其数量等同于你的熟练加值的一半（向下取整），从下述的符文法术表中选择它。每当你完成长休时，你都可以将每一个你知晓的符文刻印在非魔法的武器、护甲、一套衣物、或别的什么你触碰的物件。你临时习得与刻印下的符文相关联的那些一环法术（如符文法术表所展示的那样），以此习得的这些法术会伴随着刻印的符文一起，在你完成下一次长休时消失。你可以用任何你拥有的法术位去施展符文给予的这些法术。 此外，当你携带或着装刻印符文的物品，你还可以不消耗法术位，无需材料成分的施展与符文相关联的法术一次。当你以此施展了任何一个法术后，直到你完成一次长休为止你都不能再次使用这一项能力。此专长的施法属性为智力、感知、或魅力（选择此专长时选择它）。 每当你等级提升时，你都可以从符文法术表中选择一个不同的符文来替换一个你已知的符文。 符文法术 Rune Spell 符文 法术 云雾Cloud 云雾术Fog cloud 死亡Death 致伤术Inflict wounds 腾龙Dragon 繁彩球Chromatic orb 仇敌Enemy 易容术Disguise self 火焰Fire 燃烧之手Burning hands 友谊Friend 动物交谈Speak with animals 寒霜Frost 黯冰狱铠Armor of Agathys 山丘Hill 神莓术Goodberry 旅途Journey 大步奔行Longstrider 君王King 命令术Command 山脉Mountain 纠缠术Entangle 岩石Stone 庇护术Sanctuary 风暴Storm 雷鸣波Thunderwave",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "巨人打击": {
+   "name": "巨人打击",
+   "desc": "巨人打击 Strike of the Giants 先决: 军用武器熟练或巨人养子背景 你吸收了回荡在你体内巨人之力的原初魔法。当你选择此专长时，选择下列列出的增益之一。每回合一次，当你用近战武器攻击、或投掷武器的远程武器攻击击中一个目标时，你可以为攻击注入一种额外效应，其具体内容取决于你选择的增益类型： 云雾打击Cloud Strike。 目标受到额外1d4点雷鸣伤害。若目标是生物，则其必须通过一次感知豁免，否则直至你下一回合开始，你对其而言视为 隐形Invisible 状态。你发动攻击或是施展法术后，这一效应也会立刻结束。 火焰打击Fire Strike。 目标受到额外1d10点火焰伤害。 寒霜打击Frost Strike。 目标受到额外1d6点寒冷伤害。若目标是生物，则其必须通过一次体质豁免，否则直至你下一回合开始其速度归零。 山丘打击Hill Strike。 目标受到额外1d6点与武器同类型的伤害。若目标是生物，则其必须通过一次力量豁免，否则将陷入 倒地Prone。 岩石打击Stone Strike。 目标受到额外1d6点力场伤害。若目标是生物，则其必须通过一次力量豁免，否则被你沿直线击退10尺。 风暴打击Storm Strike。 目标受到额外1d6点闪电伤害。若目标是生物，则其必须通过一次体质豁免，否则直至你下一回合开始，其发动的攻击检定都将具有劣势。 这些效果豁免检定的DC为8+你的熟练加值+你的力量或体质调整值。 你可使用此专长的次数等同于你的熟练加值次，在完成一次长休后你恢复所有已消耗的使用次数。",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "火巨人之余烬": {
+   "name": "火巨人之余烬",
+   "desc": "火巨人之余烬 Ember of the Fire Giant 先决条件: 等级4+，巨人打击（火焰打击）专长 你展现出象征着火巨人的炽烈战斗方式，使得你获得下列增益： 属性值提升Ability Score Increase。 你的力量、体质或感知属性提升1，上限为20。 生于烈焰Born of Flame。 你获得火焰伤害的抗性。 炽热灼烧Searing Ignition。 当你在你的回合中执行攻击动作时，你可以将其中一次攻击替换为喷射出一阵魔法烈焰。以你为中心，15尺半径球状内所有由你选择的可见生物都必须进行一次敏捷豁免（DC为8+你的熟练加值+本专长提升属性的调整值）。豁免失败时，生物将受到 1d8+你的熟练加值 点火焰伤害，并陷入 目盲Blinded 状态，直至你下一个回合开始。豁免成功时只受一半伤害。你可使用炽热灼烧的次数等同于你的熟练加值次，在完成一次长休后你恢复所有已消耗的使用次数。",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "霜巨人之狂怒": {
+   "name": "霜巨人之狂怒",
+   "desc": "霜巨人之狂怒 Fury of the Frost Giant 先决条件: 等级4+ ，巨人打击（寒霜打击）专长 你展现出象征着霜巨人的冰冷力量，使得你获得下列增益： 属性值提升Ability Score Increase。 你的力量、体质或感知属性提升1，上限为20。 生于冰霜Born of Ice。 你获得寒冷伤害的抗性。 霜寒回击Frigid Retaliation。 当一个30尺内你可见的生物以攻击检定命中你，并对你造成伤害后，你可以立即用你的反应来唤出碎裂的寒冰来予以还击。那个生物必须进行一次体质豁免（DC为8+你的熟练加值+本专长提升属性的调整值）。豁免失败时，该生物将受到1d8+你的熟练加值的寒冷伤害，且其速度降至0，直至其下个回合结束。你可以使用这一反应的次数等同于你的熟练加值次，在完成一次长休后你恢复所有已消耗的使用次数。",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "云巨人之诡诈": {
+   "name": "云巨人之诡诈",
+   "desc": "云巨人之诡诈 Guile of the Cloud Giant 先决条件: 等级4+，巨人打击（云雾打击）专长 你展现出象征着云巨人的轻浮言语以及魔法，使得你获得下列增益： 属性值提升Ability Score Increase。 你的力量、体质或魅力属性提升1，上限为20。 迷云逃逸Cloudy Escape。 当一个你可见的生物以攻击检定命中你时，你可以使用你的反应来获得此次攻击伤害的抗性。然后你可以传送至30尺范围内的一处你可见的、未占据空间。你可以使用这一反应的次数等同于你的熟练加值次，在完成一次长休后你恢复所有已消耗的使用次数。",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "石巨人之敏锐": {
+   "name": "石巨人之敏锐",
+   "desc": "石巨人之敏锐 Keenness of the Stone Giant 先决: 等级4+，巨人打击（岩石打击）专长 你展现出象征着石巨人的肉体天赋，使得你获得下列增益： 属性值提升Ability Score Increase。 你的力量、体质或感知属性提升1，上限为20。 洞穴视觉Cavernous Sight。 你获得60尺黑暗视觉。若你已经从其他来源处获得了黑暗视觉，其距离增加60尺。 投掷石块Stone Throw。 以一个附赠动作，你可以触碰一块石头并用其发动一次魔法性的攻击。此次攻击是一次远程法术攻击，具有60尺的射程，使用你以此专长提升的属性作为施法属性。命中时，石头造成1d10力场伤害，目标必须通过一次力量豁免（DC为8+你的熟练加值+本专长提升属性的调整值），否则将陷入倒地状态。你可以使用这一附赠动作的次数等于你的熟练加值，在完成一次长休后你恢复所有已消耗的使用次数。",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "风暴巨人之灵魂": {
+   "name": "风暴巨人之灵魂",
+   "desc": "风暴巨人之灵魂 Soul of the Storm Giant 先决: 等级4+，巨人打击（风暴打击）专长 你展现出象征着风暴巨人的预言能力和风暴魔法，使得你获得下列增益： 属性值提升Ability Score Increase。 你的力量、感知或魅力属性提升1，上限为20。 旋涡灵光Maelstrom Aura。 以一个附赠动作，你将自己笼罩在魔法性的狂风与雷电灵光之中，灵光以你为中心，向任意方向延展10尺（无法穿过全身掩护）。灵光持续到你的下一个回合开始，若你陷入 失能Incapacitated 它会提前结束。灵光激活期间，你获得闪电伤害与雷鸣伤害的抗性。此外，任何以你为目标的攻击检定都将具有劣势，且每当一个生物在灵光下开始其回合，你都可以迫使其进行一次力量豁免（DC为8+你的熟练加值+本专长提升属性的调整值）。豁免失败时，该生物的速度将被减半直至它们的下一回合开始。你可以使用这一附赠动作的次数等同于你的熟练加值次，在完成一次长休后你恢复所有已消耗的使用次数。",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "山丘巨人之健强": {
+   "name": "山丘巨人之健强",
+   "desc": "山丘巨人之健强 Vigor of the Hill Giant 先决: 等级4+，巨人打击（山丘打击）专长 你展现出象征着山丘巨人的强韧性，使得你获得下列增益： 属性值提升Ability Score Increase。 你的力量、体质、或感知属性提升1，上限为20。 不动如山Bulwark。 当你受到一次让你移动至少5尺、或给予你 倒地Prone 状态的效应时，你可以用你的反应来稳定自身，此时，你既不会被因此移动，也不会因此陷入 倒地Prone 。 钢铁肠胃Iron Stomach。 当你在短休时进食，并且使用了一粒或更多生命骰恢复生命时，你额外恢复等同于你的 体质调整值+你的熟练加值 点的生命值。",
+   "source": "巨人之荣耀/角色选项/专长.htm",
+   "sourceKind": "official"
+  },
+  "专长：卡牌占卜师": {
+   "name": "专长：卡牌占卜师",
+   "desc": "专长：卡牌占卜师 Cartomancer 卡牌占卜师使用纸牌作为奥术力量的法器。和你的DM谈谈，看看这个专长在你的战役中是否适合你：",
+   "source": "万象无常书/贤者/专长：卡牌占卜师.htm",
+   "sourceKind": "official"
+  },
+  "卡牌占卜师": {
+   "name": "卡牌占卜师",
+   "desc": "卡牌占卜师 Cartomancer 先决条件： 等级4+，施法特性 你学会了通过一副牌组来引导你的魔法，你可以用一副牌组作为你的法器，并获得下列增益： 卡牌诈术Card Tricks。 你习得戏法 魔法伎俩Prestidigitation ，并可以用其创造幻象来复制舞台魔术的效果。当你以此法使用魔法伎俩时，你可以隐藏此法术的言语和姿势成分 隐藏王牌Hidden Ace。 当你完成一次长休时，你可以从你的职业法术列表中选择一个法术，并将其注入一张卡牌之中，被选择的法术施法时间必须为1动作，并必须是你拥有法术位的环阶。卡牌将被魔法侵染8小时，期间，你可以以你的附赠动作展示出卡牌并且施展其内的法术。之后卡牌立刻失去魔力。",
+   "source": "万象无常书/贤者/专长：卡牌占卜师.htm",
+   "sourceKind": "official"
+  },
+  "外层位面后裔": {
+   "name": "外层位面后裔",
+   "desc": "外层位面后裔 Scion of the Outer Planes 先决：异度风景战役 你与某一外层位面的连接为你注入了它的能量。从下方位面注能表中的位面类型中选择一项，你的选择将为你提供某项伤害的抗性与施展某个戏法的能力，如表中所示的那般。你施展这一戏法时无需材料成分，且其施法属性为智力、感知或魅力（在选择此专长时决定）。 位面注能Planar Infusion 位面 伤害抗性 戏法 混乱外层位面 毒素 次级幻象Minor Illusion 邪恶外层位面 暗蚀 颤栗之触Chill Touch 善良外层位面 光耀 圣火术Sacred Flame 守序外层位面 力场 神导术Guidance 外域 心灵 法师之手Mage Hand （译注：根据访谈，此处的选择并不影响你的阵营）",
+   "source": "印记城与外域/第一章/专长.htm",
+   "sourceKind": "official"
+  },
+  "混乱与共者": {
+   "name": "混乱与共者",
+   "desc": "混乱与共者 Cohort of Chaos 先决：等级4+，外层位面后裔（混乱外层位面）专长 得益于你引导宇宙混乱之力的能力，你获得下列增益： 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 混乱耀斑Chaotic Flare。 当你在一次攻击检定或豁免检定中骰出了1或20时，混乱的魔力将涌入你的身躯。投掷D4，根据骰值决定将发生混乱耀斑表上的哪个事件。耀斑将持续到你的下个回合结束，在首次混乱耀斑结束前你无法触发下次混乱耀斑效应。 混乱耀斑Chaotic Flares D4 耀斑效应 1 战斗狂热Battle Fury。 你可见的，由你选择的一名生物将被灌注入无我的狂怒。他进行的任何攻击检定都将具有优势，但进行属性检定时将具有劣势。 2 扰乱力场Disruption Field。 能量波环绕在你的身旁。任何在你5尺内开始其回合的生物以及在回合中首次移动进入此范围的生物将受到1d8力场伤害。 3 限制解除Unbound。 当你移动时，你可以使用你部分或全部的步行速度来传送自身一次，你身上携带或穿着的装备将一同传送，你将传送至一定距离内你可见的未占据空间，距离至多等于你所使用的步行速度。 （译注：原文就是使用速度，而不是消耗移动力。） 4 狂风呼啸Wailing Winds。 以你为中心，呼啸的狂风将充斥在这半径15尺的球状区域内。你与任何其他在这片区域内的生物进行的感知豁免都将具有劣势。",
+   "source": "印记城与外域/第一章/专长.htm",
+   "sourceKind": "official"
+  },
+  "恶意后继者": {
+   "name": "恶意后继者",
+   "desc": "恶意后继者 Baleful Scion 先决：等级4+，外层位面后裔（邪恶外层位面）专长 得益于你引导宇宙邪恶之力的能力，你获得下列增益： 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 贪婪之攫Grasp of Avarice。 每回合一次，当你对你周围60尺范围内的一个你可见的生物造成伤害时，你可以额外对其造成一定暗蚀伤害。暗蚀伤害值等于1d6+你的熟练加值，然后你将恢复等同于所造成黯蚀伤害数值的生命值。你可以使用这一增益的次数等同于你的熟练加值，在你完成一次长休后你重获全部已消耗的增益使用次数。",
+   "source": "印记城与外域/第一章/专长.htm",
+   "sourceKind": "official"
+  },
+  "公义传承者": {
+   "name": "公义传承者",
+   "desc": "公义传承者 Righteous Heritor 先决：等级4+ ，外层位面后裔（善良外层位面）专长 得益于你引导宇宙善良之力的能力，你获得下列增益： 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 舒缓伤痛Soothe Pain。 当你或你周围30尺范围内的生物受到伤害时，你可以用你的反应将那次伤害减少1d10+你的熟练加值。你可以使用这一增益的次数等同于你的熟练加值，在你完成一次长休后你重获全部已消耗的增益使用次数。",
+   "source": "印记城与外域/第一章/专长.htm",
+   "sourceKind": "official"
+  },
+  "秩序代行者": {
+   "name": "秩序代行者",
+   "desc": "秩序代行者 Agent of Order 先决：等级4+，外层位面后裔（守序外层位面）专长 得益于你引导宇宙秩序之力的能力，你获得下列增益： 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 凝滞打击Stasis Strike。 每回合一次，当你对你周围60尺范围内的一个你可见的生物造成伤害时，你可以额外对其造成1d8点力场伤害，同时，灵缚将向着那个生物袭去。其必须通过一次感知豁免（DC= 8+你的熟练加值+你外层位面后裔专长的施法属性调整值），豁免成功时，目标将躲开灵缚。豁免失败时，目标将陷入束缚状态，持续直至你的下一回合开始。这灵缚的外形，如同钢铁锁链或其他象征停滞的符号。你可以使用这一增益的次数等同于你的熟练加值，在你完成一次长休后你重获全部已消耗的增益使用次数。",
+   "source": "印记城与外域/第一章/专长.htm",
+   "sourceKind": "official"
+  },
+  "外域使节": {
+   "name": "外域使节",
+   "desc": "外域使节 Outlands Envoy 先决：等级4+ ，外层位面后裔（外域）专长 你在多元宇宙的十字路口——印记城与外域中度过了相当长的一段时间，浸泡在位面能量之中的这段时间使你获得下列增益： 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 交路使者Crossroads Emissary。 你习得法术 迷踪步Misty Step 与 巧言术Tongues 。你可以无需法术位的施展这两个法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。当你使用此专长施展 巧言术Tongues 时，你无需任何材料成分。你也能够以你拥有的合适环阶的法术位施展这些法术。这些法术的施法属性与你在外层位面后裔专长中决定的施法属性相同。",
+   "source": "印记城与外域/第一章/专长.htm",
+   "sourceKind": "official"
+  },
+  "位面漫游者": {
+   "name": "位面漫游者",
+   "desc": "位面漫游者 Planar Wanderer 先决：等级4+ ，外层位面后裔专长 你可以从多元宇宙之中摄取能量，并能在宇宙中的极端环境中生存，还能穿梭于多元宇宙的无限界域之中。你获得下列增益： 位面适应Planar Adaption。 当你完成一次长休时，你将获得强酸、寒冷或火焰伤害（由你选择）的抗性，持续至你下次完成长休。 传送门骇客Portal Cracker。 你对传送门的熟悉程度令你习得了不用钥匙也能打开它的方法。以一个动作，你将你的精神专注于你周围5尺范围内的一道传送门上，并进行一次DC20的智力（奥秘）检定。检定失败时，你将收到3d8心灵伤害并直到完成长休为止都无法再次使用这一增益。检定成功时，你可以强制这扇传送门打开1小时或关上1小时。在这段强制开启/强制关闭的时间内，这扇传送门将不会响应它对应的钥匙，除非生物以一个动作强行使用钥匙，并成功通过一次DC20的智力（奥秘）检定。 传送门感知Portal Sense。 你始终知道上一次使用的位面传送门位于你何方，但你与那个传送门必须处于同一存在位面上。不仅如此，以一个动作，你可以侦测到30尺内的任何对你来说未处于全身掩护的传送门的位置。一旦你使用了侦测传送门动作，直到你完成一次长休前你都无法再次使用这一动作。",
+   "source": "印记城与外域/第一章/专长.htm",
+   "sourceKind": "official"
+  },
+  "天气操作": {
+   "name": "天气操作",
+   "desc": "天气操作 Atmokinesis 狂野天赋专长（先决：不具有其他狂野天赋专长） 电能激荡Lighting Jolt。 每回合一次，当你施展法术或你的攻击检定命中，并造成钝击、穿刺、挥砍或心灵伤害时，你可以将伤害类型改为闪电。 灵能天赋Psionic talent。 你知晓戏法电爪。你始终准备着法术云雾术。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。 当你角色等级到达3级时，你还会始终准备着法术造风术并能够以同样的方式施展之。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "生体操纵": {
+   "name": "生体操纵",
+   "desc": "生体操纵 Biokinesis 狂野天赋专长（先决：不具有其他狂野天赋专长） 命能扭曲Bend Life Energy。 当你施展的法术令生物恢复生命值时，你可以投掷1d4并将骰值加入恢复的生命值总值中。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。 灵能天赋Psionic talent。 你知晓戏法维生术。你始终准备着法术治愈真言。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。 当你角色等级到达3级时，你还会始终准备着法术复苏秘法并能够以同样的方式施展之。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "超感知": {
+   "name": "超感知",
+   "desc": "超感知 Clairsentience 狂野天赋专长（先决：不具有其他狂野天赋专长） 次级前知Minor Foreknowledge。 当你执行搜索动作时，你可以令你作为此动作一部分进行的任意属性检定具有优势。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。 灵能天赋Psionic talent。 你知晓戏法神导术。你始终准备着法术侦测善恶。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。 当你角色等级到达3级时，你还会始终准备着法术识破隐形并能够以同样的方式施展之。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "低温控制": {
+   "name": "低温控制",
+   "desc": "低温控制 Cryokinesis 狂野天赋专长（先决：不具有其他狂野天赋专长） 操冰Ice Manipulation。 每回合一次，当你施展法术或你的攻击检定命中，并造成钝击、穿刺、挥砍或心灵伤害时，你可以将伤害类型改为寒冷。 灵能天赋Psionic talent。 你知晓戏法冷冻射线。你始终准备着法术黯冰狱铠和冰刃。你可以无需法术位地施展这些法术各一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的合适环阶的法术位施展这些法术。当你施展这些法术时，无需语言或材料成分。你这些法术的施法属性是智力、感知或魅力（在选取该专长时选择）。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "超共感": {
+   "name": "超共感",
+   "desc": "超共感 Empath 狂野天赋专长（先决：不具有其他狂野天赋专长） 情绪感官Emotional Sense。 当你执行影响动作时，你可以令你作为此动作一部分进行的任意属性检定具有优势。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。 灵能天赋Psionic talent。 你始终准备着法术魅惑类人。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。 当你角色等级到达3级时，你还会始终准备着法术安定心神并能够以同样的方式施展之。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "肉体变化": {
+   "name": "肉体变化",
+   "desc": "肉体变化 Flesh Morpher 狂野天赋专长（先决：不具有其他狂野天赋专长） 柔韧肉身Flexible Flesh。 当你进行敏捷（特技或巧手）检定时，你获得*等于你智力调整值（至少+1）的加值。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。 译注：不是，你的“可以”呢 灵能天赋Psionic talent。 你始终准备着法术大步奔行。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。 当你角色等级到达3级时，你还会始终准备着法术变身术并能够以同样的方式施展之。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "思语者": {
+   "name": "思语者",
+   "desc": "思语者 Mind Whisperer 狂野天赋专长（先决：不具有其他狂野天赋专长） 有限传心Limited Telepathy。 以一个魔法动作，选择位于你120尺内的一名你可见的生物。你与其建立心灵感应联结。你与被选择的生物位于彼此的120尺内期间，你们能够以心灵感应交流，持续1小时。为理解彼此，你们必须在精神中使用对方知晓的语言。 此增益一经使用，直至完成短休或长休你都无法再次使用。 灵能天赋Psionic talent。 你知晓戏法心灵之楔。你始终准备着法术不谐低语。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "灵能骗徒": {
+   "name": "灵能骗徒",
+   "desc": "灵能骗徒 Psi Trickster 狂野天赋专长（先决：不具有其他狂野天赋专长） 狡黠心智Cunning Mind。 当你进行魅力（欺瞒或游说）检定时，你获得等于你智力调整值（至少+1）的加值。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。 灵能天赋Psionic talent。 你知晓戏法次级幻象。你始终准备着法术易容术。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "心动力": {
+   "name": "心动力",
+   "desc": "心动力 Psykineticist 狂野天赋专长（先决：不具有其他狂野天赋专长） 灵能助推Psi Boost。 当你执行疾走动作时，你可以令你的速度提升10尺，直至你的下个回合开始。你可以使用此增益的次数等于你的熟练加值，当你完成长休时，你重获所有已消耗的使用次数。 灵能天赋Psionic talent。 你知晓戏法念力抛射Telekinetic Fling（见本UA法术部分）。你始终准备着法术雷鸣波。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "发火能力": {
+   "name": "发火能力",
+   "desc": "发火能力 Pyrokinesis 狂野天赋专长（先决：不具有其他狂野天赋专长） 火焰使Firestarter。 每回合一次，当你施展法术或你的攻击检定命中，并造成钝击、穿刺、挥砍或心灵伤害时，你可以将伤害类型改为火焰。 灵能天赋Psionic talent。 你知晓戏法火焰箭。你始终准备着法术燃烧之手。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。当你施展该法术时，无需语言或材料成分。你该法术的施法属性是智力、感知或魅力（在选取该专长时选择）。 当你角色等级到达3级时，你还会始终准备着法术灼热射线并能够以同样的方式施展之。",
+   "source": "其他/新UA/灵能/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "赎罪者恩典": {
+   "name": "赎罪者恩典",
+   "desc": "赎罪者恩典 Atoner's Grace 起源专长 你获得以下增益。 化敌Disarming Mien。 生物的敌对态度不会令你影响该生物的魅力检定承受劣势。 谈判Parley。 当你执行撤离或影响动作时，位于你5尺内每名你选择的生物在你下个回合开始前进行的下一次属性或豁免检定具有优势。",
+   "source": "其他/新UA/反派三期/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "邪教育成者": {
+   "name": "邪教育成者",
+   "desc": "邪教育成者 Raised by Cultist 起源专长 你获得以下增益。 猩红启示Bloody Revelation。 当你进入浴血时，你能以反应获得英雄激励。 集体施法Communal Caster。 当一名位于你5尺内的盟友为维持专注进行体质豁免时，你能以反应令你盟友的该次豁免获得优势。",
+   "source": "其他/新UA/反派三期/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "陷阱大师": {
+   "name": "陷阱大师",
+   "desc": "陷阱大师 Trapper 起源专长 你获得以下增益。 贯微洞密Eye for Detail。 你作为研究动作的一部分进行的任意智力（调查）检定具有优势。 高速追踪Swift Tracker。 以快速步调旅行期间，你的感知（察觉或求生）检定不会具有劣势。以中速步调旅行期间，你的该检定具有优势。 陷阱专家Trap Expert。 你能以附赠动作而非操作动作来设置捕猎陷阱。当你设置捕猎陷阱时，你能将你的熟练加值加入躲避陷阱的豁免DC和逃脱陷阱的DC中。",
+   "source": "其他/新UA/反派三期/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "阴招黑手": {
+   "name": "阴招黑手",
+   "desc": "阴招黑手 Underhand 起源专长 你获得以下增益。 难以捉摸Elusive。 在你投掷先攻后，你可以立即移动至多10尺。 卑劣招数Fight Dirty。 当一名体型不超过你一级的生物对你发动一次借机攻击并失手时，你能以反应令该生物陷入倒地状态。你必须有一只空闲的手来使用该反应。",
+   "source": "其他/新UA/反派三期/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "妖精契约": {
+   "name": "妖精契约",
+   "desc": "妖精契约 Fey Pact 位面契约专长（先决：不具有其他位面契约专长） 你获得以下增益： 妖精连结Fey Bond。 你习得木族语。如果你在选择此专长时已经习得了木族语，则可以从《玩家手册》的语言表中选择一种语言作为代替习得。你还会获得自然技能的熟练。 妖精戏法Fey Cantrips。 你知晓戏法德鲁伊伎俩，以及另一个预言或惑控学派的戏法。你的这些法术的施法属性是感知、智力或魅力（在你选取该专长时选择）。 甜言蜜语Honeyed Words。 当你为魅力（欺瞒）或魅力（游说）检定掷的d20掷出5或更低时，你可以使用反应重新掷骰，但你必须使用重骰的结果。使用此反应后，直到你完成一次长休为止，你都不能再次使用此增益。",
+   "source": "其他/beyond drops/26.5/专长.htm",
+   "sourceKind": "official"
+  },
+  "地狱契约": {
+   "name": "地狱契约",
+   "desc": "地狱契约 Infernal Pact 位面契约专长（先决：不具有其他位面契约专长） 你获得以下增益： 地狱抗性Infernal Resistance。 你获得火焰和毒素伤害的抗性。 地狱视界Infernal Sight。 你在黑暗和微光光照中拥有60尺的可视距离，而无论其属于魔法性的还是非魔法性的。 伶牙俐齿Silver-Tongued。 你获得欺瞒技能的熟练。",
+   "source": "其他/beyond drops/26.5/专长.htm",
+   "sourceKind": "official"
+  },
+  "妖精哨卫": {
+   "name": "妖精哨卫",
+   "desc": "妖精哨卫 Fey Sentinel 通用专长（先决：等级4+，妖精契约专长） 你获得以下增益： 属性值提升Ability Score Increase。 你的智力、感知或魅力属性提升1，至多提升至20。 匿踪目标Fading Target。 当一名敌人对你的攻击检定失手时，你可以以反应获得隐形状态直到你的下个回合开始，或在你进行攻击检定、造成伤害 或施展法术后提前终止。 此增益一经使用，直至完成长休你都无法再次使用。 妖精传送Fey Shift。 当你执行疾走动作时，你可以放弃额外移动力以传送至多等同于你速度一半的距离，到一个你能看见且未占据空间。 自然根系Nature's Roots。 你始终准备着法术 纠缠术Entangle 。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展该法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。你的该法术的施法属性是通过此专长提升的属性。 当你角色等级到达5级时，你始终准备着法术 植物滋长Plant Growth ，并可用相同方式施展该法术。",
+   "source": "其他/beyond drops/26.5/专长.htm",
+   "sourceKind": "official"
+  },
+  "地狱守卫": {
+   "name": "地狱守卫",
+   "desc": "地狱守卫 Infernal Bulwark 通用专长（先决：等级4+，地狱契约专长） 你获得以下增益： 属性值提升Ability Score Increase。 你的体质或魅力属性提升1，至多提升至20。 魔鬼血肉Devil's Flesh。 你的皮肤变厚，并呈现出有鳞片的皮革质感。若你未着装任何护甲且未持用盾牌，你的基础护甲等级等于10＋你的敏捷调整值＋此专长提升属性的调整值。 地狱守护Infernal Protection。 你始终准备着法术 黯冰狱铠Armor of Agathys 。你可以无需法术位地施展该法术一次，你在完成长休后可以再次以此法施展该法术。当你使用此特性不消耗法术位地施展从此法术时，你施展该法术的二环版本，且法术造成火焰伤害而非寒冷伤害。你也能够以你拥有的合适环阶的法术位施展该法术。魅力是你施展此法术的施法属性。 复仇如潮Vengeful Surge。 当一个在你60尺范围内的可见生物迫使你进行了一次豁免检定时，你可以用反应对那个生物造成1d10火焰伤害。 你能够使用此特性的次数等于你的熟练加值，当你完成长休时重获所有已消耗的使用次数。",
+   "source": "其他/beyond drops/26.5/专长.htm",
+   "sourceKind": "official"
+  },
+  "地狱怖兵": {
+   "name": "地狱怖兵",
+   "desc": "地狱怖兵 Infernal Dragoon 通用专长（先决：等级4+，地狱契约专长） 你获得以下增益： 属性值提升Ability Score Increase。 你的体质或魅力属性提升1，至多提升至20。 魔鬼灵光Devilish Aura。 你与魔鬼的紧密连结令人惶恐不安。你可以以一个魔法动作显化出覆盖从你自身扩散30尺光环区域的恐惧灵光。区域内的每个你选择的生物都需要进行一次魅力豁免（DC为8＋此专长提升属性的调整值+你的熟练加值）。若豁免失败，它陷入恐慌状态直到它的下个回合结束。豁免成功的生物不受影响，且在24小时内免疫此能力。 魔鬼偏爱Devil's Favor。 你可以呼唤你的地狱宗主援助你。在你进行一次D20检定时，你可以为那次检定添加+2的加值。此增益一经使用，直至完成长休你都无法再次使用。 险恶赋能Diabolic Empowerment。 你始终准备着法术 魔化武器Magic Weapon 。你可以无需法术位地施展该法术一次，你在完成长休后可以再次以此法施展该法术。当你使用此特性不消耗法术位地施展从此法术时，此次施展的法术持续时间变为8小时。你也能够以你拥有的合适环阶的法术位施展该法术。魅力是你施展此法术的施法属性。",
+   "source": "其他/beyond drops/26.5/专长.htm",
+   "sourceKind": "official"
+  },
+  "箭术": {
+   "name": "箭术",
+   "desc": "箭术 Archery 战斗风格专长（先决：战斗风格特性） 你使用远程武器进行的攻击检定获得+2加值。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "在有": {
+   "name": "在有",
+   "desc": "在有 冲锋手Charger 专长的前提下，我可以在骑乘期间受益于 冲锋攻击Charge Attack 效果吗？ 可以，但必须是受控坐骑才可以。 当你的坐骑移动时，你会随之一起移动——因此，如果你的坐骑向着某个目标直线移动了10尺，你也会随其一同向着这名目标直线移动10尺。尽管如此，你还是得立刻在这段移动后执行 攻击 动作才能获得冲锋攻击的好处。这一操作在受控坐骑上是可行的，因为受控坐骑会在你的回合中进行它的移动。 另一方面，你无法利用自主活动的坐骑发动冲锋攻击，因为自主活动的坐骑在另一个单独的回合中移动，你无法立刻在坐骑移动之后立刻执行你的 攻击 动作。",
+   "source": "贤者谏言2025/专长.htm",
+   "sourceKind": "official"
+  },
+  "如果我的角色拥有": {
+   "name": "如果我的角色拥有",
+   "desc": "如果我的角色拥有 双持客Dual Wielder 专长的话，他可以持用两把 重型Heavy 武器吗？ 双持客允许你同时拔出两把没有 双手 词条的武器，但《玩家手册》中的每把 重型 武器都拥有双手属性，所以它们无法受益于这一专长。（不过，如果我们未来设计了没有 双手 词条的 重型 武器的话，这一专长真的能适用于那把武器！）",
+   "source": "贤者谏言2025/专长.htm",
+   "sourceKind": "official"
+  },
+  "对决": {
+   "name": "对决",
+   "desc": "对决 Dueling 战斗风格专长（先决：战斗风格特性） 当你单手持用一把近战武器且没有持用其他武器时，你使用那把武器进行的伤害掷骰获得+2加值。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "我有": {
+   "name": "我有",
+   "desc": "我有 巨武器战斗Great Weapon Fighting 专长，我可以将 至圣斩Divine Smite 或是 脆弱诅咒Hex 之类法术的额外伤害中的伤害骰掷出的1和2视为3吗？ 巨武器战斗专长只会增益你用于发动攻击的这把武器的伤害掷骰。举个例子，有这个专长的前提下，若你使用巨剑发动攻击检定，你可以将武器的2d6中掷出的所有1或2视为3。但如果你用巨剑攻击、命中、并在之后施展了 至圣斩Divine Smite ，巨武器战斗专长并不能让你将法术伤害中的1和2视为3。",
+   "source": "贤者谏言2025/专长.htm",
+   "sourceKind": "official"
+  },
+  "如果我是一名施法者，我可以在获得": {
+   "name": "如果我是一名施法者，我可以在获得",
+   "desc": "如果我是一名施法者，我可以在获得 魔法学徒Magic Initiate 专长时选择自己的职业吗？ 可以。举个例子，如果你是一名法师并获得了魔法学徒专长，你仍可以在该专长里选择法师。",
+   "source": "贤者谏言2025/专长.htm",
+   "sourceKind": "official"
+  },
+  "我可以在": {
+   "name": "我可以在",
+   "desc": "我可以在 长柄武器大师Polearm Master 赋予我的附赠攻击的伤害里加上力量调整值吗？ 可以。如果你有这个专长并使用长柄刀、戟、或长棍发动攻击检定，你可以你的攻击检定上加上你的属性调整值（就像你正常用这把武器攻击那样），若命中，你在命中后在伤害掷骰上加上相同的属性调整值，这同平常的武器伤害掷骰一样。 某个特殊规则（例如双持武器战斗的规则）可能与常规规则不同，告诉你“你不在伤害掷骰上加上属性调整值”。但长柄武器大师并不是此类特殊规则。",
+   "source": "贤者谏言2025/专长.htm",
+   "sourceKind": "official"
+  },
+  "凶蛮打手": {
+   "name": "凶蛮打手",
+   "desc": "凶蛮打手 Savage Attacker 起源专长 你专门训练过如何做出更具破坏性的进攻。每回合一次，当你使用武器命中目标时，你可以掷两次武器的伤害骰，并自选其中一次应用在目标上。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "我曾斗战而归": {
+   "name": "我曾斗战而归",
+   "desc": "我曾斗战而归 I Fought, I Lived 起源专长 你遭遇了来自此世之外或邪恶魔法引发的恐怖力量。它本对你这名微不足道的凡人毫无关心，但当你用强大的肌肉、勇气和超级大斧头将他送回老家后，它才深刻认识到自己的错误。 你获得以下增益。 不屈打击Defiant Strike。 你浴血期间使用法术或武器攻击命中时，你可以将此次攻击的伤害掷骰视为其能骰出的最大值。该增益一经使用，直至你完成长休都无法再次使用。 不挠之心Indomitable Heart。 若你在你的回合开始时已陷入恐慌状态，投掷一次d20。若骰值不低于10，你不再具有此状态。",
+   "source": "第三方/火炬光下的克苏鲁/第二章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "我曾躲过惧怖": {
+   "name": "我曾躲过惧怖",
+   "desc": "我曾躲过惧怖 I Hid from the Terror 起源专长 那晚的一切已经模糊了。一种，莫名的压迫感、难以承受的恐惧、夹杂着微弱记忆的混乱尖叫、连同对某种可怖饕餮之物的恐惧。你躲着它，在一个对它来说太过狭窄无法触及的地方。那一夜的声音和清晨你发现的恐怖，将伴随你度过余生，乃至更久。 你获得以下增益。 阴影打击Shadowed Strike。 若发动攻击将结束你的隐形状态，你能够发动一次攻击并维持该状态。你能够使用此增益的次数等于你的熟练加值。当你完成长休时你重获所有已消耗的使用次数。 不值一哂Beneath Notice。 当你尝试对一名体型大于你的生物执行躲藏时。只要你处在轻度遮蔽下或距其超过30尺，你就可以躲藏。这种情况下，对满足条件的生物而言，你获得躲藏的增益，对其他生物而言，你并非处于躲藏。 融身入影Merge into Shadows。 你隐形期间，寻找你的感知（察觉）检定具有劣势。",
+   "source": "第三方/火炬光下的克苏鲁/第二章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "我曾冲破幻象": {
+   "name": "我曾冲破幻象",
+   "desc": "我曾冲破幻象 I Pierced the Illusion 起源专长 你曾遭遇一些奇诡而可怕的事件，而其隐秘性令其更显恐怖。一座看起来平凡的城市将它的访客引入精心看护的祭祀花园、或是那家在漆黑骤雨之夜收留你的好心人实质是一群饥饿的食人族。你识破了它们的伪装并成功逃脱，亦或是你率先采取了行动得以幸存。 你获得以下增益。 洞彻感知Clear Senses。 若你在你的回合开始时已陷入魅惑状态，投掷一次d20。若骰值不低于10，你不再具有此状态。 闻听破谎Ear for Falsehood。 当一名NPC对你说话时，若其说谎，你能够使用此能力。你无法得知真相或是他们说谎的理由，仅可知他们陈述中的谬误。你能够使用此增益的次数等于你的熟练加值。当你完成长休时你重获所有已消耗的使用次数。 巧妙审问Subtle Interrogation。 你对正与你交谈的生物进行的洞悉检定具有优势。",
+   "source": "第三方/火炬光下的克苏鲁/第二章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "我曾打开大门": {
+   "name": "我曾打开大门",
+   "desc": "我曾打开大门 I Opened the Gate 起源专长 事情的发展非你所愿。你满载的好奇或许让你忽略了警示，但......古老的诅咒本就很难当真。那些发黄的旧书记载了很多东西，而其中大部分不过是荒诞的传说——但你读过的那本竟成了释放古老邪恶的关键。现在，祂已于此世将临，寻找并遣返祂的责任落在你肩。 你获得以下增益。 探秘寻古Delver into Forgotten Lore。 你习得三种你选择的语言。 邪恶奥秘Foul Arcana。 你能够短暂的触及神秘世界的一些片段以增强某道法术，但这会以你的大脑受到极其恐惧的、洞见宇宙的压力为代价。当你施展法术时，你能够令此法术的DC获得+2加值，但你陷入麻痹状态直至你的下个回合开始。你能够使用此增益的次数等于你的熟练加值。当你完成长休时你重获所有已消耗的使用次数。",
+   "source": "第三方/火炬光下的克苏鲁/第二章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "我曾幸存以述": {
+   "name": "我曾幸存以述",
+   "desc": "我曾幸存以述 I Survived to Tell the Tale 起源专长 你遭遇了某种可怕的事情，例如恐怖的生物或是诡异的仪式，这使你踏上探索奇异的调查员之路。你的敏捷步伐和生存本能让你度过了那一天，这是你最珍贵的财富。 你获得以下增益。 生存本能Instinct to Survive。 当你受到将令你生命值降至0的伤害时，你立即恢复等于你等级的生命值。此增益一经使用，直至你完成长休都无法再次使用。 超级速度Superior Speed。 你的速度获得+10加值。 无拘无束Wriggle Free。 若你在你的回合开始时已陷入束缚状态，投掷一次d20。若骰值不低于10，你不再具有此状态。",
+   "source": "第三方/火炬光下的克苏鲁/第二章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "译注：克苏鲁的起源专长把": {
+   "name": "译注：克苏鲁的起源专长把",
+   "desc": "译注：克苏鲁的起源专长把DND野生平民的含金量大大提高了...... 现在向你走来的四大天王，分别是 刀劈神话的战狂，融身入影的神偷 肉眼破幻的贤者，开门唤神的癫法 ——还有个敌人还在八百里外他已经跑路的跑男",
+   "source": "第三方/火炬光下的克苏鲁/第二章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "森木贤者": {
+   "name": "森木贤者",
+   "desc": "森木贤者 Forest Sage 先决：德鲁伊或法师 护林人重视思想的多样性，尽管他们最初是纯粹的德鲁伊教派，但后来他们学会了接受不同的自然世界观，尤其是在魔法应用这方面。你或许是一位法师，学会了如何在奥术研究中保持自然力量的微妙平衡；或许是一位德鲁伊，通过学习和实验对自然魔法有了新的理解。你获得以下增益。 你的智力或感知提升1，至多提升至20。 你能够选择使用智力或感知进行驯兽、奥秘、自然或求生检定。 你能够从德鲁伊或法师的法师列表中选择学习两道法术。你选择的法术必须是你可以施展的环阶。所选法术视为你的职业法术。若你是法师，这些法术加入你的法术书；若你是德鲁伊，这些法术加入你的已知法术。",
+   "source": "第三方/谦卑林故事集/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "植物缮者": {
+   "name": "植物缮者",
+   "desc": "植物缮者 Plantmender 先决：感知13+ 作为护林人魔法的基本形式之一，修复植物通常被教授给组织的幼苗。修复植物不仅能够帮助植物自灾难中恢复，还能够抵御旅行中可能遇到的危险。你获得以下增益。 你能够以动作触碰一株植物或树木以确定过去24小时其和其周围发生了什么。这些事件将立即以幻境的形式呈现给你并令你身临其境。对一株植物使用该能力后，你将了解其基本状态和健康状况，包括任何正在影响它的枯萎病或其他状态。你能够使用该能力的次数等于你感知调整值的两倍（至少1次）。当你完成长休时，重获所有已消耗的使用次数。 你习得戏法 植物修复Mend Plants* 和 橡棍术Shillelagh。 你施展这些法术的施法属性为感知。 你能够施展法术 树肤术Barkskin 和 荆棘丛生Spike Growth 各一次，你必须完成长休才能再次施展这些法术。你施展这些法术的施法属性为感知。",
+   "source": "第三方/谦卑林故事集/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "残暴之握": {
+   "name": "残暴之握",
+   "desc": "残暴之握 Brutal Grip 通用专长（先决：等级4+，力量13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量提升1，至多提升至20。 重武决斗者Heavy Duelist。 你可以仅用单手持用一把具有双手词条的近战武器。 多用双持者Versatile Dual Wielder。 你单手持用一把具有多用词条的近战武器期间，该武器对你而言具有轻型词条。",
+   "source": "第三方/瓦尔达的秘密尖塔/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "战地指挥": {
+   "name": "战地指挥",
+   "desc": "战地指挥 Field Commander 通用专长（先决：等级4+，魅力13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的魅力提升1，至多提升至20。 临阵指挥Command。 以一个动作，你可以向60尺内一名能听到你的盟友下达命令。它可以立即使用反应执行一个动作。该动作只能用于执行攻击（仅限一次攻击）、疾走、回避、躲藏、影响、搜索、研究或操作动作。 严密阵型Tight Formation。 当你位于两个或更多未处于失能状态的盟友周边5尺范围内时，敌人在对抗你时进行的攻击检定不能具有优势。",
+   "source": "第三方/瓦尔达的秘密尖塔/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "专注重击": {
+   "name": "专注重击",
+   "desc": "专注重击 Focused Critical 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 强化重击Improved Critical。 你使用武器和徒手打击进行的攻击检定，在d20骰出19或20时即可造成重击。",
+   "source": "第三方/瓦尔达的秘密尖塔/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "铁血英雄": {
+   "name": "铁血英雄",
+   "desc": "铁血英雄 Iron Hero 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 弱者决心Underdog's Resolve。 当你被挑战等级高于你等级的生物攻击时，你对抗此次攻击的护甲等级会获得+2加值。 复仇打击Vengeful Strike。 若任何生物在你的上个回合结束后将你盟友的生命值降为0，则你对该生物进行的攻击检定具有优势。 英雄干预Heroic Intervention。 当一名你可见的敌人执行传奇动作时，你能够以反应进行干预，阻止该传奇动作发生。你可以执行该反应的次数等于你的熟练加值，并在完成一次长休时重获所有已消耗的使用次数。",
+   "source": "第三方/瓦尔达的秘密尖塔/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "神射手吉运": {
+   "name": "神射手吉运",
+   "desc": "神射手吉运 Marksman's Luck 通用专长（先决：等级4+，敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷提升1，至多提升至20。 翻转骰面Flip Die。 每回合一次，当你使用远程武器进行伤害掷骰时，你可以翻转其中的一枚伤害骰，并使用其底面的骰值。你不能将此能力用于d4骰。对于一枚平衡的骰子，其任一顶面与对应底面的数字之和比该骰的最大值大1。 强化重击Enhanced Critical。 当你使用远程武器重击命中时，目标的速度变为0，直至其下个回合结束。",
+   "source": "第三方/瓦尔达的秘密尖塔/铳士/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "魔枪掌控": {
+   "name": "魔枪掌控",
+   "desc": "魔枪掌控 Gun-Mage Adept 通用专长（先决：等级4+，施法或契约魔法特性） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷提升1，至多提升至20。 远程武器熟练Ranged Weapon Proficiency。 你获得远程军用武器熟练。 戏法Cantrip。 你习得戏法 手指枪Finger Guns 。 扩展法术列表Expanded Spell List。 以下法术被加入你的法术列表中： 反弹道场Antiballistics Field 、 斩击弹Ballistic Smite 、 加农炮击Conjure Cannonball 、 咒唤掩体Conjure Cover 、 除你武器Jam Weapon 、 叶忒罗的自动换弹Jethro's Instant Reload 、 贯星一条 Perforating Shot 。 准备法术Spells Prepared。 从扩展法术列表中选择数量等于你熟练加值的法术，你始终准备着所选的这些法术。每当你提升等级时，你可以将所选法术中的其中一道替换为扩展法术列表中的另一道法术。",
+   "source": "第三方/瓦尔达的秘密尖塔/铳士/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "寒传月闪流精要": {
+   "name": "寒传月闪流精要",
+   "desc": "寒传月闪流精要 Canden and Moon's Master Cut 先决：你必须在寒传月闪流道场中击败一位大师 在胧忆岛第一剑术流派的大师的指导训练下，你掌握了一些实用技巧。你获得以下增益。 你的步行速度增加5尺。 在投掷先攻后，战斗第一回合开始前，你可以使用反应拔出一件武器并移动最多等于你速度一半（向上取整）的距离。如果你在这次移动结束时位于另一生物触及范围内，你可以用该武器对其发动一次近战攻击。 当你被攻击命中时，你可以使用反应摆出防御姿态，使你能够抵挡来袭的打击。直到你下一回合开始前，你的AC获得+5加值，这个加值也适用于触发这个能力的攻击。一旦你使用这个姿态，你必须完成一次长休才能再次使用它。 云端漫步者 Cloud Hopper 与伟大的风之精魂接触改变了你。你获得以下增益。 当你在自己回合中进行移动时，你可以在脚下召唤微型云朵，使你能够移动到空中的未占据空间内。你可以以这种方式移动等同于你熟练加值×5尺的距离，之后云朵就会停止出现。如果在空中结束移动，你会像平常一样坠落。 你学会了法术 云雾术Fog Cloud 和 造风术Gust of Wind ，每个法术你都可以不消耗法术位施放一次。当你完成一次长休后，你重获以这种方式施放这两个法术的能力。你也可以使用相应环位的法术位来施放这些法术。你施放这些法术时使用的施法关键属性可以是智力、感知或魅力（由你选择）。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "魔女盟誓": {
+   "name": "魔女盟誓",
+   "desc": "魔女盟誓 Coven Witch 先决：你必须是一个魔女集会的成员 你已成为魔女集会的正式成员。你获得以下增益。 你的智力或感知提高1点，最高不超过20。 你从你的魔女集会中学会两个随机的普通和非普通药水配方。 你学会两个一环法术。这些一环法术必须来自预言学派、咒法学派或变化学派。你可以各使用一次这些法术而无需法术位。当你完成一次长休后，你恢复以此方式施展这两个法术的能力。你也可以使用相应环级的法术位来施展这些法术。这些法术的施法关键属性是被本专长提升的属性。 采集者 Forager 你花费了无数时间在岛上探索寻找材料。你获得以下增益。 你的感知提高1点，最高不超过20。 你获得求生技能的熟练。如果你已经具有该项熟练，你改为获得该技能的专精。 当进行采集活动时，你获得普通和非普通材料的数量翻倍。 自由潜者 Freediver 你经历过深入的水下训练。你获得以下增益。 你的体质提高1点，最高不超过20。 你获得等于你体质两倍的游泳速度（向上取整到最近的5尺）。如果你已经拥有游泳速度，则改为增加10尺。 在计算你能闭气的时间时，你的体质调整值被视为三倍。 你获得对冷冻伤害的抗性。 群战专家 Group Combatant 你已磨练出精湛的战斗技巧，无论是面对多名敌人还是一对一决斗都能应对自如。你获得以下增益。 你受到的来自非魔法攻击的钝击、穿刺和挥砍伤害减少2点，最低降至1点。 当使用可选的夹击规则时，生物无法因夹击而获得对你攻击的优势。 在你的回合中，在你触发一次借机攻击后，你在该回合剩余时间内的移动将不再触发借机攻击。 身轻如燕 Light Foot 你拥有非凡的速度与敏捷。你获得以下增益。 当你未穿着重甲时，你的AC获得+1加值。 每当你采取攻击动作时，你可以放弃其中一次攻击，并移动最多等于你速度一半的距离。 非魔法的困难地形不会消耗你额外的移动力。 你可以穿过敌对生物所占据的空间，无论其体型大小。 捣蛋魔偷 Magically Mischievous 你学会了一些辅助你恶作剧的魔法把戏。你获得以下增益。 你获得巧手技能的熟练。如果你已经具有该项熟练，你改为获得该技能的专精。 当你在敏捷（巧手）检定中成功偷取物品时，作为动作的一部分，你可以将偷取的物品魔法性地转为隐形，如同施放了 遮蔽物体Obscure Object 法术。该物品必须小到能放入你的手掌中，且该效果持续1分钟。你每天可以使用该能力的次数等于你的熟练加值，当你完成一次长休后恢复所有已消耗的使用次数。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "AHA成员": {
+   "name": "AHA成员",
+   "desc": "AHA成员 Member of AHA 先决：你必须是AHA组织的成员 你已成为AHA组织的正式成员。你获得以下增益。 你的智力增加1点，最高不超过20。 你学会戏法 电击术Jolt 。此外，你还可以从以下法术中选择学习一个： 通晓语言Comprehend Languages 、 侦测魔法Detect Magic 、 鉴定术Identify 或 迷幻手稿Illusory Script 。你可以在不消耗法术位的情况下施展所选法术一次，且必须完成一次长休才能再次以此方式施放该法术。你也可以使用你拥有的任何法术位来施放该法术。这些法术使用智力作为你的施法关键属性。 轻度侵蚀 Minor Corruption 你曾暴露在侵蚀之下——一种正在毒害岛屿的黑暗魔法。这种力量如今开始改变着你。你获得以下增益。 当你的生命值低于最大值的一半时，你的AC获得+1加值。 你能够引导体内的侵蚀之力来施展法术。你施法时不需要法器，这意味着你可以忽略法术所需的材料成分，除非该材料标明了具体价值或会被法术消耗。 当你受到伤害时，以一个反应，你可以抵消等同于你等级三倍的伤害；超出部分的伤害由你正常承受。在你下一回合结束时，你必须进行一次体质豁免，豁免DC等于10或你原本将受到的伤害的三分之一（取较高值）。若豁免失败，你立即受到之前被抵消的伤害。在接下来的1分钟内，你必须在每个自己回合结束时继续进行体质豁免，直到时间结束或豁免失败，豁免失败时你将受到被抵消的伤害。使用此能力后，你必须完成一次长休才能再次使用。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "雷血鸣玉": {
+   "name": "雷血鸣玉",
+   "desc": "雷血鸣玉 Nakudama's Electric Bloodline 先决：你必须是鸣玉族 虽然在当今时代并不常见，但一些鸣玉族人能够唤醒他们好战先祖所具有的沉睡技艺。你获得以下增益。 你获得闪电伤害的抗性。 你拥有一条带电的舌头，可用来进行徒手打击。这种攻击具有灵巧和触及特性，当你命中时，造成等同于1d6+你的力量或敏捷调整值的闪电伤害，而非普通徒手打击的钝击伤害。你的舌头伤害会随等级提升而增加：5级时变为1d8，11级时变为1d10，17级时变为1d12。 当你被一个生物擒抱时，你可以使用你的反应，迫使该生物进行一次体质豁免，DC为8+你的体质调整值+你的熟练加值。若豁免失败，该生物受到1d10闪电伤害，且擒抱效果终止。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "毒血鸣玉": {
+   "name": "毒血鸣玉",
+   "desc": "毒血鸣玉 Nakudama's Toxin Bloodline 先决：你必须是鸣玉族 虽然在当今时代并不常见，但一些鸣玉族人能够唤醒他们好战先祖所具有的沉睡技艺。你获得以下增益。 你获得毒素伤害的抗性。 你对抗中毒状态的豁免具有优势。 你能让你的双颊鼓胀起来，口中充满毒液。以一个动作，你可以快速连续喷射数团毒液，目标数量等同于你的熟练加值。每个目标必须在你30尺范围内，且必须进行一次体质豁免（DC为8+你的体质调整值+你的熟练加值）。豁免失败的目标将受到等同于1d8+你的熟练加值的毒素伤害，豁免成功则受到一半伤害。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "驿骑士": {
+   "name": "驿骑士",
+   "desc": "驿骑士 Postal Knight 先决：你必须是速递队的成员 作为速递队的一员，你经受过严格训练。你获得以下增益。 你的体质或感知增加1点，最高不超过20。 你获得运动和求生技能的熟练。 力竭状态不会让你的属性检定具有劣势。 药剂师 Potion Brewer 你对魔法药水和灵药的专业知识和理解让你能够根据自己的需求精确调配原料和配方。你获得以下增益。 在酿造药水时，你可以选择使用配方中第二高的原料属性，而不是最高的。 在酿造药水时，你可以掷d100骰。如果你掷出的数值等于或低于你的等级，你可以一次制作两瓶药水而不是一瓶。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "辉流鳞斩流精要": {
+   "name": "辉流鳞斩流精要",
+   "desc": "辉流鳞斩流精要 Tellu and Scale's Master Cut 先决：你必须在辉流鳞斩流剑术道场击败一位大师 经过山谷剑术道场大师的训练，你领悟了在战斗中快速转换不同战斗技巧的精髓。你获得以下增益。 单手持握One Handed。 当你单手持握一把多用武器时，你敏捷的动作和灵活的防御让你即使在敌人进攻时也能找回优势。在你下个回合开始前，当位于你触及范围内的生物发动的近战攻击未命中你时，你可以进行一次反击，使攻击者受到等同于你熟练加值两倍的武器伤害。 双手持握Two Handed。 当你双手持握一把多用武器时，你强有力的架势能让你抓住目标的破绽。每当你触及范围内的敌人对你发动近战武器攻击并未命中时，你可以使用你的反应尝试使攻击者失去平衡。目标必须通过一次敏捷豁免，DC为8+你的力量调整值+你的熟练加值，否则将陷入倒地状态。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "虎岚断岩流精要": {
+   "name": "虎岚断岩流精要",
+   "desc": "虎岚断岩流精要 Toraf and Bolder's Master Cut 先决：你必须在虎岚断岩流剑术道场击败一位大师 经过虎岚断岩流道场大师的训练，你已掌握了能够精确打击生物特定部位的高难度技巧。你获得以下增益。 面打Head Strike。 在你使用一件你熟练的武器发动近战攻击前，你可以选择让本次攻击承受-5的攻击检定减值。如果攻击命中，目标在其下一回合结束前进行的下一次攻击检定具有劣势。 胴打Torso Strike。 在你使用一件你熟练的武器发动近战攻击前，你可以选择让本次攻击承受-5的攻击检定减值。如果攻击命中，目标在你的下一回合开始前无法说话，此后该目标在接下来1分钟内免疫胴打的效果。 足打Leg Strike。 在你使用一件你熟练的武器发动近战攻击前，你可以选择让本次攻击承受-5的攻击检定减值。如果攻击命中，目标的速度降低10尺（最低降至10尺）。此效果持续到你的下一回合开始。 你每次攻击只能使用其中一种打击方式。 咏术师 Vocalist Arcanist 你独特的歌声织法技艺让你能够通过魔法歌声来强化法术。当你施展一个迫使目标进行豁免检定或需要你进行法术攻击检定的法术时，你可以选择通过歌声来强化该法术。你可以等到掷出d20后再决定是否使用此能力，但必须在DM宣布检定成功或失败之前做出决定。 当你这样做时，进行一次魅力（表演）检定。这次检定的DC等于10+法术环级。若成功，在该次法术攻击检定或该次施法的豁免DC计算时，你的熟练加值视为翻倍。 在下一个黎明到来前，你成功使用此能力三次后就无法再次使用。 沼地探索者 Wetland Explorer 你对栖息于世界各地的危险生物有着深入的了解，这些知识帮助你在战斗和追踪它们时都能得心应手。你获得以下增益。 选择两种生物类型。每当你在战斗开始时进行先攻检定，且战斗中存在一个或多个你所选择类型的敌对生物时，你可以将你的熟练加值加入先攻检定。如果某个生物通过魔法改变其形态以显现为另一种生物类型，你不会获得这个增益。 在涉及你所选择的一种或多种生物类型时，你的敏捷（隐匿）和感知（求生）检定获得+5加值。 对你所选择的生物类型的目标进行攻击检定时，你获得+2加值。",
+   "source": "第三方/胧忆岛/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "异变者": {
+   "name": "异变者",
+   "desc": "异变者 Altered 起源专长 你因魔法、科学或二者的不稳定融合而发生改变。你拥有下列选项中一种明显的身体强化（由你选择）。除非经过伪装，否则这种强化是显而易见的——例如缝合的痕迹、其他生物身体部位的移植，或植入物。 水栖适应Aquatic Adaptation。 你长有鳃或黏膜，使你能够在水下呼吸，并且你拥有蹼状肢体，使你获得等同于你速度的游泳速度。 天生护甲Natural Armor。 你拥有鳞片、甲壳或厚实的皮毛，使你的AC变为13 +你的敏捷或体质调整值（你在选择此专长时选择该属性）。 天生武器Natural Weapons。 你长有爪、獠牙、角或其他天生武器，你可以使用它们进行徒手打击，并在命中时造成1d8伤害。伤害类型为钝击、穿刺或挥砍，视具体形态而定。 夜视Night Vision。 你拥有60尺黑暗视觉。如果你已经拥有黑暗视觉，则其范围增加30尺。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "咒饰编织者": {
+   "name": "咒饰编织者",
+   "desc": "咒饰编织者 Charm Twister 起源专长 你深谙经由旧途教诲所传承下来的民间偏方与咒术，并能将它们凝聚于你编织的小巧柳编咒饰中。你获得以下增益。 古老祝福Old Blessing。 你可以通过该增益施展一次法术 祝福术Bless ，但仅限以携带你编织的柳编咒饰的生物为目标，并在完成一次长休前无法再次这么做。你也可以使用你拥有的任何法术位来施展该法术。你以此方式施展该法术的施法属性为智力、感知或魅力（在你选择此专长时选择）。 扭曲恶咒Twisted Hex。 作为一项动作，你可以将怨气编织进一枚柳编咒饰。选择一项属性。当另一个生物携带着该咒饰，或该咒饰位于该生物视为家的区域期间，其在使用所选属性进行的属性检定和攻击检定时，具有劣势。当该生物在这些掷骰中失败时，它可以进行一次魅力豁免，成功则咒饰被摧毁（DC=8+你的熟练加值+你为古老祝福选择的属性调整值）。你一次只能拥有一个扭曲恶咒咒饰。如果你制作一个新的，之前的咒饰将失去魔法。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "猩红祭仪师": {
+   "name": "猩红祭仪师",
+   "desc": "猩红祭仪师 Crimson Ritualist 起源专长 你对血之魔法与生命能量的研究已开花结果，让你获得以下增益。 血之鞭击Blood Lash。 你学会戏法 血蚀箭Blood Bolt ，并可选择智力、感知或魅力作为此戏法的施法属性（在你选择此专长时选择）。 瓶中之命Bottled Life。 当你完成一次长休后，你可以进行1 分钟的仪式将自己的一部分生命精华抽取出来，封存在一只容器中待使用。你需要消耗最多等于你熟练加值数量的生命骰，将自己的鲜血滴入装了水或其他液体的药水瓶中。 一个生物可以用附赠动作喝下该药水，掷出你所消耗的生命骰，恢复掷骰结果加该生物体质调整值的生命值。 直至你完成一次长休前，这瓶药水将一直保持有效。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "教团新进者": {
+   "name": "教团新进者",
+   "desc": "教团新进者 Cult Initiate 起源专长 你的教团向你传授了一些古怪的仪式，使你获得以下增益。 两道戏法Two Cantrips。 你可以从魔契师法术列表中任意选择两道戏法习得。智力、感知或魅力是你施展本专长法术时的施法属性（在你选择此专长时决定）。 一环法术Level 1 Spell。 你从魔契师法术列表中再选择一道一环法术，并始终准备了这道法术。你可以无需法术位地施展该法术一次，并在完成短休或长休后重获以此法施展该法术的能力。你也可以使用你拥有的任何法术位来施展该法术。 改变法术Spell Change。 每当你获得一级新等级，你都能将通过本专长习得的一道法术替换为魔契师法术列表中同环阶的另一道法术。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "恐惧秘言": {
+   "name": "恐惧秘言",
+   "desc": "恐惧秘言 Dread Speech 起源专长 你已能阐明禁忌真理的些许真言，它们既与创世之理共鸣，又将之撕裂，你获得以下增益。 怪异真言Eldritch Word。 你可以使用附赠动作说出一个魔法性的单词，迫使你周边60尺范围内的一个生物进行一次感知豁免（DC=8+你的熟练加值+你的智力、感知或魅力调整值；选择此专长时选择对应的属性）。若豁免失败，则目标陷入恐慌状态，直至你的下一回合开始。你可以安全使用此增益一次，并在完成一次短休或长休后重获以此方式安全使用该增益的能力。你也可以在休息前再次使用此增益，但你会因此受到1d6暗蚀伤害，此伤害无法以任何方式减少或避免。 命途崩坏Shred Fate。 你掌握的恐怖秘密足以撕碎敌人的命运。你始终准备着法术 灾祸术Bane ，并且你施展该法术的施法属性与怪异真言使用的属性相同。你可以无需材料成分或法术位地施展一次该法术，并在完成长休后重获以此法施展该法术的能力。你也可以使用你拥有的任何法术位来施展该法术。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "命运赌徒": {
+   "name": "命运赌徒",
+   "desc": "命运赌徒 Fate Gambler 起源专长 无论是在赌桌上赢得筹码，还是在生死决斗中逃出生天，这种胜利都令你斗志昂扬、精神振奋。你获得以下增益。 大把下注Bet Big。 如果你尚未拥有，则当你针对另一生物进行的属性检定取得成功，你将某个生物的生命值降至0，或某个生物失败于一次你迫使其进行的豁免检定时，你获得英雄激励。若该生物的CR为 0或没有CR（例如其他玩家角色），则无法通过上述方式获得英雄激励。 大获全胜Win Big。 你可以使用附赠动作消耗你的英雄激励，以获得等于你角色等级的临时生命值。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "幽灯灵媒": {
+   "name": "幽灯灵媒",
+   "desc": "幽灯灵媒 Ghostlight Medium 起源专长 你与幽灯特快列车之间建立了某种神秘的联系，这使你能够洞察灵魂的本质，并获得以下增益： 幽灵触碰Ghostly Touch。 当你对具有虚体移动特质的生物造成伤害时，你可以无视其伤害抗性（若有）。 灵识感应Spirit Sense。 你可以使用附赠动作感知你周边60尺范围内的任何亡灵，或与该区域重叠的以太位面中的任何生物。你会得知你所侦测到的任何生物的距离和方向（或以太位面生物在你所在位面上的相应位置）。一旦你使用此增益侦测到一个生物，则你必须完成一次短休或长休后才能再次使用。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "守墓人": {
+   "name": "守墓人",
+   "desc": "守墓人 Grave Keeper 起源专长 研习丧葬仪式，守护亡者安宁，你成为了连通生者与亡者世界的媒介。你获得以下增益。 引导神力Divine Channel。 你获得牧师职业引导神力特性的一次使用次数，并可借此创造驱散亡灵Turn Undead效应。如果你已经拥有引导神力，则将此次使用次数加入你所选择的任意一个职业的该特性中。此增益的豁免DC为8+你的感知调整值+熟练加值。 安灵仪式Last Rites。 你可花费10分钟为一具体型不超过中型的生物尸体进行仪式，消耗价值至少10GP的熏香、油膏、亚麻布或类似丧葬用品。经过处理的尸体无法转化为亡灵。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "猎兽猎手": {
+   "name": "猎兽猎手",
+   "desc": "猎兽猎手 Hunter of Hunters 起源专长 你擅长对付凶暴的猎食怪物，获得以下增益： 致命瞄准Dead Aim。 你可以使用附赠动作来审视某个生物，试图找到其弱点。在你的下一回合开始前，你对该目标造成的下一次伤害将无视它的抗性（若有）。 研习目标Studied Quarry。 你为回忆与某个生物的相关信息而进行的属性检定具有优势。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "记忆饥渴": {
+   "name": "记忆饥渴",
+   "desc": "记忆饥渴 Memory Starved 起源专长 你的思维极度渴望各种细节，竭力将外界所见所闻贮存至记忆深处，你获得以下增益。 细致入微Desperate Detail。 你在进行智力（调查）检定时具有优势。 钢铁心智Iron Mind。 你为对抗或终止魅惑状态，以及防止你的记忆被篡改或抹除而进行的豁免具有优势，",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "狂欢愚者": {
+   "name": "狂欢愚者",
+   "desc": "狂欢愚者 Reveling Fool 起源专长 你曾加入一支疯癫的狂欢者队伍，学会了以愚者姿态示人，引导那来自异界的欢笑与喧闹。你获得以下增益。 愚者假面Fool's Mask。 当你戴上欢快的面具，穿上愚者、弄臣或小丑的服饰时，你将获得一个隐藏你自身身份的新形象。扮作愚者时，你可以对身居高位或有权势之人进行轻微的冒犯而免受惩罚。 弄臣妙语Jester's Repartee。 你始终准备了法术 塔莎狂笑术Tasha's Gideous Laughter ，并且你施展该法术的施法属性为智力、感知或魅力（在你选择本专长时选择）。你可以无需材料成分或法术位地施展一次该法术，并在完成长休后重获以此法施展该法术的能力。你也可以使用你拥有的任何法术位来施展该法术。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "无影之形": {
+   "name": "无影之形",
+   "desc": "无影之形 Unreflected 起源专长 你的影子已与你分离，使得你无法投射出倒影或阴影，但也让你能轻易地逃脱注意。你获得以下增益。 高深莫测Inscrutable。 生物对你进行的感知（洞悉）检定都具有劣势。 大隐于世Unremarkable。 你失去了一部分“自我”，反而使你更容易隐入背景。当你身处至少有其他两名与你同生物类型的生物的群体中，且这些生物的体型与你相差不超过一个等级时，你可以对该群体外的生物执行躲藏动作，用魅力（欺瞒）检定替代敏捷（隐匿）检定，且无需躲在掩护后或处于重度遮蔽中。当你以此方式进行躲藏期间，如果你与至少两个这样的生物相距超过5尺，则你便会暴露。",
+   "source": "第三方/歪曲之月/第五章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "拒绝死亡": {
+   "name": "拒绝死亡",
+   "desc": "拒绝死亡 Death Defier 通用专长（先决：等级4+） 当死神的召唤来到你面前，你找到了一种方法拒绝它。你获得以下增益。 属性值提升Ability Score Increase。 你的体质提升1，至多提升至20。 紧握生命Cling to Life。 你在死亡豁免中加入你的体质调整值（至少 +1）。 坚毅活力Enduring Vitality。 如果某个效应会直接杀死你，且不触发死亡豁免，或在未造成伤害的情况下直接将你的生命值降至0，你的生命值改为降至等同于你等级的数值。你必须完成一次长休才能再次使用此增益。",
+   "source": "第三方/歪曲之月/第五章/通用专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "迅捷巫术": {
+   "name": "迅捷巫术",
+   "desc": "迅捷巫术 Swift Witchcraft 通用专长（先决：等级4+，施法或契约魔法特性） 你已在巫术仪式中精进技艺，能够在需要时迅速施展魔法。你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 高速咏唱Swift Invocation。 你可以使用动作来施展一个施法时间为1分钟的法术。使用此增益后，直至你完成一次长休为止都不能再次使用。",
+   "source": "第三方/歪曲之月/第五章/通用专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "飞翔专家": {
+   "name": "飞翔专家",
+   "desc": "飞翔专家 Aerial Expert 先决条件：具有 滑翔Glide 特质 经过多年的练习或自发的天赋，使你精通了如何滑翔。你获得下列增益： 当你进行跳高或跳远时，你不再需要进行至少10尺的助跑。此外，你可以选择使用你的力量属性或敏捷属性来决定跳跃的高度或距离，无论如何选择，你的最大跳跃距离提升至原本的两倍。 你可以在滑翔期间执行疾走动作，以此额外滑行等同于你滑翔速度的距离。 你可以在滑翔期间自由改变方向，且在滑翔结束前仅一次可以使自己向上抬升10尺高度。 强盗狡诈 Bandit Cunning 你曾经当过强盗，而这段经历赋予了你对“危险”的感知能力，让你得以快速判断出你对手的实力。你获得下列增益： 当你被要求进行一次豁免检定时，你可以用反应将你的智力调整值加入到你的豁免检定中。使用后你必须完成一次长休后才能再次使用此能力。 在战斗中，以一个动作，你可以仔细调查你在这场战斗中曾见过的任何一个生物，对其进行一次智力（调查）检定（DC为10+该生物的挑战等级），若检定成功，你将得知该生物能力的一项有用的情报，从以下选项中选择： 一种伤害的抗性（或免疫） 一项状态的免疫 该生物具有的一种可以造成伤害（或是减少伤害）的特殊能力 该生物具有的一个动作项（攻击、传奇动作、或反应） 该生物具有的一项特殊的感官",
+   "source": "第三方/谦卑林/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "空中堡垒": {
+   "name": "空中堡垒",
+   "desc": "空中堡垒 Heavy Glider 先决条件：具有滑翔特质 也许是生来就有的强大力量，也许是你不断艰苦训练的结果，你获得了超脱大众想象的滑翔能力。你获得下列增益： 只要你未处于重载，你就可以在持握重型武器且穿着重甲的情况下滑翔。 滑翔期间，你可以选择在一个由不超过大型的敌对生物所占据的空间中降落。此时，你需要与该生物进行一次力量检定对抗。如果此次对抗成功，你降落时的冲击力会将该生物推离10尺并击入倒地 。如果此次对抗失败，你会落在原定降落地点最近的一处未占据空间内。 （译注1：对，第一效果原文写的是 且and ，而非 或or。） （译注2：未写明对抗相同的情况下会发生什么...理论上是，继续滑翔？） 见机行窃 Opportunistic Thief 你已经参悟了偷窃技术的窍门，不论在战斗内外你都能抓住一切机会顺走点东西。你获得下列增益： 你的敏捷增加1，上限为20。 在战斗中，当一个生物向你发起的近战攻击检定失手时，你可以对其进行一次敏捷（巧手）检定（DC= 10+目标的敏捷调整值）。若检定成功，你可以偷取任何一件目标身上的一件物件（无法偷窃正被目标持握或装着的物件）。 在战斗之外，当你使用你的巧手技能成功偷取到一件物件时，你可以立即将它完美地隐藏在你的身上，或者将你拥有的另一件物件放回在偷取物品原先所处的位置上。 完美着陆 Perfect Landing 你这些年在高处的生活令你习得了如何更为优雅的落地。你获得下列增益： 你的敏捷增加1，上限为20。 坠落伤害的伤害骰从d6减少至d4。 在受到坠落伤害后，你不会因此进入倒地状态。 计算坠落伤害时，你可以无视至多30尺的坠落高度。 远古野兽之语 Speech of the Ancient Beasts 你与自然世界有一种特殊的联系。巨大的野兽将你视为他们的血亲，而你拥有与他们交流的语言——那是这个世界上最为强大，最为神秘的能力。你获得下列增益： 你的魅力增加1，上限为20。 任何体型为大型或更大的野兽对你的初始态度为友好——除非你攻击了它。 你对任何体型为大型或更大的野兽进行的魅力检定具有优势。 你可以说并理解巨鹰语、巨赤鹿语和巨猫头鹰语。此外，任何体型为大型或更大的野兽都可以听懂你的话语（无论它们是否能理解某种语言）。不过智力值为不超过4的野兽可能只能从你的话语中理解一些简单的意思。 林木之睿 Woodwise 你一生都生活在各种参天木林之间，你是寻路的专家，即使是最为险峻的地形你也有自信能够找到路。你获得下列增益： 你获得求生技能或自然技能的熟练。 你无视困难地形。 除非受魔法效应影响，否则你不会在自然环境中迷路。",
+   "source": "第三方/谦卑林/新专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "闪回记忆": {
+   "name": "闪回记忆",
+   "desc": "闪回记忆 Flash Recall 先决：需要准备法术的施法Spellcasting职业特性 你获得了在必要的时候立即瞬间唤起你未准备法术的记忆。 以一个附赠动作，你从你的法术书（若你是一位法师）或职业法术列表（若你不是法师）中准备一个1环及以上的法术。你必须具备相应环阶的法术位，而它会替换掉另一个环阶相同或更高的你已准备的法术。 一旦你使用该特性重新准备一个法术，直到你完成一次短休或长休为止，你无法再次使用。 规则提示：准备法术 闪回记忆专长只有那些需要准备法术的施法者才能使用。这包括了牧师、德鲁伊、圣武士之类的，每天从法术列表中选择法术来准备的职业，与法师，从法术书中准备法术的职业。像是吟游诗人和术士等职业，他们只需要知道法术而无需准备那些法术，因此他们无法受益于这一专长。 秘法汇流 Mystic Conflux 你对魔法在魔法物品之中的涨落有着直观的理解。这样的物品对你来说易于同调，你也更容易探出它们的秘密。你获得以下增益。 你可以同时同调四个魔法物品。 你能够无视材料成分且不消耗法术位的施展法术 鉴定术Identify 一次。你必须完成一次长休后才能以此施展它。 惊人恢复力 Remarkably Recovery 你的身体具有从可怕伤势中迅速恢复的能力，还易于接受治疗魔法。你获得以下增益。 你的体质提升1，上限为20。 当你处于濒死成功稳定伤势时，你立即恢复等于你体质调整值的生命值（至少1点）。 当你因法术、药水、或职业特性恢复生命值时（但不包括本专长），你额外恢复等同于你体质调整值的生命值（至少1点）。",
+   "source": "第三方/塔尔多雷/玩家选项/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "驱法者": {
+   "name": "驱法者",
+   "desc": "驱法者 Spelldriver 先决：11级以上；具有施法或契约魔法特性 通过专注、努力、与奉献，你成功的掌握了快速施法的技巧。 当你以附赠动作施展一个1环或更高环阶的法术时，你也能你的动作去施展另一个1环或更高环阶的法术。不过，若你在同一回合中尝试施展两个或以上的法术时，只有它们之中一个可以是3环以上的（包括3环）。 规则提示：复数法术 正常来讲，当你以附赠动作施展了一个法术，你就不能用你的动作去施展戏法以外的法术了（见 PHB 202页）。驱法者专长移除了这一限制，但在同一回合中使用多个法术所需的专注力依旧限制了它们的整体威力。 （译注：但反之，选用本专长后，即便你不使用附赠动作施法，施展三环或以上的法术的同回合中你无法使用 法术反制Counterspell 了。） 武器投掷大师 Thrown Arms Master 你磨炼了将武器投掷入战场的能力，甚至对不适合远程使用的武器也得心应手。你获得以下增益。 你的力量或敏捷提升1，上限为20。 对你来说，任何不具有投掷词条的简易或军用近战武器视作具有投掷词条。单手武器具有20尺常规射程和60尺最大射程，而双手武器具有15尺常规射程和30尺最大射程。 对你来说，原本已具有投掷词条的武器常规射程增加20尺，最大射程增加40尺。 当你使用一件轻型武器进行一次投掷武器攻击未命中时，武器会在回合结束时如同回旋镖一般飞回你的手中（除非有什么东西阻止它飞回来）。你可以以此抓住并收起尽可能多的武器。",
+   "source": "第三方/塔尔多雷/玩家选项/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "生命献祭": {
+   "name": "生命献祭",
+   "desc": "生命献祭 Vital Sacrifice 你学会了操血术的秘密，让你能够以自己的生命力为代价获得玄奥的力量。以一个附赠动作，你能够令自己承受1d6暗蚀伤害来换取鲜血恩惠。你的鲜血恩惠持续存在一个小时或直到被消耗。 你能消耗该鲜血恩惠以获取以下增益之一： 当你进行一次攻击检定时，骰一枚d6，并将骰值加到结果中。 当你的攻击或法术命中时，你能够额外造成2d6点暗蚀伤害。 当你迫使某生物进行力量、敏捷、或体质豁免时，投一枚d4，并从其豁免掷骰结果中减去骰值。 换取鲜血恩惠时，你所受到的暗蚀伤害无法以任何方式减免。",
+   "source": "第三方/塔尔多雷/玩家选项/专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "艾伦诺专精": {
+   "name": "艾伦诺专精",
+   "desc": "艾伦诺专精 Aereni Expertise 起源专长（先决：精灵） 在艾伦诺成长的你曾耗费数十年以培养你的某项技能。你获得以下增益。 技能熟练Skill Proficiency。 你选择获得一项技能的熟练。 专精Expertise。 你获得你在本专长选取的那个技能的专精。",
+   "source": "第三方/探秘艾伯伦/第六章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "水生适性": {
+   "name": "水生适性",
+   "desc": "水生适性 Aquatic Adaptation 起源专长 你能够在水中生活。如果你正在扮演马林提（鲨华鱼人）或瓦尔莱亚的精灵（海精灵），这可能是你角色的自然特征；这也可能源自奥术转变或是神圣祝福。无论这份赠礼起源如何，你获得以下增益。 水陆两栖Amphibious。 你能在水中呼吸。若你拥有有限两栖特质，你不再依赖水。 健将体格Athletic Build。 你获得运动技能的熟练。 自然泳者Natural Swimmer。 你具有等于你速度的游泳速度。",
+   "source": "第三方/探秘艾伯伦/第六章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "特使专员": {
+   "name": "特使专员",
+   "desc": "特使专员 Envoy Specialist 起源专长（先决：战俑） 你获得以下增益。 特使本领Envoy Competence。 你选择获得一种工具的熟练。 集成工具Integrated Tool。 选择一种你熟练的工具。你体内集成了该工具的工作模型，模型无法被移除。只要你有一只空闲的手，你就能使用该集成工具。 天赋才能Innate Talent。 当你使用集成工具进行属性检定时，你能投掷1d4并将骰值加入该次属性检定。",
+   "source": "第三方/探秘艾伯伦/第六章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "静默训练": {
+   "name": "静默训练",
+   "desc": "静默训练 Khesh'dar Training 起源专长 你获得以下增益。 迅捷无声Swift and Silent。 你获得隐匿技能的熟练。 暗影宗师Master of Shadows。 你获得隐匿技能的专精。 倏然不见Fade Away。 当你执行躲藏动作时，检定成功的DC降低至10。其他所有限制仍然有效。 译注：科什达尔Khesh'dar，地精语，意为静默。根据表格可知这是类地精的专属专长，但原文并无先决。",
+   "source": "第三方/探秘艾伯伦/第六章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "专用人格": {
+   "name": "专用人格",
+   "desc": "专用人格 Focused Personas 起源专长（先决：幻身灵） 你开发出能帮助你发挥天赋的人格面具。和你的DM合作描绘出两个特别的人格面具——具有不同的外貌和性格特征的身份。你获得以下增益。 行家面具Adept Persona。 选择一项工具并设定一个与之相关的人格面具。每当你使用变形特质变为该人格面具时，你获得你选择工具的熟练，且当你进行一次使用你选择工具的属性检定时，你能投掷1d4并将骰值加入该次属性检定。 专家面具Expert Persona。 选择一项技能并设定一个与之相关的不同的人格面具。每当你使用变形特质变为该人格面具时，你获得你选择技能的专精。 皮肤暗号Skin Cant。 你精通皮肤暗号，一种幻身灵旅者使用的语言。",
+   "source": "第三方/探秘艾伯伦/第六章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "念歌者": {
+   "name": "念歌者",
+   "desc": "念歌者 Thoughtsinger 起源专长（先决：离梦人） 你磨练出了强大的心灵感应能力，能与你的同伴们建立联系并引导他们形成紧密的整体。你获得以下增益。 心念之歌Thoughtsong。 当你使用心灵链接特质赋予一名生物与你心灵感应沟通的能力时，你与该个体建立起心灵上的联系。当你进行心灵感应沟通时，你能将信息传递给当前所有与你建立心灵联系的生物，你也可以允许这些生物互相以心灵感应交流。这些效应持续至心灵链接效应结束。 心灵援助Telepathic Aid。 若你能使用心灵链接特质与一名盟友进行心灵感应，即使你们的距离超过5尺，你也能执行协助动作帮助他攻击一名生物。",
+   "source": "第三方/探秘艾伯伦/第六章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "达坎之梦": {
+   "name": "达坎之梦",
+   "desc": "达坎之梦 Uul Dhakaan 起源专长（先决：达坎伽珥达，达坎哥林达或达坎刻释达） 你获得以下增益。 梦行者Dreamwalker。 你能在梦中完全保持清醒，当你醒来时你能清晰地记得梦中发生的一切。 梦之导师Mentor in the Uul。 达坎之梦中有一位精魂担任你的导师。与你的DM合作决定这位导师的身份，他可能是先祖或是陨落英雄的记忆，也可能是一名活着的梦境吟游诗人。每当你完成长休时，你都可能看到一个幻象；接受一项任务或是获得一条关于你当前处境的线索。 梦境护盾Shielded by Dreams。 你具有对心灵伤害的抗性。 译注：兀尔Uul，地精语，意为梦",
+   "source": "第三方/探秘艾伯伦/第六章/起源专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "艾伦诺半生者": {
+   "name": "艾伦诺半生者",
+   "desc": "艾伦诺半生者 Aereni Half-Life 通用专长（先决：4级+，精灵） 你已完成与伊瑞安和不朽议庭的绑定仪式。许多经历过此仪式的人外表会呈现出类似木乃伊的干枯状，你可以自行决定是否受到影响。无论外表如何，你获得以下增益。 属性值提升Ability Score Increase。 你的智力或感知提升1，至多提升至20。 不死Deathless。 你的死亡豁免具有优势。 抗性Resistance。 你对暗蚀伤害和光耀伤害具有抗性。 光耀集中Radiant Focus。 若你施展一道造成暗蚀伤害的法术，你能选择将伤害改为光耀伤害。",
+   "source": "第三方/探秘艾伯伦/第六章/通用专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "幻身易形": {
+   "name": "幻身易形",
+   "desc": "幻身易形 Changeling Metamorphosis 通用专长（先决：4级+，幻身灵） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质或敏捷提升1，至多提升至20。 厚实表皮Hardened Skin。 你的护甲等级获得+1加值。 易形Metamorphosis。 当你使用变形特质时，你能选择以下一个选项。你将获得所选选项的增益，持续至你再次使用变形特质。 水生适性Aquatic Adaptation。 你长出腮，手指间长出蹼。你可以在水中呼吸，且获得等于你速度的游泳速度。 黑暗视觉Darkvision。 你获得60尺的黑暗视觉。 天生武器Natural Weapons。 你长出利爪（挥砍）、獠牙（穿刺）、犄角（穿刺）或足蹄（钝击）。当你以新生部位使用徒手打击造成伤害时，其造成1d6括号内类型的伤害而非你徒手打击通常的伤害，且你可以选择使用你的敏捷调整值而非力量进行攻击检定和伤害掷骰。",
+   "source": "第三方/探秘艾伯伦/第六章/通用专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "金刚护甲": {
+   "name": "金刚护甲",
+   "desc": "金刚护甲 Juggernaut Plating 通用专长（先决：4级+，战俑） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或体质提升1，至多提升至20。 坚实护甲Resilient Armor。 只要你存活，你穿戴的护甲不会被任何非你自愿的效应选为目标（例如法术 灼热金属Heat Metal 或是 锈蚀怪Rust Monster 的触角）。 精金之躯Adamantine Body。 对你造成的任意重击命中变为普通命中。",
+   "source": "第三方/探秘艾伯伦/第六章/通用专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "梦灵链接": {
+   "name": "梦灵链接",
+   "desc": "梦灵链接 Quori Bond 通用专长（先决：4级+，离梦人） 你与梦灵精魂有着格外牢固的链接。你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 梦灵谱系Quori Lineage。 从梦灵谱系表选择一个谱系，你的选择会影响下文所述的技能和法术部分。 梦灵谱系Quori Lineages 梦灵 技能 法术 杜乌洛拉Du'ulora 威吓 疯狂冠冕Crown of Madness 哈沙拉克Hashalaq 游说 暗示术Suggestion 卡拉拉克Kalaraq 察觉 心灵尖刺Mind Spike 特苏科拉Tsucora 威吓 粉碎音波Shatter* *以此专长施展时，粉碎音波Shatter造成心灵伤害。 技能Skill。 当你使用你梦灵谱系的技能进行属性检定时，你能掷1d4并将结果加入属性检定中。 法术Spell。 你始终准备着你梦灵谱系的法术。你可以无需法术位地施展该法术一次，当你完成长休时，你重获以此法施展这些法术的能力。你也能够以你拥有的合适环阶的法术位施展该法术。你该法术的施法属性是你以此专长提升的属性。",
+   "source": "第三方/探秘艾伯伦/第六章/通用专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "进阶化形": {
+   "name": "进阶化形",
+   "desc": "进阶化形 Superior Shifting 通用专长（先决：4级+，化兽者） 你与体内的野兽建立了更强的联系，这让你的身体和化形能力均获得了强化。你获得以下增益。 属性值提升Ability Score Increase。 你的力量、敏捷或感知提升1，至多提升至20。 耐久化形Shifting Endurance。 你的回合开始时，你能使用你的化形特质（无需动作）。且该转变现在持续10分钟。 化形复苏Shifter Recovery。 你能额外使用一次你的化形特质。当你完成短休时，你重获一次已消耗的使用次数。当你完成长休时，你重获所有已消耗的使用次数。",
+   "source": "第三方/探秘艾伯伦/第六章/通用专长.htm",
+   "sourceKind": "thirdParty"
+  },
+  "警戒": {
+   "name": "警戒",
+   "desc": "警戒 Alert 起源专长 你获得以下增益。 先攻熟练Initiative Proficiency。 当你投掷先攻时，你可以将你的熟练加值加入结果。 先攻互换Initiative Swap。 当你掷完先攻，你可以立即与处于同一场战斗中的一名自愿的盟友交换先攻。如果你或那个盟友正处于 失能 状态，则不能进行交换。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "巧匠": {
+   "name": "巧匠",
+   "desc": "巧匠 Crafter 起源专长 你获得以下增益。 工具熟练Tool Proficiency。 你从快速制作表中自选三项不同的工匠工具并获得其熟练。 折扣Discount。 你在购买非魔法物品时具有20%的折扣。 快速制作Fast Crafting。 当你完成一次长休时，你可以制作一件快速制作栏中的装备。你必须拥有与该物品对应的工匠工具以及与这些工具对应的工具熟练才能尝试制作。造出的物品会持续存在到你下次完成长休，随后该物品解体坏损。 快速制作Fast Crafting 工匠工具 可制造的装备 木匠工具Carpenter's Tools 梯子、火把 皮匠工具Leatherworker's Tools 小箱子、卷轴匣、小包 石匠工具Mason's Tools 滑轮组 陶匠工具Potter's Tools 壶、油灯 铁匠工具Smith's Tools 滚珠、桶、铁蒺藜、爪钩、铁锅 修补工具Tinker's Tools 铃铛、铲子、火绒盒 织布工具Weaver's Tools 篮子、绳索、捕网、帐篷 木雕工具Woodcarver's Tools 短棒、巨棒、长棍",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "医疗师": {
+   "name": "医疗师",
+   "desc": "医疗师 Healer 起源专长 你获得以下增益。 战地医师Battle Medic。 如果你有医疗包，以一个 操作 动作，你可以消耗医疗包的一次使用次数来救治一个位于你5尺内的生物。该生物可以消耗一枚生命骰，然后由你来投掷它，令该生物恢复等于所掷出的点数+你的熟练加值点生命值。 治疗重掷Healing Rerolls。 当你掷骰以决定用法术或此专长的战地医师增益所恢复的生命值时，你可以重掷其中掷出1的骰子，但你必须使用重掷的结果。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "幸运": {
+   "name": "幸运",
+   "desc": "幸运 Lucky 起源专长 你获得以下增益。 幸运点Lucky Point。 你拥有一些幸运点，其数量等同于你的熟练加值。你可以将点数花在下列的增益上。你在完成一次长休时重新获得所有已消耗的幸运点。 优势Advantage。 当你为了一次 D20检定 而投掷d20时，你可以花费一个幸运点来给予这次检定 优势 。 劣势Disadvantage。 当一个生物为了一次对你发动的攻击检定而投掷d20时，你可以花费一个幸运点来为这次检定施加 劣势 。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "魔法学徒": {
+   "name": "魔法学徒",
+   "desc": "魔法学徒 Magic Initiate 起源专长 你获得以下增益。 两道戏法Two Cantrips。 从牧师法术列表、德鲁伊法术列表、法师法术列表中选择一个列表，你从该法术列表中选择两道戏法并习得之。再从智力、感知、魅力中选择一项属性，你从这个专长中习得的法术使用该属性作为施法属性。 一环法术Level 1 Spell。 你从前面所选的法术列表中再选择一道一环法术，并始终准备着这道法术。你可以无需法术位地施展该法术一次，并在完成长休时重获以此法施展该法术的能力。你也可以使用你拥有的任意法术位来施展该法术。 改变法术Spell Change。 每当你获得一级新等级，你都能将通过本专长习得的一道法术替换为同法术列表中同环阶的另一道法术。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "复选": {
+   "name": "复选",
+   "desc": "复选Repeatable。 你可多次选取本专长，但每次选取时都必须为能量掌控增益选择一个不同的伤害类型。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "音乐家": {
+   "name": "音乐家",
+   "desc": "音乐家 Musician 起源专长 你获得以下增益。 乐器训练Instrument Training。 你获得三种自选的乐器的熟练。 鼓舞之歌Encouraging Song。 作为你完成短休或长休的一部分，你可以用你熟练的乐器演奏一首歌曲，并令听到这首乐歌的盟友获得 英雄激励 。以这种方式所能影响的盟友数量最多等于你的熟练加值。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "熟习": {
+   "name": "熟习",
+   "desc": "熟习 Skilled 起源专长 你获得共计三项自选的技能和工具熟练。 复选Repeatable。 你可多次选择本专长。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "酒馆斗殴者": {
+   "name": "酒馆斗殴者",
+   "desc": "酒馆斗殴者 Tavern Brawler 起源专长 你获得以下增益。 强化徒手打击Enhanced Unarmed Strike。 当你使用徒手打击命中并造成伤害时，你可以造成1d4+你力量调整值的钝击伤害，而非徒手打击的原本伤害。 伤害重掷Damage Rerolls。 当你为徒手打击掷伤害骰时，你可以重掷其中掷出1的骰子，但你必须使用重掷的结果。 临时武器专家Improvised Weaponry。 你拥有临时武器的熟练。 推离Push。 在你的回合内，如果你用攻击动作中的一次徒手打击命中了一个生物，你可以在对目标造成伤害的同时将它推离5尺。你每回合只能使用这个增益一次。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "健壮": {
+   "name": "健壮",
+   "desc": "健壮 Tough 起源专长 获得该专长时，你的生命值上限提升你当前角色等级两倍的数值。并且在你随后每次升级时，你的生命值上限都会额外提升2。",
+   "source": "玩家手册2024/专长/起源专长.htm",
+   "sourceKind": "official"
+  },
+  "英勇战斗之恩惠": {
+   "name": "英勇战斗之恩惠",
+   "desc": "英勇战斗之恩惠 Boon of Combat Prowess 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 无双锁定Peerless Aim。 当你的一次攻击检定失手时，你可以将其改为命中。该增益一经使用，下个你的回合开始后你才能再次使用它。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "次元旅行之恩惠": {
+   "name": "次元旅行之恩惠",
+   "desc": "次元旅行之恩惠 Boon of Dimensional Travel 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 闪烁步Blink Steps。 当你执行 攻击 动作或 魔法 动作后，你可以立即传送至多30尺的距离到一处你可见的未占据空间内。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "能量抗性之恩惠": {
+   "name": "能量抗性之恩惠",
+   "desc": "能量抗性之恩惠 Boon of Energy Resistance 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 能量抗性Energy Resistances。 从下列伤害类型中选择两种：强酸、寒冷、火焰、闪电、暗蚀、毒素、心灵、光耀或雷鸣。你获得所选伤害类型的抗性。每当你完成 长休 时，你都可以改变此处选择的伤害类型。 能量重导Energy Redirection。 当你受到伤害时，若该伤害的伤害类型是你能量抗性增益中所选类型之一，你能够以反应来将一次相同类型的伤害传导给你60尺内的、可见的另一名生物（不能是对你而言处于 全身掩护 下的生物）。若你如此做，该生物必须通过一次敏捷豁免（DC等于8+你的体质调整值+你的熟练加值），否则其受到2d12+你的体质调整值伤害。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "扭曲命运之恩惠": {
+   "name": "扭曲命运之恩惠",
+   "desc": "扭曲命运之恩惠 Boon of Fate 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 时来运转Improve Fate。 当你或位于你60尺内的另一名生物的 D20检定 中成功时或失败时，你可以投掷2d4，并将掷骰结果作为加值或减值附加到d20掷骰中。该增益一经使用，直至你投掷先攻、完成 短休 或完成 长休 你都无法再次使用。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "超凡强韧之恩惠": {
+   "name": "超凡强韧之恩惠",
+   "desc": "超凡强韧之恩惠 Boon of Fortitude 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 身强体壮Fortified Health。 你的生命值上限增加40。此外，每当你恢复生命值时，你可以恢复等于你体质调整值的额外生命值。以此恢复了额外生命值后，直至下个你的回合开始后你才能再次受益于此效果。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "无敌攻势之恩惠": {
+   "name": "无敌攻势之恩惠",
+   "desc": "无敌攻势之恩惠 Boon of Irresistible Offense 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至30。 摧坚破甲Overcome Defenses。 你造成的钝击、挥砍与穿刺伤害始终无视抗性。 无阻打击Overwhelming Strike。 当你为一次攻击检定投掷的d20骰出了20时，你可以对目标造成额外伤害，你造成的额外伤害等于你以此专长提升的属性的属性值，伤害类型与这次攻击的伤害类型相同。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "强力恢复之恩惠": {
+   "name": "强力恢复之恩惠",
+   "desc": "强力恢复之恩惠 Boon of Recovery 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 背水一战Last Stand。 当你的生命值将要降至0时，你可以改为降至1并恢复等于你生命值上限一半的生命值。该增益一经使用，直到完成 长休 你都无法再次被使用。 重获生机Recover Vitality。 你获得一个有着十枚d10的治疗池。以一个附赠动作，你可以消耗治疗池中任意枚骰子来恢复你的生命值。投掷全部你消耗的骰子，将掷骰结果相加，即是你以此恢复的生命值。当你完成 长休 时，你的治疗池重获所有被消耗的骰子。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "博学多才之恩惠": {
+   "name": "博学多才之恩惠",
+   "desc": "博学多才之恩惠 Boon of Skill 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 全能专家All-Around Adept。 你获得所有技能的熟练。 专精Expertise。 选择一项你不具有 专精 的技能，你获得该技能的专精。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "神行无拘之恩惠": {
+   "name": "神行无拘之恩惠",
+   "desc": "神行无拘之恩惠 Boon of Speed 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 逃脱大师Escape Artist。 你能够以一个附赠动作执行 撤离 动作，并结束你陷入的 受擒 状态。 风驰电掣Quickness。 你的速度提升30尺。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "法术溯回之恩惠": {
+   "name": "法术溯回之恩惠",
+   "desc": "法术溯回之恩惠 Boon of Spell Recall 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至30。 免费施法Free Casting。 每当你使用一环到四环的法术位施展法术时，投掷1d4。若掷骰结果与你消耗的法术位环阶一致，则该法术位不会被消耗。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "暗夜精魂之恩惠": {
+   "name": "暗夜精魂之恩惠",
+   "desc": "暗夜精魂之恩惠 Boon of the Night Spirit 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 融身入影Merge with Shadows 。身处 微光光照 或 黑暗 期间，你可以用附赠动作令你获得 隐形 状态。 隐形 状态将在你执行动作/附赠动作/反应后立即结束。 幽影化身Shadowy Form。 身处微光光照或黑暗期间，你具有除心灵和光耀伤害外所有伤害的抗性。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "真实视觉之恩惠": {
+   "name": "真实视觉之恩惠",
+   "desc": "真实视觉之恩惠 Boon of Truesight 传奇恩惠专长（先决：等级19+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至30。 真实视觉Truesight。 你获得60尺 真实视觉 。",
+   "source": "玩家手册2024/专长/传奇恩惠专长.htm",
+   "sourceKind": "official"
+  },
+  "盲斗": {
+   "name": "盲斗",
+   "desc": "盲斗 Blind Fighting 战斗风格专长（先决：战斗风格特性） 你具有10尺 盲视 。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "防御": {
+   "name": "防御",
+   "desc": "防御 Defense 战斗风格专长（先决：战斗风格特性） 着装轻甲、中甲或重甲期间，你的护甲等级获得+1加值。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "巨武器战斗": {
+   "name": "巨武器战斗",
+   "desc": "巨武器战斗 Great Weapon Fighting 战斗风格专长（先决：战斗风格特性） 当你用双手持握的一把近战武器发动了一次攻击并为其进行伤害掷骰时，若该武器具有 双手 或 多用 词条，那么你便可以将伤害骰投出的1和2都视为3。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "拦截": {
+   "name": "拦截",
+   "desc": "拦截 Interception 战斗风格专长（先决：战斗风格特性） 当一名你可见的生物以攻击检定命中你5尺内的另一名生物*，你能够以反应减少对目标造成的伤害，使该伤害降低1d10+你的熟练加值。你必须持握着一面盾牌或者一把简易/军用武器才能使用这个反应。 译注：此处原文为a creature you can see hits another creature within 5 feet of you，another具体指的是对攻击生物而言还是对你而言在外网亦有所争论，请自行决断。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "守护": {
+   "name": "守护",
+   "desc": "守护 Protection 战斗风格专长（先决：战斗风格特性） 当一名你可见的生物对一个你5尺内的除你以外的目标发动攻击时，若你正持握着一面盾牌，你能够以反应将盾牌挡在中间。你对触发攻击检定施加 劣势 ，并且只要你还位于目标5尺内，其他所有对该目标进行的攻击检定也具有劣势，持续至你的下回合开始。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "投掷武器战斗": {
+   "name": "投掷武器战斗",
+   "desc": "投掷武器战斗 Thrown Weapon Fighting 战斗风格专长（先决：战斗风格特性） 当你使用具有 投掷 词条的武器进行远程攻击检定并命中时，你在该次伤害掷骰中获得+2加值。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "双武器战斗": {
+   "name": "双武器战斗",
+   "desc": "双武器战斗 Two-Weapon Fighting 战斗风格专长（先决：战斗风格特性） 当你因使用具有 轻型 词条的武器而得以发动额外的攻击时，若此次额外的攻击的伤害本来无法加入你的属性调整值，你可以加入你的属性调整值。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "徒手战斗": {
+   "name": "徒手战斗",
+   "desc": "徒手战斗 Unarmed Fighting 战斗风格专长（先决：战斗风格特性） 当你使用 徒手打击 命中并造成了伤害时，你可以改为造成1d6+你的力量调整值点钝击伤害，而非原本的徒手打击伤害。如果你进行攻击检定时并没有持握任何武器与盾牌，则上述伤害中的d6将变为d8。 每当你的回合开始时，你还可以对一个因你 受擒 的生物造成1d4点钝击伤害。",
+   "source": "玩家手册2024/专长/战斗风格专长.htm",
+   "sourceKind": "official"
+  },
+  "专长由以下几种部分组成，这些部分列于专长名称之后": {
+   "name": "专长由以下几种部分组成，这些部分列于专长名称之后",
+   "desc": "专长由以下几种部分组成，这些部分列于专长名称之后： 分类Category。 每个专长都有自己的分类，并会在专长描述中标明它属于哪一种。当你被要求从某个特定分类中选择专长，例如从起源分类中进行选择时，你所选的专长分类必须有写在专长的名字正下方。如果你被要求选择专长而不限定分类时，你可以从任何分类中选择专长。 先决Prerequisite。 为了选择*某个专长，你必须满足其描述部分的先决条件，除非某个特性允许你无视先决选择该专长。如果一个专长的先决包括职业，那你必须至少有一级对应的职业等级才能选择这个专长。 译注：此处的选择原文为take a feat，外网玩家表示这个句子包含了维持专长的引申义，仅供参考 增益Benefit。 专长的具体效益会在先决描述下详细列出。如果你获得了一个专长，你就会获得其增益。 复选Repeatable。 每个专长都只能选择一次，除非在描述部分的“复选”部分明确允许。",
+   "source": "玩家手册2024/专长/专长概述.htm",
+   "sourceKind": "official"
+  },
+  "属性值提升": {
+   "name": "属性值提升",
+   "desc": "属性值提升 Ability Score Improvement 通用专长（先决：等级4+） 你选择的一项属性提升2，或者你选择的两项属性各提升1。你无法依靠本专长令某个属性值超出20。 复选Repeatable。 你可多次选择本专长。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "演员": {
+   "name": "演员",
+   "desc": "演员 Actor 通用专长（先决：等级4+，魅力13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的魅力提升1，至多提升至20。 伪装Impersonation。 伪装成某个虚构或真实的个体的情况下，你为使别人相信你就是那个个体所做的魅力（欺瞒或表演）检定具有 优势 。 拟声Mimicry。 你可以模仿出另一个生物的语音，甚至包括它的说话方式。听见你的拟声的生物必须通过一次感知（洞悉）检定才能发觉这种拟声是由他人伪造的（DC等于8+你的魅力调整值+你的熟练加值）。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "运动精英": {
+   "name": "运动精英",
+   "desc": "运动精英 Athlete 通用专长（先决：等级4+，力量或敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 攀爬速度Climb Speed。 你获得等同于你速度的攀爬速度。 鲤鱼打挺Hop Up。 处于 倒地 状态的情况下，你可以仅消耗5尺移动力来站起来。 跳跃Jumping。 你只需移动5尺距离便能进行一次助跑跳远或一次助跑跳高。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "冲锋手": {
+   "name": "冲锋手",
+   "desc": "冲锋手 Charger 通用专长（先决：等级4+，力量或敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 进阶疾走Improved Dash。 当你执行疾走动作时，对该动作而言，你的速度提升了10尺。 冲锋攻击Charge Attack。 使用攻击动作中的近战攻击检定命中目标时，若你在此次攻击前立即向着目标直线移动了10+尺，你可以为这次攻击增添以下其中一个效应：此次攻击的伤害掷骰获得1d8的加值；将目标推离10尺，前提是目标体型不比你大超过一级。你只能在每个你自己的回合使用一次此增益。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "大厨": {
+   "name": "大厨",
+   "desc": "大厨 Chef 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质或感知提升1，至多提升至20。 厨师工具Cook's Utensils。 如果你没有厨师工具的熟练，你获得之。 大补食膳Replenishing Meal。 作为短休的一部分，只要你手上有食材和厨师工具，你就可以烹饪一顿特别的美食。你可以为数个生物准备足够的此类食物，其数量等于4+你的熟练加值。在这一次短休结束时，任何吃了这些食物且花费了生命骰来恢复生命值的生物都能额外恢复1d8的生命值。 应急零嘴Bolstering Treats。 如果你手上有食材和厨师工具，你可以花费一小时的时间，或在完成一次长休时，烹饪出一定份数的零嘴，其数量等于你熟练加值。这些特别的小零嘴在做好后能保存八小时。一个生物可以使用一个附赠动作来吃掉其中一份零嘴，并获得等同于你熟练加值的临时生命值。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "强弩专家": {
+   "name": "强弩专家",
+   "desc": "强弩专家 Crossbow Expert 通用专长（先决：等级4+，敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷提升1，至多提升至20。 无视装填Ignore Loading。 你无视手弩、重弩和轻弩的装填词条（在这个专长里统称弩）。如果你正手持着一把弩，你即使没有空手也能够为它装填一发弹药。 抵近射击Firing in Melee。 你用弩进行的攻击检定不会因你在敌人的5尺内而具有劣势。 双持射击Dual Wielding。 当你发动由轻型词条所提供的额外的攻击时，如果这次追加攻击是由一把具有轻型词条的弩所发动的，且你原本无法在伤害中加入属性调整值，你就可以改为可以将你的属性调整值加入本次伤害中。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "粉碎者": {
+   "name": "粉碎者",
+   "desc": "粉碎者 Crusher 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或体质提升1，至多提升至20。 推动Push。 每回合一次，当你以造成钝击伤害的一次攻击命中了一个生物时，只要这个生物的体型不比你大超过一级，你就能将它移动5尺至一处未占据空间中。 强化重击Enhanced Critical。 当你掷出一次重击命中一名生物并对其造成钝击伤害后，直到你的下个回合开始前，任何以该生物为目标的攻击检定都会具有 优势 。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "防御式决斗": {
+   "name": "防御式决斗",
+   "desc": "防御式决斗 Defensive Duelist 通用专长（先决：等级4+，敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷提升1，至多提升至20。 招架Parry。 如果其他生物的近战攻击命中你时你正握着一把灵巧武器，则你可以执行反应来将你的熟练加值加入到你的护甲等级中，此举可能导致本次攻击变为未命中。那之后，直到你的下一回合开始前，你的AC在面对近战攻击时都将具有相同的加值。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "双持客": {
+   "name": "双持客",
+   "desc": "双持客 Dual Wielder 通用专长（先决：等级4+，力量或敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 强化双持Enhanced Dual Wielding。 当你在自己的回合中执行了攻击动作，并使用具有轻型词条的武器发动了一次攻击后，你可以在同一回合中，以一个附赠动作发动一次额外的攻击*。这次额外的攻击必须由另一把不具有双手词条的近战武器发动。额外的攻击的伤害无法加入你的属性调整值（除非该调整值为负数）。 *译注：因为WSZ的文字游戏，此效果难以被准确翻译，简而言之：此效果的攻击属于“因使用具有轻型词条的武器而发动的额外的攻击”；但不属于“由轻型词条提供的额外的攻击” 快速拔刀Quick Draw。 拔出或入鞘武器时，你可以同时拔出或入鞘两把不具有双手词条的武器，而非通常情况下的一把。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "耐性": {
+   "name": "耐性",
+   "desc": "耐性 Durable 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质提升1，至多提升至20。 悍不畏死Defy Death。 你进行的死亡豁免具有 优势 。 高速恢复Speedy Recovery。 以一个附赠动作，你可以消耗并投掷一枚生命骰，来恢复与投掷结果相等的生命值。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "元素掌控": {
+   "name": "元素掌控",
+   "desc": "元素掌控 Elemental Adept 通用专长（先决：等级4+，施法或契约魔法特性） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1点，至多提升至20。 能量掌控Energy Mastery。 选择以下伤害类型之一：强酸、寒冷、火焰、闪电、雷鸣。你施展的法术无视所选伤害类型的抗性。此外，当你为你施展的造成该类型伤害的法术投掷伤害时，你可以将伤害骰中骰出的1都视为2。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "擒抱者": {
+   "name": "擒抱者",
+   "desc": "擒抱者 Grappler 通用专长（先决：等级4+，力量或敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 连擒带打Punch and Grab。 你的回合中，当你用攻击动作中的一次徒手打击命中了一个生物，你可以同时使用擒抱和造成伤害两个选项。你每回合只能使用这个增益一次。 优势攻击Attack Advantage。 你攻击 受擒 于你的生物时进行的攻击检定具有 优势 。 高速拖行Fast Wrestler。 你无需为移动 受擒 于你的生物而花费额外的移动力，前提是这名生物的体型与你相同或更小。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "巨武器大师": {
+   "name": "巨武器大师",
+   "desc": "巨武器大师 Great Weapon Master 通用专长（先决：等级4+，力量13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量提升1，至多提升至20。 重武器掌握Heavy Weapon Master。 在你的回合内，你的 攻击 动作中，当你用具有重型词条的武器命中了一名生物时，你可以让这把武器对目标额外造成一定的伤害，额外伤害等同于你的熟练加值。 顺势斩Hew。 当你使用近战武器掷出一次重击时，或当你用其将一个生物的生命值降低至0时，你可以立即使用你的附赠动作用同一把武器发动一次攻击。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "重甲运用": {
+   "name": "重甲运用",
+   "desc": "重甲运用 Heavily Armored 通用专长（先决：等级4+，中甲受训） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质或力量提升1，至多提升至20。 护甲受训Armor Training。 你获得重甲受训。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "重甲大师": {
+   "name": "重甲大师",
+   "desc": "重甲大师 Heavy Armor Master 通用专长（先决：等级4+，重甲受训） 你获得以下增益。 属性值提升Ability Score Increase。 你的体质或力量提升1，至多提升至20。 伤害减免Damage Reduction。 穿着重甲期间，当你被一次攻击命中时，该次攻击对你造成的任何钝击伤害、穿刺伤害与挥砍伤害均减去你的熟练加值。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "领袖之证": {
+   "name": "领袖之证",
+   "desc": "领袖之证 Inspiring Leader 通用专长（先决：等级4+，感知或魅力13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的感知或魅力提升1，至多提升至20。 激励演出Bolstering Performance。 每当你的短休/长休结束时，你可以做一场激励人心的表演：一次演讲、一首歌曲或一支舞蹈。当你这么做时，选择至多6名在周围30尺内观看你表演的盟友（亦可包括你自己）。每个被选中的生物都可以获得一定临时生命值，其数值等于你的角色等级+你用本专长提升的属性的调整值。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "敏锐心灵": {
+   "name": "敏锐心灵",
+   "desc": "敏锐心灵 Keen Mind 通用专长（先决：等级4+，智力13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力提升1，至多提升至20。 轶闻知识Lore Knowledge。 选择下列技能之一：奥秘、历史、调查、自然、宗教。如果你不具有所选技能的熟练，则你获得其熟练；如果你已有熟练，则你获得其 专精 。 快速研究Quick Study。 你可以用附赠动作执行 研究 动作。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "轻甲运用": {
+   "name": "轻甲运用",
+   "desc": "轻甲运用 Lightly Armored 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1点，至多提升至20。 护甲受训Armor Training。 你获得轻甲和盾牌受训。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "巫师杀手": {
+   "name": "巫师杀手",
+   "desc": "巫师杀手 Mage Slayer 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 专注中断手Concentration Breaker。 当你对一名正处于 专注 中的生物造成伤害时，该生物为维持本次 专注 所做的豁免检定时具有劣势。 审慎护心Guarded Mind。 当你的智力、感知或魅力豁免失败时，你可以将其改为成功。此增益一经使用，直到完成短休或长休前你都无法再次使用。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "军用武器训练": {
+   "name": "军用武器训练",
+   "desc": "军用武器训练 Martial Weapon Training 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 武器熟练Weapon Proficiency。 你获得 军用武器 熟练。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "中甲大师": {
+   "name": "中甲大师",
+   "desc": "中甲大师 Medium Armor Master 通用专长（先决：等级4+，中甲受训） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 灵敏着装Dexterous Wearer。 穿着中甲期间，若你的敏捷在16或更高，你可以在AC中加入3点敏捷调整值，而非原本的2点。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "中甲运用": {
+   "name": "中甲运用",
+   "desc": "中甲运用 Moderately Armored 通用专长（先决：等级4+，轻甲受训） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 护甲受训Armor Training。 你获得中甲受训。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "骑乘战斗": {
+   "name": "骑乘战斗",
+   "desc": "骑乘战斗 Mounted Combatant 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量、敏捷或感知提升1，至多提升至20。 骑乘突击Mounted Strike。 骑乘期间，你对位于你坐骑5尺内的、体型比你坐骑至少小一级的、且未被骑乘的生物所进行的攻击检定具有 优势 。 侧跃躲闪Leap Aside。 当你的坐骑受某效应影响而需要进行敏捷豁免时，如果此次豁免成功只受到一半伤害，那么它豁免成功时不受伤害，豁免失败只承受一半伤害。为享受此增益，你必须骑乘着你的坐骑，且你与坐骑均不能处于 失能 状态。 我身作盾Veer。 当你骑乘时，只要你不处于 失能 状态，你就可以强制让命中了你的坐骑的攻击改为命中你自己。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "观察力": {
+   "name": "观察力",
+   "desc": "观察力 Observant 通用专长（先决：等级4+，智力或感知13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力或感知提升1，至多提升至20。 敏锐观察Keen Observer。 选择以下技能之一：洞悉、调查或察觉。如果你不具有所选技能的熟练，则你获得其熟练；如果你已有熟练，则你获得其专精。 快速搜索Quick Search。 你可以用附赠动作进行 搜索 动作。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "穿刺者": {
+   "name": "穿刺者",
+   "desc": "穿刺者 Piercer 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 穿透伤Puncture。 每回合一次，当你用造成穿刺伤害的攻击命中一个生物时，你可以重骰这次攻击伤害的其中一枚伤害骰。但你必须采用新的掷骰结果。 强化重击Enhanced Critical。 当你用造成穿刺伤害的攻击命中一个生物并且掷出重击时，你可以在计算额外的穿刺伤害时多投一个伤害骰。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "毒师": {
+   "name": "毒师",
+   "desc": "毒师 Poisoner 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷或智力提升1，至多提升至20。 强效毒素Potent Poison。 你造成毒素伤害的伤害掷骰无视对方的毒素伤害抗性。 酿毒Brew Poison。 你获得毒药工具的熟练。你可以花费一小时的时间与价值50GP的材料，来使用毒药工具制造一定数量的毒药，其剂数等同于你的熟练加值。你能够以一个附赠动作为一把武器或一枚弹药涂上一剂毒药。涂用后，此种毒药的毒性能维持一分钟，毒性也会在你用此涂毒物品造成伤害后会被消耗。当一名生物受到来自此种涂毒物品的伤害时，该生物必须成功通过一次体质豁免（DC等于8+你以本专长提升的属性的调整值+你的熟练加值），否则将受到2d8毒素伤害并陷入 中毒 状态，持续至你的下回合结束。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "长柄武器大师": {
+   "name": "长柄武器大师",
+   "desc": "长柄武器大师 Polearm Master 通用专长（先决：等级4+，力量或敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷或力量提升1，至多提升至20。 长柄打击Pole Strike。 在你执行 攻击 动作并使用长棍、矛或同时具有重型词条与触及词条的武器攻击后，你可以立刻用附赠动作，使用该武器的另一端发动一次近战攻击。在这次攻击中，该武器的伤害骰改为d4，其伤害类型改为钝击伤害。 反应打击Reactive Strike。 在你持握长棍、矛或同时具有重型词条与触及词条的武器期间，生物进入你触及范围时，你能够以反应，使用该武器对该生物发动一次近战攻击。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "强健身心": {
+   "name": "强健身心",
+   "desc": "强健身心 Resilient 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 选择你不具有其豁免熟练的一项属性，该属性提升1，至多提升至20。 豁免熟练Saving Throw Proficiency。 你获得所选属性的豁免熟练。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "仪式施法者": {
+   "name": "仪式施法者",
+   "desc": "仪式施法者 Ritual Caster 通用专长（先决：等级4+，智力、感知或魅力13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 仪式魔法Ritual Spells。 你选择数道具有仪式标签的一环法术，其具体数量等于你的熟练加值。你始终准备着这几道法术，并可以用你拥有的任何法术位去施展它们。施展它们的施法属性为你用此专长提升的属性。此后，每当你的熟练加值提升时，你可以通过这个特性多获得一道始终准备的、带有仪式标签的一环法术。 快速仪式Quick Ritual。 你可以用通常的施法时间来施展一道仪式法术，而不需要仪式的延长施法时间。这么做不会花费你的法术位。一旦你通过这种方式施展了一道法术，直到完成一次长休前你都不能再使用这个增益。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "哨兵": {
+   "name": "哨兵",
+   "desc": "哨兵 Sentinel 通用专长（先决：等级4+，力量或敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 守护者Guardian。 当位于你5尺范围内的生物执行 撤离 动作后，或当它的攻击命中了除你以外的目标后，你可以立刻对该生物进行一次 借机攻击 。 阻拦Halt。 你的 借机攻击 命中一名生物时，该生物的速度在当前回合剩余时间内变为0。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "神射手": {
+   "name": "神射手",
+   "desc": "神射手 Sharpshooter 通用专长（先决：等级4+，敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷提升1，至多提升至20。 绕过掩体Bypass Cover。 你使用武器发动的远程攻击无视半身掩护和四分之三掩护。 抵近射击Firing in Melee。 位于一个敌人5尺范围内的情况下，你使用远程武器发动的攻击检定不会因此具有 劣势 。 百步穿杨Long Shots。 使用远程武器攻击超出常规射程的目标时，你的攻击检定不会因此具有 劣势 。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "盾牌大师": {
+   "name": "盾牌大师",
+   "desc": "盾牌大师 Shield Master 通用专长（先决：等级4+，盾牌受训） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量提升1，至多提升至20。 盾击Shield Bash。 当你通过 攻击 动作中的，由近战武器发动的一次攻击命中了位于你5尺内的生物时，如果你装备着盾牌*，你就可以立即使用它来击打目标，迫使目标进行一次力量豁免检定（DC等于8+你的力量调整值+你的熟练加值）。如果豁免失败，目标将被你推离5尺远或因此陷入 倒地 状态（由你选择）。在每个你的回合中，此增益只能被使用一次。 *译注：PHB的所有专长中，只有这一条增益要求“装备着盾牌”，其余均为“持握着盾牌” 介入盾牌Interpose Shield。 当你受某效应影响而需要进行敏捷豁免来“只受一半伤害”时，若你豁免检定成功并正持握着一面盾牌，你就可以用反应来使你自己免受此次伤害。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "技艺专家": {
+   "name": "技艺专家",
+   "desc": "技艺专家 Skill Expert 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你选择的一项属性提升1，至多提升至20。 技能熟练Skill Proficiency。 你自选一个技能并获得其熟练。 专精Expertise。 你选择一个拥有其熟练但不具备相应 专精 的技能，并获得其 专精 。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "隐伏者": {
+   "name": "隐伏者",
+   "desc": "隐伏者 Skulker 通用专长（先决：等级4+，敏捷13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷提升1，至多提升至20。 盲视Blindsight。 你获得10尺距离的盲视。 战争迷雾Fog of War。 你善于利用战斗中的混乱。你在战斗中通过执行 躲藏 动作时所做的任何敏捷（隐匿）检定都具有优势。 狙击手Sniper。 如果你在躲藏中进行了攻击检定，但该次攻击未命中时，这次攻击将不会暴露你的位置。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "劈砍者": {
+   "name": "劈砍者",
+   "desc": "劈砍者 Slasher 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 伤筋Hamstring。 每回合一次，当你用造成挥砍伤害的攻击命中一个生物时，你可以使其速度降低10尺，持续至你的下回合开始。 强化重击Enhanced Critical。 当你掷出重击并对一个生物造成挥砍伤害时，该生物进行的所有攻击检定都将具有 劣势 ，持续至你的下回合开始为止。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "飙速跑者": {
+   "name": "飙速跑者",
+   "desc": "飙速跑者 Speedy 通用专长（先决：等级4+，敏捷或体质13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的敏捷或体质提升1，至多提升至20。 速度提升Speed Increase。 你的速度提升10尺。 险地疾行Dash Over Difficult Terrain。 当你在自己的回合执行 疾走 动作时，在这个回合余下的时间里， 困难地形 不再会额外消耗你的移动力。 灵活移动Agile Movement。 对你发动的 借机攻击 都具有 劣势 。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "法术射手": {
+   "name": "法术射手",
+   "desc": "法术射手 Spell Sniper 通用专长（先决：等级4+，施法或契约魔法特性） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 绕过掩体Bypass Cover。 你为法术进行的攻击检定无视 半身掩护 和 四分之三掩护 。 抵近施法Casting in Melee。 位于一个敌人5尺范围内的情况下，你用法术进行的攻击检定不会因此具有 劣势 。 法术增距Increased Range。 当你施展一道具有至少10尺施法距离，且需要你进行一次攻击检定的法术时，这道法术的施法距离增加60尺。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "心灵感应": {
+   "name": "心灵感应",
+   "desc": "心灵感应 Telepathic 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 传心呢喃Telepathic Utterance。 你可以和位于你60尺内任何你可见的生物用心灵感应进行交流。你的传心呢喃以一种你已知的语言进行，且该生物必须懂得这门语言才能理解你。你的主动沟通并不会给予该生物以心灵感应的形式回复你的能力。 侦测思想Detect Thoughts。 你始终准备着法术 侦测思想Detect Thoughts 。你可以无需法术位且无需法术成分地施展该法术，你必须完成长休后才能再次以此法施展该法术。你也能够以你拥有的合适环阶的法术位施展该法术。该法术的施法属性是你以此专长提升的属性。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "战地施法者": {
+   "name": "战地施法者",
+   "desc": "战地施法者 War Caster 通用专长（先决：等级4+，施法或契约魔法特性） 你获得以下增益。 属性值提升Ability Score Increase。 你的智力、感知或魅力提升1，至多提升至20。 专注Concentration。 你为维持 专注 的所做的体质豁免具有 优势 。 响应法术Reactive Spell。 当一个生物因离开你的触及范围而引发你的 借机攻击 时，你能使用你的反应来对这个生物施展一道法术，而非发动一次借机攻击。这道法术的施法时间必须为动作，且必须将该生物选为法术的唯一目标。 姿势成分Somatic Components。 即使你的一只手或双手上都有武器/盾牌，你也能满足法术的姿势成分要求。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "武器大师": {
+   "name": "武器大师",
+   "desc": "武器大师 Weapon Master 通用专长（先决：等级4+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量或敏捷提升1，至多提升至20。 精通词条Mastery Property。 你对武器的训练让你能够使用你自选的一种简单或军用武器的精通词条，前提是你熟练于该种武器。每当你完成一次长休，你能将所选的武器种类替换为你熟练的另一种武器。",
+   "source": "玩家手册2024/专长/通用专长.htm",
+   "sourceKind": "official"
+  },
+  "种族专长": {
+   "name": "种族专长",
+   "desc": "种族专长 Racial Feats 在某个职业上的等级提升是角色在战役中成长的主要方式。一些DM也允许玩家使用专长来个性化角色。专长是玩家手册第六章“自定义选项”中提及的一条可选规则。DM可以决定他们是否可用，或决定哪些可用哪些不可用。 这个章节介绍一组可用来深入探索你角色的种族的专长。就像种族专长表里概括的那样，这些专长分别关联着一个《玩家手册》里的种族。一个种族专长表现的要么是与你种族文化的深刻联系，要么是令你与种族血脉的一个方向更靠拢的生理变化。 这种特别的变化的原因由你或者你的DM决定。一种转化的专长可能象征着潜伏的力量已经随着你的成长而显露，一种转变则可能缘自战役中的某个重要事件——诸如暴露在强大的魔法力量之下，或者你参观了对你种族有古老且重要意义地方。变化是奇幻文学与民俗的基本主题。搞清楚你的角色为何有如此变化将为你的战役故事带来丰富的补充。 种族专长 种族 专长 龙裔 龙之威怖 Dragon Fear 龙裔 龙之鳞爪 Dragon Hide 矮人 矮人坚毅 Dwarven Fortitude 矮人 低身机敏 Squat Nimbleness 精灵 精灵之准 Elven Accuracy 精灵（卓尔） 高等卓尔魔法 Drow High Magic 精灵（高等精灵） 妖精传送 Fey Teleportation 精灵（木精灵） 木精灵魔法 Wood Elf Magic 侏儒 匿影无踪 Fade Away 侏儒 低身机敏 Squat Nimbleness 半精灵 精灵之准 Elven Accuracy 半精灵 天赋异禀 Prodigy 半兽人 兽人狂怒 Orcish Fury 半兽人 天赋异禀 Prodigy 半身人 慷慨吉运 Bountiful Luck 半身人 花开二度 Second Chance 半身人 低身机敏 Squat Nimbleness 人类 天赋异禀 Prodigy 提夫林 弗莱格索斯之焰 Flames of Phlegethos 提夫林 炼狱体质 Infernal Constitution 以下专长以首字母顺序排序。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "慷慨吉运": {
+   "name": "慷慨吉运",
+   "desc": "慷慨吉运 Bountiful Luck 先决条件: 半身人 你的民族有着非同寻常的好运，且你学过如何在看到同伴难堪之时将其秘密地借给他们。你其实也不知道你是怎么做到的。你只是想想，这事就实现了，这一定是幸运的眷顾！ 如果你周围30尺内你可见的盟友在攻击检定、技能检定、或豁免检定的d20中骰出了1，你可以用反应使他重骰一次，不过盟友必须接受新的结果。 使用此能力后，直到下个你的回合结束前你无法使用你的 幸运Lucky 种族特质。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "龙之威怖": {
+   "name": "龙之威怖",
+   "desc": "龙之威怖 Dragon Fear 先决条件: 龙裔 气愤之时，你能展露威慑之力。你获得下列增益： · 你的力量、体质、或魅力+1，上限为20。 · 你可以消耗你的吐息武器次数以发起咆哮，以取代吐息出毁灭性的能量。周围30尺内由你选择的每个生物都必须通过一次感知豁免（DC=8+你的熟练加值+你的魅力调整值）。如果生物无法听到或看到你，它将自动通过此豁免。如果豁免失败，目标将陷入对你的 恐慌frightened ，持续一分钟。如果恐慌者受到任何伤害，他可以重复这一豁免，豁免成功时在他身上的这一效应将提前结束。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "龙之鳞爪": {
+   "name": "龙之鳞爪",
+   "desc": "龙之鳞爪 Dragon Hide 先决条件: 龙裔 你显出自你龙族先祖的利爪与鳞片，你获得下列增益： · 你的力量、体质、或魅力+1，上限为20。 · 你的鳞片变得无比坚硬。如果你没穿着任何护甲，你的AC将变为13+你的敏捷调整值。你可以在装着盾牌时仍享受此增益。 · 你的指尖长出可伸缩的利爪，伸出或缩回爪子不消耗动作。这些爪子是可以用来发动徒手打击的天生武器，如果用他们击中了目标，将造成 1d4+你的力量调整值 的挥砍伤害，而非正常徒手打击造成的钝击伤害。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "高等卓尔魔法": {
+   "name": "高等卓尔魔法",
+   "desc": "高等卓尔魔法 Drow High Magic 先决条件: 精灵（卓尔） 你学到了更多种类的黑暗精灵魔法。你习得并可以随意施展法术 侦测魔法detect magic ，无需法术位。同时，你习得法术 浮空术levitate 与法术 解除魔法dispel magic ，你可以不消耗法术位的施展这两个法术各一次。而你在完成一次长休后你重获以此免费施展这两个法术的使用次数。魅力是你施展这三个法术的施法属性。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "矮人坚毅": {
+   "name": "矮人坚毅",
+   "desc": "矮人坚毅 Dwarven Fortitude 先决条件: 矮人 你的血脉中流淌着矮人英雄的血液。你获得下列增益： · 你的体质+1，上限为20。 · 当你在战斗中执行 回避Dodge 动作时，你可以消耗一颗生命骰来治愈自己。投掷那枚生命骰，你恢复其骰值外加上你的体质调整值点的生命值（恢复量最低为1点）。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "精灵之准": {
+   "name": "精灵之准",
+   "desc": "精灵之准 Elven Accuracy 先决条件: 精灵或半精灵 那些精灵们能力如传说般精准，尤其精灵弓箭手与精灵施法者为甚，你在依赖精确度而非蛮力的攻击检定上有着高超的精准度。你获得下列增益： · 你的敏捷、智力、感知、或魅力+1，上限为20。 · 当你在攻击检定上具有优势，且这次攻击检定使用敏捷、智力、感知、或魅力时，你可以重骰其中一枚骰子一次。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "匿影无踪": {
+   "name": "匿影无踪",
+   "desc": "匿影无踪 Fade Away 先决条件: 侏儒 你的族人在幻术系魔法的技巧上有着极高的天赋。你曾习得一种能在受伤时迅速隐去的魔法技巧。你获得下列增益： · 你的敏捷或智力+1，上限为20。 · 当你受到伤害之后，你可以立刻用反应魔法性的将自己化为 隐形invisible ，持续直至你的下一回合结束，如果你发动攻击、造成伤害、或迫使别人进行豁免这一效果也将提前结束。一旦你使用了这一能力，直到你完成一次短休或长休前你都不能再次使用它。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "妖精传送": {
+   "name": "妖精传送",
+   "desc": "妖精传送 Fey Teleportation 先决条件: 精灵（高等精灵） 你对高等精灵学识的研究已然为你解锁了一些只有极少数其他精灵才得以掌控的妖精力量，当然，你的雅灵表亲除外。依靠你的妖精先祖，你可以大步迈入妖精荒野以缩减你从某地到它地的道路，你获得下列增益： · 你的智力或魅力+1，上限为20。 · 你习得如何说、读、写木族语。 · 你习得法术 迷踪步misty step ，且你可以无需法术位的施展它一次。而你在完成一次短休或长休后你重获以此免费施展这个法术的使用次数。智力是你施展这个法术的施法属性。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "弗莱格索斯之焰": {
+   "name": "弗莱格索斯之焰",
+   "desc": "弗莱格索斯之焰 Flames of Phlegethos 先决条件: 提夫林 你学会了如何召唤地狱火，让它听从你的指挥为你而用，你获得下列增益： · 你的智力或魅力+1，上限为20。 · 当你为你施展的法术投掷火焰伤害时，你可以重骰其中任何骰值为1的火焰伤害骰，但你必须接受重骰后的结果，哪怕重骰后它依旧是1。 · 每当你施展造成火焰伤害的法术时，你都可以让火焰环绕在你身旁，持续直至你的下个回合结束。那些火焰不会伤害你或你的物品。它们将提供30尺明亮光照与那之外30尺微光光照。此火焰现形期间，任何在你周围5尺范围内，对你发动近战攻击并命中的生物将受到1d4点火焰伤害。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "炼狱体质": {
+   "name": "炼狱体质",
+   "desc": "炼狱体质 Infernal Constitution 先决条件: 提夫林 邪魔之血令你变得无比强大，为你解锁一些邪魔拥有的强大韧性。你获得下列增益： · 你的体质+1，上限为20。 · 你获得寒冷伤害和毒素伤害的抗性 · 你在对抗 中毒Poisoned 效应时所做的豁免具有优势。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "兽人狂怒": {
+   "name": "兽人狂怒",
+   "desc": "兽人狂怒 Orcish Fury 先决条件: 半兽人 你内在的怒火在永无止境的燃烧着，你获得下列增益： · 你的力量或体质+1，上限为20。 · 当你用简易武器或军用武器发动的攻击命中时，你可以额外掷一枚武器的伤害骰并将其作为额外伤害加入到本次攻击的伤害中，伤害类型与武器本身的伤害类型相同。一旦你使用了这一能力，直到你完成一次短休或长休前你都不能再次使用它。 · 使用 坚韧不屈Relentless Endurance 种族特质之后，你可以立即以反应进行一次武器攻击。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "天赋异禀": {
+   "name": "天赋异禀",
+   "desc": "天赋异禀 Prodigy 先决条件: 半精灵、半兽人、或人类 你学习那些新鲜事物时总是有着极高的天赋，你获得下列增益： · 你获得一项自选技能的熟练、一种自选工具的熟练，且娴熟于一种自选的语言。 · 选择一种你已具有熟练项的技能。你获得这种技能的专精，这意味着你进行的与技能相关的属性检定中你可以加入双倍的熟练加值。你选择的这个技能必须是未受益于其他的此类双倍熟练特性（例如 专精Expertise）的技能。 （校注：原文如此，确实写的不是“说、读、写”而是“娴熟fluency”）",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "花开二度": {
+   "name": "花开二度",
+   "desc": "花开二度 Second Chance 先决条件: 半身人 命运在有人想要伤害你时眷顾于你，你获得下列增益： · 你的敏捷、体质、或魅力+1，上限为20。 · 当一个你可见的生物以攻击检定命中你时，你可以使用你的反应迫使那个生物重骰之。此能力一旦被使用，直到你下次在战斗开始时骰先攻、你完成一次短休、或你完成一次长休之前都无法再次使用它。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "低身机敏": {
+   "name": "低身机敏",
+   "desc": "低身机敏 Squat Nimbleness 先决条件: 矮人或小型种族 你有这在你族群中不寻常的机敏，你获得以下好处: · 你的力量或敏捷+1，上限为20。 · 你的步行速度提升5尺。 · 你获得运动技能或特技技能的熟练（由你选择）。 · 你为脱离擒抱所做的力量（运动）与敏捷（特技）检定具有优势。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  },
+  "木精灵魔法": {
+   "name": "木精灵魔法",
+   "desc": "木精灵魔法 Wood Elf Magic 先决条件: 精灵（木精灵） 你学会由你的族人保护和尊敬的原初之木的魔法。你习得一个你自选的德鲁伊戏法。同时，你习得法术 大步奔行longstrider 与法术 行动无踪pass without trace 。你可以不消耗法术位的施展这两个法术各一次。而你在完成一次长休后你重获以此免费施展这两个法术的使用次数。感知是你施展这三个法术的施法属性。",
+   "source": "珊娜萨的万事指南/角色选项/种族专长.html",
+   "sourceKind": "official"
+  }
+ }
+}

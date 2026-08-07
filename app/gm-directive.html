@@ -1,0 +1,217 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>私聊</title><style>
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:radial-gradient(circle at 20% 0,#27305a 0,#171a31 38%,#101325 100%);color:#f4f5ff;font-family:system-ui,"Microsoft YaHei",sans-serif;display:flex;flex-direction:column}
+.head{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#171b32ed;border-bottom:1px solid #3d476e;flex-shrink:0}
+.head b{font-size:14px}.head .spacer{flex:1}.head select{background:#293155;color:#f4f5ff;border:1px solid #46527e;border-radius:8px;padding:4px 8px;font-size:12px}
+.body{flex:1;display:flex;min-height:0}
+.sessions{width:128px;border-right:1px solid #3d476e;overflow:auto;background:#151a31;flex-shrink:0;display:flex;flex-direction:column}
+.sess{padding:8px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid #232a49;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#c8d0ef;display:flex;align-items:center;gap:6px}
+.sess:hover{background:#20264a}.sess.active{background:#2c3563;color:#fff;border-left:3px solid #55d7d2}
+.sess .tag{display:block;font-size:10px;color:#7d86ab}
+.sess.unread{color:#55d7d2;font-weight:700}
+.sess-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.sess-avatar.ph{display:inline-flex;align-items:center;justify-content:center;background:#2c3563;color:#c9a84c;font-size:10px;font-weight:700}
+.sess-sep{font-size:10px;color:#7d86ab;padding:6px 10px 2px;letter-spacing:1px}
+.msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.msg{max-width:96%;padding:8px 12px;border-radius:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.msg .av{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.msg .av.ph{display:inline-flex;align-items:center;justify-content:center;background:#2c3563;color:#c9a84c;font-size:12px;font-weight:700}
+.msg .txt{flex:1;min-width:0}
+.msg .html-live{margin-top:8px;min-width:0;width:100%}
+.msg.gm,.msg.me{align-self:flex-end;flex-direction:row-reverse;background:#2b3358;border:1px solid #46527e}
+.msg.ai,.msg.other{align-self:flex-start;background:#1d223f;border:1px solid #55d7d2aa}
+.msg .who{display:block;font-size:10px;margin-bottom:2px;color:#c9a84c}
+.msg.ai .who,.msg.other .who{color:#55d7d2}
+.msg.sys{align-self:center;color:#99a4ca;font-size:11px;background:none;border:none;text-align:center}
+.empty{color:#7d86ab;text-align:center;margin-top:36px;font-size:12px}
+.inputbar{display:flex;gap:6px;padding:8px 12px;background:#171b32ed;border-top:1px solid #3d476e;flex-shrink:0;align-items:flex-end}
+.inputbar textarea{flex:1;resize:none;height:56px;background:#10142a;color:#f4f5ff;border:1px solid #46527e;border-radius:10px;padding:8px;font:inherit;font-size:13px}
+.inputbar button{background:#55d7d2;color:#101628;border:none;border-radius:10px;padding:0 16px;height:56px;font-weight:800;cursor:pointer}
+.inputbar button:disabled{opacity:.4}.inputbar .clear{background:#2b3358;color:#ff8d94;border:1px solid #a94d57;padding:0 10px;font-size:12px}
+</style></head><body>
+<div class="head"><b>💬 私聊</b><span class="hint" id="target-label" style="font-size:11px;color:#99a4ca">—</span><span class="spacer"></span>
+<label style="font-size:11px;color:#99a4ca">AI 频道 <select id="ai-channel"></select></label>
+<button class="clear" id="clear" style="background:#2b3358;color:#ff8d94;border:1px solid #a94d57;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">清空</button></div>
+<div class="body">
+  <div class="sessions" id="sessions"></div>
+  <div class="msgs" id="msgs"><div class="empty">选择左侧会话，或点右上频道切换 AI 私聊目标。</div></div>
+</div>
+<div class="inputbar">
+  <textarea id="input" placeholder="输入消息…（AI 私聊为导演指令，不进入剧情聊天；玩家私聊只有对方可见）"></textarea>
+  <button id="send">发送</button>
+</div>
+<script>
+(function(){'use strict';
+var q=new URLSearchParams(location.search);
+var host=window.opener||null;
+var adv=q.get('adventure')||'默认';
+var winId='gmw_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+var bc=null;try{bc=new BroadcastChannel('trpg_gm');}catch(e){}
+var msgs=document.getElementById('msgs'),input=document.getElementById('input'),btn=document.getElementById('send');
+var sessionsEl=document.getElementById('sessions'),aiChan=document.getElementById('ai-channel'),targetLabel=document.getElementById('target-label');
+var DEFAULT_CH=['剧情','战斗','系统'];
+var active={kind:'ai',channel:q.get('channel')||'story'};
+var players={};var myName='';
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function sessKey(s){return s.kind==='ai'?('trpg_gmwin_'+adv+'_'+s.channel):('trpg_pm_'+s.name)}
+function loadMsgs(){
+  msgs.innerHTML='';
+  var list=[];try{list=JSON.parse(localStorage.getItem(sessKey(active))||'[]');}catch(e){}
+  if(!list.length){msgs.innerHTML='<div class="empty">'+(active.kind==='ai'?'向 AI 发送私聊指令（如「现在开团」、秘密设定、暂停/继续），回复只显示在这里。':'与 '+esc(active.name)+' 的私聊，只有你们双方可见。')+'</div>';return;}
+  list.forEach(function(m){appendMsg(m.kind,m.who,m.text);});
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function playerAvatar(name){
+  var p=players[name];
+  if(p&&p.character&&p.character.avatarUrl)return p.character.avatarUrl;
+  return '';
+}
+function avHtml(name){
+  var url=playerAvatar(name);
+  return url?'<span class="av"><img src="'+esc(url)+'" alt=""></span>':'<span class="av ph">'+esc((name||'?').charAt(0))+'</span>';
+}
+function extractHtmlBlock(text){
+  var s=String(text||'');
+  var m=s.match(/<style[\s\S]*?<\/style>/i);
+  if(!m)return '';
+  var idx=s.indexOf('<style');
+  var endTag=s.lastIndexOf('</html>');
+  return s.substring(idx, endTag>=idx?endTag+7:s.length);
+}
+function textBeforeHtml(text){
+  var idx=String(text||'').indexOf('<style');
+  return idx>0?String(text).substring(0,idx).trim():'';
+}
+function htmlLiveDiv(html){
+  var hostId='hml_'+Math.random().toString(36).slice(2,8);
+  setTimeout(function(){
+    var h=document.getElementById(hostId);
+    if(!h)return;
+    try{
+      if(h.attachShadow)h.attachShadow({mode:'open'}).innerHTML=html;
+      else h.innerHTML=html;
+    }catch(e){}
+  },0);
+  return '<div id="'+hostId+'" class="html-live"></div>';
+}
+function renderMsgBody(kind,who,text){
+  var hb=extractHtmlBlock(text);
+  if(hb){
+    var pre=textBeforeHtml(text);
+    return '<div class="txt"><span class="who">'+esc(who)+'</span>'+esc(pre)+'</div>'+htmlLiveDiv(hb);
+  }
+  return '<div class="txt"><span class="who">'+esc(who)+'</span>'+esc(text)+'</div>';
+}
+function appendMsg(kind,who,text){
+  var d=document.createElement('div');d.className='msg '+kind;
+  d.innerHTML=avHtml(who)+renderMsgBody(kind,who,text);
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function storeMsg(kind,who,text){
+  try{var list=JSON.parse(localStorage.getItem(sessKey(active))||'[]');list.push({kind:kind,who:who,text:text,time:Date.now()});if(list.length>200)list=list.slice(-200);localStorage.setItem(sessKey(active),JSON.stringify(list));}catch(e){}
+}
+function clearActive(){
+  if(!confirm('清空与'+(active.kind==='ai'?'AI（'+aiChanName()+'频道）':'「'+active.name+'」')+'的全部私聊记录？'))return;
+  try{localStorage.removeItem(sessKey(active));}catch(e){}
+  msgs.innerHTML='<div class="empty">已清空。</div>';
+}
+function aiChanName(){var o=aiChan.options[aiChan.selectedIndex];return o?o.text:'';}
+function render(){
+  targetLabel.textContent=active.kind==='ai'?'与 AI 私聊（'+aiChanName()+'频道）· 指令不进入剧情':'与玩家「'+esc(active.name)+'」私聊';
+  var isAi=active.kind==='ai';
+  aiChan.style.visibility=isAi?'visible':'hidden';
+  input.placeholder=isAi?'输入 AI 私聊指令…（如「现在开团」/秘密设定/暂停/继续）':'向 '+active.name+' 发送私聊…';
+  loadMsgs();
+}
+function renderSessions(){
+  var html='<div class="sess-sep">AI 私聊</div>';
+  ['剧情','战斗','系统'].forEach(function(name,idx){
+    var id=['story','combat','system'][idx];
+    html+='<div class="sess'+(active.kind==='ai'&&active.channel===id?' active':'')+'" data-kind="ai" data-id="'+id+'"><span class="sess-avatar ph" style="background:#1d223f;color:#55d7d2">AI</span><span class="tag">AI</span>'+name+'</div>';
+  });
+  var names=Object.keys(players||{}).filter(function(n){return n!==myName&&players[n]&&players[n].online!==false;});
+  if(names.length){html+='<div class="sess-sep">玩家</div>';names.forEach(function(n){var av=playerAvatar(n);html+='<div class="sess'+(active.kind==='player'&&active.name===n?' active':'')+'" data-kind="player" data-id="'+esc(n)+'">'+(av?'<img class="sess-avatar" src="'+esc(av)+'" alt="">':'<span class="sess-avatar ph">'+esc(n.charAt(0))+'</span>')+'<span class="tag">玩家</span>'+esc(n)+'</div>';});}
+  sessionsEl.innerHTML=html;
+  sessionsEl.querySelectorAll('.sess').forEach(function(el){
+    el.addEventListener('click',function(){
+      active={kind:el.getAttribute('data-kind'),channel:el.getAttribute('data-id'),name:el.getAttribute('data-id')};
+      if(active.kind==='ai')aiChan.value=active.channel;
+      renderSessions();render();
+    });
+  });
+}
+function send(){
+  var text=input.value.trim();if(!text)return;
+  input.value='';
+  if(active.kind==='ai'){
+    var me=myName||'我';
+    appendMsg('gm',me,text);storeMsg('gm',me,text);
+    btn.disabled=true;btn.textContent='…';
+    var sent=false;
+    if(bc){try{bc.postMessage({type:'gm_directive',winId:winId,channelId:active.channel,text:text});sent=true;}catch(e){}}
+    if(!sent&&host&&host.UIManager&&host.UIManager.sendGmDirective){host.UIManager.sendGmDirective(text,active.channel);}
+    if(!sent&&!host){btn.disabled=false;btn.textContent='发送';appendMsg('sys','','主窗口未连接，请从 AI 开关旁的「💬 私聊」打开');}
+  }else{
+    var me=myName||'我';
+    appendMsg('gm',me,text);storeMsg('gm',me,text);
+    if(bc){try{bc.postMessage({type:'pm_send',winId:winId,to:active.name,text:text});}catch(e){}}
+  }
+}
+function handleReply(m){
+  if(m.type==='gm_reply_stream'){
+    if(!(active.kind==='ai'&&active.channel===m.channelId))return;
+    var last=msgs.lastElementChild;
+    if(last&&last.classList.contains('ai'))last.innerHTML=avHtml('AI')+'<div class="txt"><span class="who">AI</span>'+esc(m.text)+'</div>';
+    else{appendMsg('ai','AI',m.text);}
+  }
+  else if(m.type==='gm_reply_done'){
+    btn.disabled=false;btn.textContent='发送';
+    if(m.content){
+      if(active.kind==='ai'&&active.channel===m.channelId){
+        try{var list=JSON.parse(localStorage.getItem(sessKey(active))||'[]');var last=msgs.lastElementChild;if(last&&last.classList.contains('ai')){var tEl=last.querySelector('.txt');var t=tEl?tEl.textContent.replace(/^AI/,''):(last.textContent||'').replace(/^AI/,'');if(!t||m.content.indexOf(t)>=0||t.indexOf(m.content)>=0)last.innerHTML=avHtml('AI')+renderMsgBody('ai','AI',m.content);list.push({kind:'ai',who:'AI',text:m.content,time:Date.now()});}else list.push({kind:'ai',who:'AI',text:m.content,time:Date.now()});if(list.length>200)list=list.slice(-200);localStorage.setItem(sessKey(active),JSON.stringify(list));}catch(e){}
+      }else{
+        try{var key='trpg_gmwin_'+adv+'_'+m.channelId;var l2=JSON.parse(localStorage.getItem(key)||'[]');l2.push({kind:'ai',who:'AI',text:m.content,time:Date.now()});if(l2.length>200)l2=l2.slice(-200);localStorage.setItem(key,JSON.stringify(l2));}catch(e){}
+        sessionsEl.querySelectorAll('.sess').forEach(function(el){if(el.getAttribute('data-kind')==='ai'&&el.getAttribute('data-id')===m.channelId)el.classList.add('unread');});
+      }
+    }
+  }
+  else if(m.type==='gm_reply_error'){btn.disabled=false;btn.textContent='发送';appendMsg('sys','',String(m.error||'发送失败'));}
+  else if(m.type==='pm_recv'){
+    if(active.kind==='player'&&active.name===m.from){appendMsg('other',m.from,m.text);storeMsg('other',m.from,m.text);}
+    else{
+      try{var key='trpg_pm_'+m.from;var list=JSON.parse(localStorage.getItem(key)||'[]');list.push({kind:'other',who:m.from,text:m.text,time:Date.now()});if(list.length>200)list=list.slice(-200);localStorage.setItem(key,JSON.stringify(list));}catch(e){}
+      sessionsEl.querySelectorAll('.sess').forEach(function(el){if(el.getAttribute('data-kind')==='player'&&el.getAttribute('data-id')===m.from)el.classList.add('unread');});
+    }
+  }
+  else if(m.type==='pm_offline'){appendMsg('sys','','「'+esc(m.to)+'」不在线，消息未送达。');}
+  else if(m.type==='pm_error'){appendMsg('sys','',String(m.error||'发送失败'));}
+  else if(m.type==='pm_players'){players=m.players||{};renderSessions();}
+}
+window.addEventListener('message',function(e){
+  var m=e.data||{};
+  if(m.type==='gm_reply_stream'||m.type==='gm_reply_done'||m.type==='gm_reply_error'){if(!m.winId||m.winId===winId)handleReply(m);}
+});
+if(bc){bc.onmessage=function(e){var m=e&&e.data;if(!m)return;if(m.type==='pm_recv'||m.type==='pm_offline'||m.type==='pm_error'||m.type==='pm_players')handleReply(m);else if(m.winId===winId)handleReply(m);};}
+// 频道下拉
+try{var chs=(function(){try{return host&&host.UIManager&&host.UIManager.getChannels?host.UIManager.getChannels():null;}catch(e){return null;}})();}catch(e){chs=null;}
+if(chs&&chs.length){aiChan.innerHTML='';chs.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name||c.id;if(c.id===active.channel)o.selected=true;aiChan.appendChild(o);});}
+else{DEFAULT_CH.forEach(function(n,i){var o=document.createElement('option');o.value=['story','combat','system'][i];o.textContent=n;if(o.value===active.channel)o.selected=true;aiChan.appendChild(o);});}
+aiChan.onchange=function(){active.channel=aiChan.value;renderSessions();render();};
+// 旧版密钥迁移：AI 私聊曾不按冒险分桶（trpg_gmwin_<频道>），迁入当前冒险桶避免记录丢失
+try{
+  var chanIds=['story','combat','system'];
+  if(chs&&chs.length)chs.forEach(function(c){chanIds.push(c.id);});
+  chanIds.forEach(function(cid){
+    var oldKey='trpg_gmwin_'+cid;
+    var old=null;try{old=JSON.parse(localStorage.getItem(oldKey)||'null');}catch(e){}
+    if(old&&old.length){var newKey='trpg_gmwin_'+adv+'_'+cid;var cur=[];try{cur=JSON.parse(localStorage.getItem(newKey)||'[]');}catch(e){}var merged=cur.concat(old);if(merged.length>200)merged=merged.slice(-200);try{localStorage.setItem(newKey,JSON.stringify(merged));}catch(e){}try{localStorage.removeItem(oldKey);}catch(e){}}
+  });
+}catch(e){}
+document.getElementById('send').onclick=send;
+document.getElementById('clear').onclick=clearActive;
+input.addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();send();}});
+if(host){try{myName=(host.Network&&host.Network.getMyName&&host.Network.getMyName())||'';}catch(e){}}
+try{var p0=host&&host.Network&&host.Network.getPlayers?host.Network.getPlayers():{};players=p0||{};renderSessions();}catch(e){}
+render();
+if(host){try{host.focus();}catch(e){}}
+})();
+</script></body></html>

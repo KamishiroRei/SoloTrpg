@@ -28,10 +28,10 @@ const TextCompressor = (() => {
    * }
    */
 
-  // ── 客户端压缩（无需AI，基于正则提取结构） ──────
+  // ── 客户端结构提取 ──────
 
   /**
-   * 从文本中提取结构化条目（不依赖AI）
+   * 从文本中提取结构化条目
    * 适用于有明确标题格式的文档（如Markdown）
    */
   function extractStructured(text, sourceName = '') {

@@ -1,0 +1,8 @@
+{
+  "moduleName": "5eDnD_龙后宝山HDQ_中译v1.0",
+  "system": "DND五版不全书",
+  "audience": "player",
+  "description": "玩家可见公开索引。初始为空：模组全部内容默认 GM 私有。GM 在带团过程中按进度将公开项移入 released 列表，并记录公开原因与进度条件。",
+  "released": [],
+  "updatedAt": "2026-08-06T15:30:00.000Z"
+}

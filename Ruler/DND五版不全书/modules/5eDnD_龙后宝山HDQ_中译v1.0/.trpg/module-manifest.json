@@ -1,0 +1,46 @@
+{
+  "id": "module-1786024850388-55e188",
+  "type": "module_ingest",
+  "status": "completed",
+  "system": "DND五版不全书",
+  "moduleName": "5eDnD_龙后宝山HDQ_中译v1.0",
+  "modulePath": "Ruler/DND五版不全书/modules/5eDnD_龙后宝山HDQ_中译v1.0",
+  "title": "龙后的宝山 Hoard of the Dragon Queen",
+  "subtitle": "巨龙僭政 Tyranny of Dragons 第一部分（1-8级战役）",
+  "rulesSystem": "DND5E",
+  "audience": "gm",
+  "sourceFiles": [
+    {
+      "rel": "5eDnD_龙后宝山HDQ_中译v1.0.pdf",
+      "size": 35864925,
+      "pages": 89,
+      "kind": "战役模组全书"
+    }
+  ],
+  "promptPath": "Ruler/DND五版不全书/modules/5eDnD_龙后宝山HDQ_中译v1.0/.trpg/import-task.md",
+  "permission": {
+    "gm": "all",
+    "aipl": "public-index.json only"
+  },
+  "entryFiles": [
+    ".trpg/index.json",
+    ".trpg/public-index.json",
+    ".trpg/AGENT.md"
+  ],
+  "chapters": {
+    "1": "火中至绿 Greenest in Flames（PDF P6-12）",
+    "2": "劫掠者营地 Raiders' Camp（PDF P13-18）",
+    "3": "育龙场 Dragon Hatchery（PDF P19-25）",
+    "4": "商路 On the Road（PDF P26-36）",
+    "5": "前方施工 Construction Ahead（PDF P37-40）",
+    "6": "涅瑞塔堡 Castle Naerytar（PDF P41-58）",
+    "7": "狩猎旅舍 Hunting Lodge（PDF P59-67）",
+    "8": "云中城堡 Castle in the Clouds（PDF P68-81）",
+    "附录A": "背景项 Backgrounds（PDF P82）",
+    "附录B": "怪物 Monsters（PDF P83-88）",
+    "附录C": "魔法物品 Magic Items（PDF P89）"
+  },
+  "createdAt": "2026-08-06T14:00:50.390Z",
+  "updatedAt": "2026-08-06T15:30:00.000Z",
+  "message": "整理完成：8章+附录A/B/C全文已结构化入 index.json，GM 私有；public-index 初始为空，按进度公开。"
+}

@@ -1,0 +1,545 @@
+{
+  "savedAt": "2026-08-07T05:26:41.520Z",
+  "character": {
+    "id": "token_1",
+    "name": "米蕾薇尔·阿瓦隆",
+    "displayName": "米蕾薇尔·阿瓦隆",
+    "color": "#c9a84c",
+    "gridX": 0,
+    "gridY": 0,
+    "hp": 40,
+    "maxHp": 40,
+    "ac": 14,
+    "avatarUrl": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/存档/%E9%BB%98%E8%AE%A4/characters/token_1/icon/avatar-1x1-framed.png",
+    "category": "玩家",
+    "owner": null,
+    "data": {
+      "name": "米蕾薇尔·阿瓦隆",
+      "ruleVersion": "2024",
+      "assets": {
+        "avatarFramed": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/存档/%E9%BB%98%E8%AE%A4/characters/token_1/icon/avatar-1x1-framed.png",
+        "portrait": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/存档/%E9%BB%98%E8%AE%A4/characters/token_1/icon/portrait-4x3.png"
+      },
+      "race": "龙裔",
+      "raceChoices": {
+        "dragon": "红龙"
+      },
+      "raceFeatures": {
+        "type": "类人",
+        "size": "中型（约5-7尺）",
+        "speed": "30尺",
+        "traits": [
+          {
+            "n": "吐息武器",
+            "d": "攻击动作时将一次攻击替换为释放能量，覆盖15尺锥状或30尺线状区域。区域内生物须通过敏捷豁免（DC=8+体质调整+熟练加值），失败受1d10伤害（5级2d10/11级3d10/17级4d10）。次数=熟练加值，长休后重获。"
+          },
+          {
+            "n": "伤害抗性",
+            "d": "根据所选龙种获得对应伤害类型的抗性（见下方选择）。"
+          },
+          {
+            "n": "黑暗视觉",
+            "d": "你拥有60尺黑暗视觉。"
+          },
+          {
+            "n": "龙族飞翼",
+            "d": "5级后可以附赠动作长出灵体飞翼，持续10分钟，获得等于你速度的飞行速度。长休前不可再次使用。"
+          }
+        ],
+        "choices": [
+          {
+            "n": "龙族血统",
+            "key": "dragon",
+            "kind": "dragon",
+            "options": [
+              {
+                "v": "白龙",
+                "d": "伤害类型：寒冷；获得寒冷抗性"
+              },
+              {
+                "v": "黑龙",
+                "d": "伤害类型：强酸；获得强酸抗性"
+              },
+              {
+                "v": "绿龙",
+                "d": "伤害类型：毒素；获得毒素抗性"
+              },
+              {
+                "v": "蓝龙",
+                "d": "伤害类型：闪电；获得闪电抗性"
+              },
+              {
+                "v": "红龙",
+                "d": "伤害类型：火焰；获得火焰抗性"
+              },
+              {
+                "v": "黄铜龙",
+                "d": "伤害类型：火焰；获得火焰抗性"
+              },
+              {
+                "v": "赤铜龙",
+                "d": "伤害类型：强酸；获得强酸抗性"
+              },
+              {
+                "v": "青铜龙",
+                "d": "伤害类型：闪电；获得闪电抗性"
+              },
+              {
+                "v": "银龙",
+                "d": "伤害类型：寒冷；获得寒冷抗性"
+              },
+              {
+                "v": "金龙",
+                "d": "伤害类型：火焰；获得火焰抗性"
+              }
+            ]
+          }
+        ]
+      },
+      "class": "圣武士",
+      "subclass": "王冠之誓",
+      "classChoices": {
+        "fightingStyle": [
+          "双武器战斗"
+        ]
+      },
+      "classChoiceDetails": {
+        "fightingStyle": {
+          "双武器战斗": {
+            "desc": "双武器战斗 Two-Weapon Fighting 战斗风格专长（先决：战斗风格特性） 当你因使用具有 轻型 词条的武器而得以发动额外的攻击时，若此次额外的攻击的伤害本来无法加入你的属性调整值，你可以加入你的属性调整值。",
+            "prerequisite": "战斗风格特性） 当你因使用具有 轻型 词条的武器而得以发动额外的攻击时，若此次额外的攻击的伤害本来无法加入你的属性调整值，你可以加入你的属性调整值",
+            "source": "玩家手册2024/专长/战斗风格专长.htm"
+          }
+        }
+      },
+      "classGrowthChoices": {
+        "4": {
+          "type": "feat",
+          "mode": "21",
+          "attrs": [],
+          "allocation": {},
+          "feat": "残暴之握"
+        }
+      },
+      "classFeatureDetails": {
+        "圣疗": {
+          "level": 1,
+          "desc": "你的触碰溢满祝福，可以医治伤口。你获得一个治疗能量池，其内的治疗能量在每次完成长休时自动补满。治疗能量池储备的可恢复生命值总值等于你的圣武士等级的五倍。\n你能够以附赠动作触碰一名生物（可以是你自己），并抽取治疗能量池中的能量恢复该生物的生命值，其恢复量最多等于你治疗能量池中剩余的治疗量。\n此外，你也可以使用5点治疗量来移除目标身上的中毒状态，这些点数不会同时恢复生物的生命值。",
+          "source": "玩家手册2024/角色职业/圣武士/圣武士.htm"
+        },
+        "施法": {
+          "level": 1,
+          "desc": "你已经学会了如何通过祈祷与冥想来施展法术。施法规则见第七章。下文将详述如何将这些规则应用于圣武士法术，圣武士法术详见本章后文职业描述中的圣武士法术列表。\n法术位Spell Slots。\n圣武士特性表显示了你可用于施展一环及以上法术的法术位数量。当你完成长休时，你重获所有已消耗的法术位。\n准备一环或以上的法术Prepared\nSpells of Level 1+。\n你准备可供你以此特性施展的一环及更高环阶的法术列表。最初，选择两道圣武士法术推荐选择\n英雄气概Heroism\n和\n炽焰斩Searing\nSmite\n。\n已准备法术数量会随你圣武士等级的提升而增加，如圣武士特性表中的准备法术一列所示。每当这一列的数字增加时，法术列表中选择额外法术准备，直至已准备法术的数量与表格中的数字一致。你所选择法术的环阶必须是你所拥有法术位对应的环阶。例如，如果你是一名5级的圣武士，则你的准备法术列表能包括六道一环或二环的圣武士法术，随意组合。\n如果圣武士的其他特性给了你始终准备着的法术，这些法术不计入你以此法准备的法术数量，但这些法术对你而言都视为圣武士法术。\n改变准备法术Changing Your Prepared Spells。\n每当你完成一次长休时，你可以将你准备列表上的一道法术替换为其他圣武士法术，新替换的法术必须是你拥有法术位的法术。\n施法属性Spellcasting\nAbility。\n你圣武士法术的施法属性是魅力。\n施法法器Spellcasting Focus。\n你可以使用圣徽作为你圣武士法术的施法法器 。",
+          "source": "玩家手册2024/角色职业/圣武士/圣武士.htm"
+        },
+        "武器精通": {
+          "level": 1,
+          "desc": "你对武器的训练使你能够运用两种自选的你具有熟练的武器的精通词条，例如长剑和标枪。\n每当你完成一次长休时，你可以改变你所选择的武器类型。比如你可以改为戟和链枷。",
+          "source": "玩家手册2024/角色职业/圣武士/圣武士.htm"
+        },
+        "战斗风格": {
+          "level": 2,
+          "desc": "你获得一项战斗风格专长（见第五章）。你也可以选择下列选项作为替代。\n受祝福的勇士Blessed Warrior。\n你习得两道你选择的牧师戏法（牧师法术列表见牧师职业部分），推荐选取\n神导术Guidance\n和\n圣火术Sacred\nFlame\n。它们对你视作圣武士法术，且这些法术的施法属性是魅力\n。每当你获得一个圣武士等级时，你都能从这些戏法中选择其一替换为另一道你所选择的牧师戏法。",
+          "source": "玩家手册2024/角色职业/圣武士/圣武士.htm"
+        },
+        "圣武斩": {
+          "level": 2,
+          "desc": "你始终准备着法术\n至圣斩Divine\nSmite\n。此外，你可以不消耗法术位地施展该法术一次，而后你必须完成一次长休才能再次这么做。",
+          "source": "玩家手册2024/角色职业/圣武士/圣武士.htm"
+        },
+        "引导神力": {
+          "level": 3,
+          "desc": "你能从外层位面引导神圣能量，并用其引动魔法效应。你起始时具有一种效应选项：神圣感知，其效果如下所示。其他圣武士特性会给予更多引导神力选项。每当你使用本职业的引导神力时，你选择要创造哪种来自本职业的效应。\n你可以使用本职业的引导神力两次，你在完成短休时重获一次已消耗的使用次数，并在完成长休时重获所有已消耗的使用次数。你在圣武士等级到达11级时获得额外的使用次数。\n如果某个引导神力效应要求进行豁免，则其豁免DC等于本职业的施法特性的法术豁免DC。\n神圣感知Divine Sense。\n以一个附赠动作，你可以扩展你的意识侦测天族，邪魔以及亡灵生物。持续10分钟内或直至你陷入\n失能\n状态，你能感知到自身周围60尺内这些生物的位置，以及它们的生物类型。你也可以侦测任何受到\n圣居Hallow\n一类的法术祝福或亵渎的地点或物件。",
+          "source": "玩家手册2024/角色职业/圣武士/圣武士.htm"
+        },
+        "职业成长·4级·专长：残暴之握": {
+          "level": 4,
+          "desc": "残暴之握 Brutal Grip 通用专长（先决：等级4+，力量13+） 你获得以下增益。 属性值提升Ability Score Increase。 你的力量提升1，至多提升至20。 重武决斗者Heavy Duelist。 你可以仅用单手持用一把具有双手词条的近战武器。 多用双持者Versatile Dual Wielder。 你单手持用一把具有多用词条的近战武器期间，该武器对你而言具有轻型词条。",
+          "source": "玩家手册2024/角色职业/圣武士/圣武士.htm"
+        }
+      },
+      "subclassChoices": {},
+      "subclassChoiceDetails": {},
+      "subclassFeatureDetails": {
+        "王冠之誓·圣誓法术": {
+          "level": 3,
+          "desc": "你在下述圣武士等级获得王冠之誓法术。",
+          "source": "剑湾冒险者指南/职业/圣武士-王冠之誓.html"
+        },
+        "王冠之誓·引导神力": {
+          "level": 3,
+          "desc": "你获得捍卫挑战与扭转局势两个引导神力选项。捍卫挑战迫使30尺内指定生物进行感知豁免，失败者不能自愿离开你30尺范围；扭转局势以附赠动作使30尺内可听见你的、生命值低于一半的指定生物恢复1d6+魅力调整值点生命值。",
+          "source": "剑湾冒险者指南/职业/圣武士-王冠之誓.html"
+        }
+      },
+      "customClass": "",
+      "background": "天龙神的半身",
+      "bgData": null,
+      "toolProfs": [],
+      "bgApplied": {
+        "mode": "111",
+        "before": {
+          "str": 17,
+          "dex": 12,
+          "con": 15,
+          "int": 7,
+          "wis": 11,
+          "cha": 17
+        },
+        "allocation": {
+          "str": 1,
+          "cha": 1,
+          "con": 1
+        },
+        "after": {
+          "str": 18,
+          "dex": 12,
+          "con": 16,
+          "int": 7,
+          "wis": 11,
+          "cha": 18
+        },
+        "abilities": [
+          "力量",
+          "魅力",
+          "体质"
+        ]
+      },
+      "bgAttrMode": "111",
+      "bgAttrKeys": [
+        "力量",
+        "魅力",
+        "体质"
+      ],
+      "contentSources": {
+        "official": true,
+        "thirdParty": true
+      },
+      "bgEquip": "B",
+      "bgGold": 50,
+      "bgEquipData": null,
+      "equipChoice": "B",
+      "equipGold": 150,
+      "alignment": "中立善良",
+      "size": "中型",
+      "languages": "通用语、龙语、矮人语",
+      "level": 4,
+      "speed": 30,
+      "abilityScores": {
+        "str": 18,
+        "dex": 12,
+        "con": 16,
+        "int": 7,
+        "wis": 11,
+        "cha": 18
+      },
+      "abilityMods": {
+        "str": 4,
+        "dex": 1,
+        "con": 3,
+        "int": -2,
+        "wis": 0,
+        "cha": 4
+      },
+      "baseScores": {
+        "str": 16,
+        "dex": 12,
+        "con": 15,
+        "int": 7,
+        "wis": 11,
+        "cha": 17
+      },
+      "featAsi": {
+        "残暴之握": {
+          "amount": 1,
+          "options": [
+            "力量"
+          ],
+          "allocation": {
+            "str": 1
+          }
+        }
+      },
+      "HP": {
+        "current": 40,
+        "max": 40,
+        "temp": 0
+      },
+      "proficiency": 2,
+      "AC": 14,
+      "initiative": 1,
+      "attackBonus": 6,
+      "spellDC": 14,
+      "spellAttack": 6,
+      "hitDice": "d10",
+      "hitDiceRemaining": 4,
+      "armor": "链甲衫",
+      "shield": false,
+      "currentLoad": 0,
+      "savingThrows": {
+        "str": false,
+        "dex": false,
+        "con": false,
+        "int": false,
+        "wis": true,
+        "cha": true
+      },
+      "manualSaves": {},
+      "saveSources": {
+        "int": [],
+        "wis": [
+          "职业·圣武士"
+        ],
+        "cha": [
+          "职业·圣武士"
+        ]
+      },
+      "skills": {
+        "运动": {
+          "ability": "力量",
+          "trained": "未熟练"
+        },
+        "特技": {
+          "ability": "敏捷",
+          "trained": "未熟练"
+        },
+        "巧手": {
+          "ability": "敏捷",
+          "trained": "未熟练"
+        },
+        "隐匿": {
+          "ability": "敏捷",
+          "trained": "未熟练"
+        },
+        "奥秘": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "历史": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "调查": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "自然": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "宗教": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "驯兽": {
+          "ability": "感知",
+          "trained": "未熟练"
+        },
+        "洞悉": {
+          "ability": "感知",
+          "trained": "熟练"
+        },
+        "医药": {
+          "ability": "感知",
+          "trained": "未熟练"
+        },
+        "察觉": {
+          "ability": "感知",
+          "trained": "未熟练"
+        },
+        "求生": {
+          "ability": "感知",
+          "trained": "未熟练"
+        },
+        "欺瞒": {
+          "ability": "魅力",
+          "trained": "未熟练"
+        },
+        "威吓": {
+          "ability": "魅力",
+          "trained": "熟练"
+        },
+        "表演": {
+          "ability": "魅力",
+          "trained": "未熟练"
+        },
+        "游说": {
+          "ability": "魅力",
+          "trained": "未熟练"
+        }
+      },
+      "skillSources": {
+        "洞悉": [
+          "职业·圣武士"
+        ],
+        "威吓": [
+          "职业·圣武士"
+        ]
+      },
+      "toolSources": {},
+      "customBg": {
+        "name": "天龙神的半身",
+        "skills": [],
+        "tool": "",
+        "toolCat": "",
+        "equip": "B",
+        "equipGold": 0,
+        "attr": "111",
+        "attrKeys": [
+          "力量",
+          "魅力",
+          "体质"
+        ]
+      },
+      "spellSlots": {
+        "1": 3,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "spellSlotsUsed": {},
+      "spellList": [
+        {
+          "name": "命令术",
+          "fullName": "命令术｜Command",
+          "level": 1,
+          "school": "惑控",
+          "castingTime": "动作",
+          "range": "60尺",
+          "components": "V",
+          "duration": "立即",
+          "concentration": false,
+          "ritual": false,
+          "source": "玩家手册2024/法术详述/1环.htm",
+          "classes": [
+            "吟游诗人",
+            "牧师",
+            "圣武士"
+          ],
+          "prepared": true,
+          "alwaysPrepared": true,
+          "spellbook": false,
+          "granted": true,
+          "grantedBySubclass": "王冠之誓",
+          "grantedBySubclassChoice": "",
+          "selectedForClass": "",
+          "desc": "施法时间： 动作 施法距离： 60 尺 法术成分： V 持续时间： 立即 你对施法距离内一个你能看见的生物说出一个单词的命令。目标生物必须通过一次感知豁免，否则在它自己的下一回合中，其必须服从这道命令行事。从以下选项中选择一条命令： 过来Approach。 目标以最短最直接的路线向你移动，若其到达你5尺范围内，其会结束自己的回合。 放下Drop。 目标放下持握的任何东西，然后结束自己的回合。 走开Flee。 目标消耗其整个回合，以最快最有效的方式远离你。 趴下Grovel。 目标陷入 倒地 状态并结束自己的回合。 立定Halt。 在其回合内，目标不进行移动且不作任何动作和 附赠动作 。 升环施法。 使用的法术位每比一环高一环，你就可以额外选择一个生物作为目标。"
+        },
+        {
+          "name": "强制决斗",
+          "fullName": "强令对决｜Compelled Duel",
+          "level": 1,
+          "school": "惑控",
+          "castingTime": "附赠动作",
+          "range": "30尺",
+          "components": "V",
+          "duration": "专注，至多 1分钟",
+          "concentration": true,
+          "ritual": false,
+          "source": "玩家手册2024/法术详述/1环.htm",
+          "classes": [
+            "圣武士"
+          ],
+          "prepared": true,
+          "alwaysPrepared": true,
+          "spellbook": false,
+          "granted": true,
+          "grantedBySubclass": "王冠之誓",
+          "grantedBySubclassChoice": "",
+          "selectedForClass": "",
+          "desc": "施法时间： 附赠动作 施法距离： 30 尺 法术成分： V 持续时间： 专注，至多 1 分钟 你尝试强令一名生物与你决斗。选择施法距离内一名你可见的生物，该生物必须成功通过一次感知豁免，豁免失败则，该生物对除你之外任何生物进行攻击检定时都具有 劣势 ，且该生物不能自主移动到距离你超过30尺的位置。 当你攻击另一名生物时，当你对另一名敌对生物施展法术时，当一名你的盟友对该目标造成伤害或者对其施展伤害性法术时，又或者你在距离该目标超过 30 尺的位置结束你的回合时，该法术提前终止。"
+        }
+      ],
+      "items": [
+        {
+          "name": "链甲衫",
+          "category": "中甲",
+          "quantity": 1,
+          "equipped": true,
+          "price": "50",
+          "desc": "基础护甲等级 13；敏捷加值上限 +2",
+          "equipSlot": "armor",
+          "baseAC": 13,
+          "maxDex": 2,
+          "strReq": 0,
+          "canEquip": true
+        },
+        {
+          "name": "祭司套组",
+          "category": "冒险套组",
+          "quantity": 1,
+          "equipped": false,
+          "price": "33",
+          "desc": "包含：背包、毯子、圣水、油灯、7天份的口粮、长袍和火绒盒",
+          "contents": [
+            "背包",
+            "毯子",
+            "圣水",
+            "油灯",
+            "7天份的口粮",
+            "长袍和火绒盒"
+          ],
+          "canEquip": false,
+          "equipSlot": ""
+        },
+        {
+          "name": "地城套组",
+          "category": "冒险套组",
+          "quantity": 1,
+          "equipped": false,
+          "price": "12",
+          "desc": "包含：背包、铁蒺藜、撬棍、2扁瓶燃油、10天份的口粮、绳索、火绒盒、10根火把和水袋",
+          "contents": [
+            "背包",
+            "铁蒺藜",
+            "撬棍",
+            "2扁瓶燃油",
+            "10天份的口粮",
+            "绳索",
+            "火绒盒",
+            "10根火把和水袋"
+          ],
+          "canEquip": false,
+          "equipSlot": ""
+        }
+      ],
+      "goldStart": 200,
+      "goldSpent": 95,
+      "goldRemain": 105,
+      "features": [
+        "圣疗",
+        "施法",
+        "武器精通",
+        "战斗风格",
+        "圣武斩",
+        "引导神力",
+        "战斗风格：双武器战斗",
+        "王冠之誓·圣誓法术",
+        "王冠之誓·引导神力",
+        "职业成长·4级·专长：残暴之握"
+      ],
+      "bio": {
+        "appearance": "",
+        "personality": "",
+        "ideals": "",
+        "bonds": "",
+        "flaws": "",
+        "backstory": ""
+      },
+      "deathSaves": {
+        "success": 0,
+        "failure": 0
+      },
+      "inspiration": false,
+      "statuses": [],
+      "effects": [],
+      "rollLog": [],
+      "levelLog": []
+    }
+  }
+}

@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- 开始界面（全局入口：规则书→冒险 选择，2026-08-05 v2 优化） -->
 <div id="start-screen" class="start-screen">
   <div class="start-screen-bg"></div>
   <div class="start-screen-content">
@@ -42,11 +41,9 @@
       <span id="start-hint" class="start-hint"></span>
     </div>
   </div>
-  <!-- 规则书文件输入（隐藏）：开始界面上传/拖放复用（2026-08-05 从规则页签移至开始界面） -->
   <input type="file" id="rulebook-file-input" accept=".pdf,.chm,.txt,.md" style="display:none;">
 </div>
 
-<!-- 全局侧边栏（抽屉式：左侧滑出 + 右侧遮罩，2026-08-05） -->
 <div id="sidebar-mask" class="sidebar-mask" style="display:none;"></div>
 <div id="global-sidebar" class="global-sidebar" style="display:none;">
   <div class="global-sidebar-head">
@@ -78,6 +75,11 @@
     <button id="btn-main-menu" class="tool-btn menu-btn" title="主菜单（返回开始界面/切换规则书/冒险管理）">☰</button>
     <span class="app-title">TrpgRecode</span>
   </div>
+  <div class="toolbar-center" aria-label="地图切换">
+    <div id="map-tabs" class="map-tabs"></div>
+    <button id="btn-map-add" class="tool-btn map-head-btn" title="新建地图">＋ 地图</button>
+    <button id="btn-map-settings" class="tool-btn map-head-btn" title="地图设置">⚙ 设置</button>
+  </div>
   <div class="toolbar-right">
     <span id="room-display" class="room-info">未加入房间</span>
     <button id="btn-create-room" class="tool-btn accent">＋ 创建房间</button>
@@ -92,7 +94,6 @@
   <!-- 左侧地图区 -->
   <section id="map-container">
     <div id="map-wrapper"><canvas id="map-canvas"></canvas></div>
-    <!-- 冒险管理面板（内嵌悬浮于地图底部，向上打开，2026-08-05）：归档=保留文件可检索；删除=彻底删除 -->
     <div id="adventure-panel" class="adventure-panel" style="display:none;">
       <div class="adventure-panel-head">
         <b>📁 冒险管理</b>
@@ -106,7 +107,6 @@
     <div id="map-toolbar" aria-label="地图工具栏">
       <button type="button" id="map-toolbar-grip" class="map-toolbar-grip" title="拖动工具栏" aria-label="拖动地图工具栏">⋮⋮</button>
       <button id="btn-select" class="map-tool active" title="选择/移动 (V)">🖱</button>
-      <button id="btn-pan" class="map-tool" title="平移 (H)">✋</button>
       <button id="btn-range" class="map-tool" title="范围 (R)">◎</button>
       <button id="btn-measure" class="map-tool" title="测量 (M)">📏</button>
       <span class="map-tool-sep"></span>
@@ -121,11 +121,16 @@
         <option value="30">30</option><option value="40">40</option><option value="50" selected>50</option><option value="60">60</option><option value="70">70</option><option value="100">100</option>
       </select>
       <span class="map-tool-sep"></span>
-      <button id="btn-clear-range" class="map-tool" title="清除范围">✕</button>
-      <button id="btn-map-bg" class="map-tool" title="背景">🖼</button>
+      <button id="btn-add-map-token" class="map-tool" title="添加地图标记">＋</button>
+      <button id="btn-clear-measure" class="map-tool" title="清除测量线">⌫</button>
     </div>
     <div id="coord-display">X: 0 &nbsp; Y: 0</div>
+    <div id="map-float-editor" class="map-float-editor" style="display:none;"></div>
+    <div id="map-measure-hud" class="map-measure-hud" style="display:none;"></div>
   </section>
+
+  <!-- 右侧面板宽度拖拽手柄（浮动在地图上，位于侧栏左缘） -->
+  <div id="side-panel-resize-handle" title="拖动调整面板宽度"></div>
 
   <!-- 右侧面板 -->
   <aside id="side-panel">
@@ -133,7 +138,7 @@
       <button class="panel-tab active" data-tab="characters">👥 角色</button>
       <button class="panel-tab" data-tab="encounter">⚔ 遭遇</button>
       <button class="panel-tab" data-tab="gm">🎭 GM</button>
-      <button class="panel-tab" data-tab="rules">📦 模组</button>
+      <button class="panel-tab" data-tab="rules">📚 规则</button>
       <button class="panel-tab" data-tab="notes">📝 笔记</button>
       <button class="panel-tab" data-tab="settings">⚙ 设置</button>
     </nav>
@@ -148,7 +153,6 @@
           <button id="btn-new-character" class="btn-small">＋ 新建</button>
         </div>
       </div>
-      <!-- 角色分类分页（2026-08-06）：玩家/友方/敌人/NPC + 动态添加自定义分类 -->
       <div id="char-category-tabs" class="char-category-tabs"></div>
       <div id="character-list" class="scroll-list"></div>
       <input type="file" id="xlsx-file-input" accept=".xlsx,.xls" style="display:none;">
@@ -169,7 +173,7 @@
       </div>
     </div>
 
-    <!-- GM面板（2026-08-05 引擎化：GM工具+模组管理迁移到规则书 ui/panels/gm.html——从默认模板复制，AI可按规则书迭代；iframe 加载） -->
+    <!-- GM 工具由当前规则系统提供；权限由真人 GM 身份决定。 -->
     <div id="tab-gm" class="panel-content custom-panel">
       <iframe id="gm-panel-frame" class="custom-panel-frame" src="/api/ui-panel?system=&panel=gm" frameborder="0"></iframe>
     </div>
@@ -177,7 +181,7 @@
 <!-- 模组面板（右侧详情栏：模组导入/树状浏览/预览；规则书管理已外移至开始界面与独立窗口） -->
 <div id="tab-rules" class="panel-content">
   <div class="panel-header">
-    <h3>模组管理</h3>
+    <h3>规则资料 · 模组</h3>
     <div class="panel-header-btns">
       <button id="btn-module-folder" class="btn-small" title="导入整个文件夹（保留目录结构）">📂 导入文件夹</button>
       <button id="btn-module-file" class="btn-small" title="导入单个/多个文件">📄 导入文件</button>
@@ -187,6 +191,7 @@
     <div class="module-tree" id="module-tree">
       <div class="rules-empty">尚未导入模组。<br>点击上方「📂 导入文件夹」选择模组目录，<br>或「📄 导入文件」选择模组文档。</div>
     </div>
+    <div id="module-split-handle" title="拖动调整分栏宽度"></div>
     <div class="module-preview" id="module-preview">
       <div class="rules-placeholder">← 选择模组文件查看内容<br>模组目录会按文件夹结构完整保留</div>
     </div>
@@ -195,10 +200,20 @@
   <input type="file" id="module-file-input" multiple style="display:none;">
 </div>
 
-    <!-- 笔记面板 -->
+    <!-- 笔记面板（冒险笔记：AI 与 GM 共用的纯文本记忆，落盘 Ruler/<系统>/存档/<冒险>/notes/） -->
     <div id="tab-notes" class="panel-content">
-      <div class="panel-header"><h3>会话笔记</h3></div>
-      <textarea id="session-notes" class="notes-area" placeholder="在这里记录会话笔记...&#10;GM可以用这个区域记录剧情进展、NPC状态、关键决策等。"></textarea>
+      <div class="panel-header"><h3>冒险笔记</h3>
+        <span class="spacer"></span>
+        <button class="btn-small" id="note-new" title="新建一篇笔记">＋ 新建</button>
+        <button class="btn-small danger" id="note-delete" title="删除当前笔记">删除</button>
+      </div>
+      <div class="notes-layout">
+        <div class="notes-list" id="notes-list"><div class="notes-empty">暂无笔记，点「新建」记录第一条。</div></div>
+        <textarea id="session-notes" class="notes-area" placeholder="记录剧情进展、关键决策、无法规则化的设定文本等…&#10;AI 带团时也会自动把这类内容写入笔记（gm_note）。"></textarea>
+      </div>
+      <div class="panel-footer" style="display:flex;justify-content:flex-end;gap:8px;padding-top:8px;">
+        <button class="btn-small primary" id="note-save" title="保存当前笔记到冒险存档">保存笔记</button>
+      </div>
     </div>
 
     <!-- 设置面板 -->
@@ -224,10 +239,15 @@
             </div>
           </div>
           <div class="settings-section">
+            <h4>玩家</h4>
+            <div class="setting-row"><span class="setting-label">玩家昵称</span><input type="text" id="setting-player-nickname" class="setting-input" style="width:140px;" placeholder="你的昵称"><button id="btn-save-nickname" class="btn-small">保存</button></div>
+            <div class="setting-hint">全局昵称：创建/加入房间时默认使用，房间内改名也会同步到这里。与在线玩家重名时会被要求修改。</div>
+          </div>
+          <div class="settings-section">
             <h4>数据</h4>
             <div class="setting-row"><button id="btn-export-data" class="btn-small">📤 导出</button><button id="btn-import-data" class="btn-small">📥 导入</button><input type="file" id="import-file-input" accept=".json" style="display:none;"></div>
             <div class="setting-row"><span class="setting-label">AI上下文整理间隔</span><input type="number" id="setting-compact-turns" value="15" min="3" max="100" class="setting-input" style="width:80px;"><span class="setting-hint">轮</span></div>
-            <div class="setting-row"><button id="btn-reset-all" class="btn-small danger">⚠ 重置全部</button></div>
+            <div class="setting-row"><span class="setting-label">冒险管理</span><button id="btn-reset-adventure" class="btn-small warn">🔄 重置当前冒险</button><button id="btn-delete-adventure" class="btn-small danger">🗑 删除当前冒险</button></div>
           </div>
         </div>
 
@@ -240,7 +260,7 @@
           <div class="settings-section">
             <h4>GM AI</h4>
             <div class="setting-row"><span class="setting-label">聊天栏开关</span><label class="toggle-label"><input type="checkbox" id="setting-gm-ai-chat-enabled" checked> 允许GM在聊天栏上方显示AI快速开关</label></div>
-            <div class="setting-hint">只有房主/GM可打开AI开关并向AI提问；其他玩家只能接收AI输出。</div>
+            <div class="setting-hint">只有当前真人GM可打开主持AI；房主身份本身不会获得GM权限。其他玩家只能接收已公开的AI输出。</div>
           </div>
           <div class="settings-section">
             <h4>服务</h4>
@@ -256,9 +276,10 @@
             <div class="setting-row"><span class="setting-label">模型启用</span><label class="toggle-label"><input type="checkbox" id="setting-ai-enabled"> 启用后端AI模型调用</label></div>
             <div class="setting-row"><span class="setting-label">模式</span>
               <select id="setting-ai-mode" class="setting-select">
-                <option value="full">完整主持 — AI管理规则、战斗、剧情</option>
-                <option value="scene">场景描写 — AI仅描写场景，不干预扮演</option>
-                <option value="rules">规则助手 — AI只回答规则问题</option>
+                <option value="aigm">AI GM — 自主主持剧情、规则与状态</option>
+                <option value="assistant-gm">AI副GM — 辅助真人GM，最终裁定归真人</option>
+                <option value="aipl">AI玩家（AIPL）— 由真人GM带团，AI扮演玩家角色</option>
+                <option value="rules">规则助手 — 只检索规则与执行计算</option>
               </select>
             </div>
             <div class="setting-row"><span class="setting-label">提供商</span>
@@ -311,14 +332,12 @@
       <button id="btn-channel-history" class="btn-small" title="查阅当前频道的历史会话记录">历史</button>
 <button id="btn-channel-clear" class="btn-small" title="清空当前频道对话（开发记录不保留）" style="display:none;">清空</button>
     </div>
-    <!-- AI 开发状态框（2026-08-05）：系统频道AI执行中的工具调用/进度/用量摘要，不刷聊天栏 -->
     <div id="ai-dev-status" class="ai-dev-status" style="display:none;">
       <div class="ai-dev-status-head">
-        <span id="ai-dev-title" class="ai-dev-title">🤖 AI 开发中</span>
+        <span id="ai-dev-title" class="ai-dev-title">💭 AI思考中</span>
         <span id="ai-dev-phase" class="ai-dev-phase"></span>
         <span class="ai-dev-head-spacer"></span>
         <button id="ai-dev-collapse" class="ai-dev-collapse" title="展开/收起（仅折叠，不影响AI执行）">−</button>
-        <button id="ai-dev-stop" class="ai-dev-stop" title="手动中止当前AI开发" style="display:none;">■ 停止</button>
       </div>
       <div id="ai-dev-body" class="ai-dev-body">
         <div id="ai-dev-summary" class="ai-dev-summary"></div>
@@ -333,10 +352,12 @@
         <input type="checkbox" id="chat-ai-toggle">
         <span>🤖 AI</span>
       </label>
-      <span id="chat-ai-toggle-hint" class="chat-ai-toggle-hint">关闭：普通聊天</span>
+      <button id="btn-gm-directive" class="btn-small" title="向 AI 或玩家发送私聊（导演指令/秘密设定/管理指令），回复只显示在私聊窗口，不进入剧情聊天。">💬 私聊/指令</button>
+      <span id="chat-typing-status" class="chat-typing-status"></span>
+      <button id="ai-dev-stop" class="ai-dev-stop" title="手动中止当前AI" style="display:none;">■ 停止</button>
     </div>
     <div id="chat-input-row">
-      <textarea id="chat-input" rows="1" placeholder="输入消息或掷骰表达式（如 2d6+3），Shift+Enter 换行"></textarea>
+      <textarea id="chat-input" rows="1" placeholder="和 AI 聊天或掷骰（如 2d6+3）。说「开团」开始带团，Shift+Enter 换行"></textarea>
       <button id="btn-send" class="btn-small accent">发送</button>
     </div>
   </div>
@@ -358,34 +379,48 @@
   </div>
 </footer>
 
-<!-- 弹窗：范围配置 -->
-<div id="range-modal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>范围显示设置</h3>
-    <div class="form-row"><label>范围类型：</label>
-      <select id="range-type">
-        <option value="circle">圆形 / 球体</option>
-        <option value="cone">锥形</option>
-        <option value="line">线形</option>
-        <option value="cube">方形 / 立方体</option>
-      </select>
+<!-- 弹窗：地图设置 -->
+<div id="map-settings-modal" class="modal" style="display:none;">
+  <div class="modal-content wide map-settings-dialog">
+    <h3>地图设置</h3>
+    <div class="map-settings-grid">
+      <section>
+        <h4>地图信息</h4>
+        <div class="form-row"><label>地图名称：</label><input id="map-setting-name" type="text"></div>
+        <div class="form-row"><label>比例尺：</label><div class="inline-fields"><span>1 格 =</span><input id="map-setting-scale" type="number" min="0.0001" step="any" value="5"><select id="map-setting-unit"><option value="ft">尺</option><option value="m">米</option><option value="km">公里</option><option value="mi">英里</option></select></div></div>
+        <div class="form-row"><label>网格像素：</label><input id="map-setting-cell" type="number" min="10" max="300" value="50"></div>
+        <div class="form-row"><label>网格：</label><label class="toggle-label"><input id="map-setting-grid" type="checkbox" checked> 显示网格</label><label class="toggle-label"><input id="map-setting-snap" type="checkbox" checked> 标记吸附</label></div>
+      </section>
+      <section>
+        <h4>背景与显示</h4>
+        <div class="form-row"><label>背景图片：</label><input id="map-setting-bg-file" type="file" accept="image/*"></div>
+        <div class="form-row"><label>图片 URL：</label><input id="map-setting-bg-url" type="text" placeholder="https://..."></div>
+        <div class="form-row"><label>背景透明度：</label><input id="map-setting-bg-opacity" type="range" min="0" max="1" step="0.05" value="0.82"></div>
+        <div class="form-row"><label>图片偏移：</label><div class="inline-fields"><input id="map-setting-bg-x" type="number" step="0.1" value="0" title="X 格"><input id="map-setting-bg-y" type="number" step="0.1" value="0" title="Y 格"></div></div>
+        <div class="form-row"><label>颜色：</label><div class="inline-fields"><input id="map-setting-bg-color" type="color" value="#1a1a2e" title="底色"><input id="map-setting-grid-color" type="color" value="#3a3a5c" title="网格色"><input id="map-setting-range-color" type="color" value="#ff6b6b" title="默认范围色"></div></div>
+        <button id="btn-map-bg-remove" class="btn-small danger" type="button">移除背景图片</button>
+      </section>
     </div>
-    <div class="form-row"><label>范围大小（格）：</label><input type="number" id="range-size" value="20" min="1" max="200"></div>
-    <div class="form-row" id="range-width-row" style="display:none;"><label>宽度（格）：</label><input type="number" id="range-width" value="5" min="1" max="50"></div>
-    <div class="form-row" id="range-angle-row" style="display:none;"><label>角度：</label>
-      <select id="range-angle">
-        <option value="15">15°</option><option value="30">30°</option><option value="45">45°</option>
-        <option value="60" selected>60°</option><option value="90">90°</option><option value="120">120°</option>
-      </select>
-    </div>
-    <div class="modal-buttons">
-      <button id="btn-range-confirm" class="btn-small accent">确认显示</button>
-      <button id="btn-range-cancel" class="btn-small">取消</button>
-    </div>
+    <div class="modal-buttons"><button id="btn-map-delete" class="btn-small danger">删除当前地图</button><span class="spacer"></span><button id="btn-map-settings-cancel" class="btn-small">取消</button><button id="btn-map-settings-save" class="btn-small accent">保存地图设置</button></div>
   </div>
 </div>
 
-<!-- 弹窗：频道新建/提示词编辑（多行 textarea，2026-08-06） -->
+<!-- 弹窗：地图标记 -->
+<div id="map-token-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>添加地图标记</h3>
+    <div class="form-row"><label>用途：</label><select id="map-token-kind"><option value="object">物体</option><option value="party">小队位置</option><option value="location">地点</option><option value="hazard">危险/机关</option><option value="note">普通标记</option></select></div>
+    <div class="form-row"><label>名称：</label><input id="map-token-name" type="text" placeholder="例如：断桥、北境小队、秘密入口"></div>
+    <div class="form-row"><label>图标：</label><input id="map-token-icon" type="text" value="●" maxlength="4"></div>
+    <div class="form-row"><label>颜色：</label><input id="map-token-color" type="color" value="#4ecdc4"></div>
+    <div class="form-row"><label>形状：</label><select id="map-token-shape"><option value="circle">圆形</option><option value="square">方形</option></select></div>
+    <div class="form-row"><label>大小：</label><input id="map-token-size" type="number" min="0.25" max="8" step="0.25" value="1"><span>格</span></div>
+    <div class="form-row"><label>图片：</label><input id="map-token-image" type="file" accept="image/*"></div>
+    <div class="form-row"><label>注释：</label><textarea id="map-token-note" rows="3"></textarea></div>
+    <div class="modal-buttons"><button id="btn-map-token-cancel" class="btn-small">取消</button><button id="btn-map-token-save" class="btn-small accent">放到地图中心</button></div>
+  </div>
+</div>
+
 <div id="channel-modal" class="modal" style="display:none;">
   <div class="modal-content wide">
     <h3 id="channel-modal-title">频道设置</h3>
@@ -479,24 +514,6 @@
   </div>
 </div>
 
-<!-- 弹窗：地图背景 -->
-<div id="bg-modal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>设置地图背景</h3>
-    <div class="form-row"><label>选择图片：</label><input type="file" id="bg-file-input" accept="image/*"></div>
-    <div class="form-row"><label>或URL：</label><input type="text" id="bg-url-input" placeholder="https://..."></div>
-    <div class="form-row">
-      <label>偏移X：<input type="number" id="bg-offset-x" value="0" style="width:60px;"></label>
-      <label>偏移Y：<input type="number" id="bg-offset-y" value="0" style="width:60px;"></label>
-    </div>
-    <div class="modal-buttons">
-      <button id="btn-bg-apply" class="btn-small accent">应用</button>
-      <button id="btn-bg-remove" class="btn-small danger">移除背景</button>
-      <button id="btn-bg-cancel" class="btn-small">取消</button>
-    </div>
-  </div>
-</div>
-
 <!-- 弹窗：AI生成角色 -->
 <div id="ai-char-modal" class="modal" style="display:none;">
   <div class="modal-content wide">
@@ -518,7 +535,6 @@
   </div>
 </div>
 
-<!-- 弹窗：加入房间（2026-08-06：离线玩家下拉选择接入 + 自输入自动匹配；名字在线不可接管） -->
 <div id="join-room-modal" class="modal" style="display:none;">
   <div class="modal-content wide">
     <h3>加入房间</h3>
@@ -531,10 +547,31 @@
         <select id="join-room-offline" style="flex:1;"><option value="">— 选择当前无人的玩家名（本人重进用）—</option></select>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">名字=玩家身份：输入已注册的离线名字 = 接入该玩家（恢复角色归属）；在线玩家使用的名字不可接管；刷新页面不会掉线（60秒内自动恢复）。</div>
+    <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">昵称=全局玩家身份（设置页可定义）：默认使用全局昵称；输入已注册的离线名字 = 接入该玩家（恢复角色归属）；与在线玩家重名会被拒绝并提示修改；刷新页面不会掉线（60秒内自动恢复）。</div>
     <div class="modal-buttons">
       <button id="btn-join-confirm" class="btn-small accent">加入房间</button>
       <button id="btn-join-cancel" class="btn-small">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗：创建房间（规则系统/冒险为下拉选项） -->
+<div id="create-room-modal" class="modal" style="display:none;">
+  <div class="modal-content wide">
+    <h3>创建房间</h3>
+    <div class="form-row"><label>你的名字：</label><input type="text" id="create-room-name" placeholder="全局昵称（默认使用设置中的昵称）"></div>
+    <div class="form-row"><label>你的身份：</label>
+      <select id="create-room-role" style="flex:1;">
+        <option value="player">玩家（主机玩家也是玩家，默认身份）</option>
+        <option value="gm">GM（真人主持，拥有裁定权限）</option>
+      </select>
+    </div>
+    <div class="form-row"><label>规则系统：</label><select id="create-room-system" style="flex:1;"><option value="">— 选择规则系统 —</option></select></div>
+    <div class="form-row"><label>冒险：</label><select id="create-room-adventure" style="flex:1;"><option value="默认">默认</option></select></div>
+    <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">房间绑定所选规则系统与冒险；玩家加入后自动载入该规则书的插件与界面。</div>
+    <div class="modal-buttons">
+      <button id="btn-create-confirm" class="btn-small accent">创建房间</button>
+      <button id="btn-create-cancel" class="btn-small">取消</button>
     </div>
   </div>
 </div>
@@ -575,7 +612,9 @@
 <script src="js/templates.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/network.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/ui-modules/combat.js"></script>
+  <script src="js/ui-modules/dialog.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

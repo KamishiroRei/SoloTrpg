@@ -1,0 +1,18 @@
+{
+  "id": "module-1786024850388-55e188",
+  "type": "module_ingest",
+  "status": "failed",
+  "system": "DND五版不全书",
+  "moduleName": "5eDnD_龙后宝山HDQ_中译v1.0",
+  "modulePath": "Ruler/DND五版不全书/modules/5eDnD_龙后宝山HDQ_中译v1.0",
+  "sourceFiles": [
+    {
+      "rel": "5eDnD_龙后宝山HDQ_中译v1.0.pdf",
+      "size": 35864925
+    }
+  ],
+  "promptPath": "Ruler/DND五版不全书/modules/5eDnD_龙后宝山HDQ_中译v1.0/.trpg/import-task.md",
+  "createdAt": "2026-08-06T14:00:50.390Z",
+  "updatedAt": "2026-08-06T14:02:22.719Z",
+  "message": "network error"
+}

@@ -186,11 +186,7 @@ const RuleSearch = (() => {
 
   // ── AI上下文构建 ──────────────────────────────────
 
-  /**
-   * 为AI构建规则书上下文（压缩版，token优化）
-   * 
-   * 仅在AI主动调用搜索时使用，不自动注入
-   */
+  /** 为规则检索构建按需上下文。 */
   function buildAIContext(userQuery = '', gameState = null, maxChars = 2000) {
     if (!searchIndex) return '';
 

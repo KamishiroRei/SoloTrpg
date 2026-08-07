@@ -153,10 +153,8 @@ const PluginRuntime = (() => {
       const list = await resp.json();
       const ids = [];
       for (const manifest of list) {
-        // 2026-08-05 GM/PL 区分：visibility=gm 的插件仅 GM 加载（普通玩家不请求、不下载）
         if (manifest.visibility === 'gm' && !isLocalGM()) continue;
         if (loaded[manifest.id]) { ids.push(manifest.id); continue; }
-        // 本地校验（2026-08-05）：hash 一致则用缓存代码，不重复下载
         const cached = loadPluginCache(system, manifest);
         if (cached && cached.hash === manifest.hash) {
           try {
@@ -178,7 +176,6 @@ const PluginRuntime = (() => {
     }
   }
 
-  // 2026-08-05：GM 内容更新后全量重载（带哈希缓存校验：未变化的插件不重新下载）
   async function reloadSystemPlugins(system) {
     if (!system) return;
     unloadSystemPlugins();

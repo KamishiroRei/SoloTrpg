@@ -1,0 +1,70 @@
+{
+  "note": "DND 五版战斗配置（规则书定制入口）。宿主引擎只提供通用原语（事件总线/规则引擎/动作 ask/回合状态机），本文件是 AI 用这些原语为 DND 动态建立的「反应」功能模板——DND 特有（反应池=1/回合、借机攻击、护盾术），其他规则书不套用。reactionTemplates 供 AI 为 NPC/玩家编写 data.behavior.rules 时引用再按单位微调。",
+  "reactionPool": {
+    "defaultMax": 1,
+    "note": "DND：每回合 1 个反应。其他规则书可改（如每行动一次），或不用反应池（去掉 consumePool）。"
+  },
+  "battleEnd": {
+    "enabled": true,
+    "note": "DND：一方全灭/全部逃离自动结束战斗。规则书可关闭改人工判定。"
+  },
+  "hooks": [
+    "hit",
+    "leaveReach",
+    "cast",
+    "downed",
+    "damaged"
+  ],
+  "reactionTemplates": {
+    "opportunityAttack": {
+      "id": "opportunity",
+      "hook": "leaveReach",
+      "consumePool": true,
+      "condition": { "path": "status.disengage", "op": "!=", "value": true },
+      "actions": [
+        {
+          "op": "ask",
+          "title": "借机攻击",
+          "desc": "目标离开了你的攻击范围",
+          "options": [
+            { "label": "⚔ 借机攻击", "desc": "对离开攻击范围的敌人进行一次近战攻击检定（DND：消耗反应）" },
+            { "label": "🛡 不行动" }
+          ]
+        }
+      ]
+    },
+    "shieldSpell": {
+      "id": "shield",
+      "hook": "hit",
+      "consumePool": true,
+      "actions": [
+        {
+          "op": "ask",
+          "title": "护盾术",
+          "desc": "攻击命中了你（DND：需准备护盾术且有反应）",
+          "options": [
+            { "label": "✨ 施展护盾术", "desc": "反应动作施放护盾术，AC+5 直至你的下回合开始（消耗反应与1环法术位）" },
+            { "label": "🛡 不行动" }
+          ]
+        }
+      ]
+    },
+    "enemyCastOpp": {
+      "id": "enemyCast",
+      "hook": "cast",
+      "consumePool": true,
+      "condition": { "path": "detail", "op": "in", "value": ["近身", "close", "近战"] },
+      "actions": [
+        {
+          "op": "ask",
+          "title": "近身施法借机",
+          "desc": "敌人在你的攻击范围内施法（DND：可借机攻击打断）",
+          "options": [
+            { "label": "⚔ 借机攻击", "desc": "对施法敌人进行一次近战攻击检定（消耗反应）" },
+            { "label": "🛡 不行动" }
+          ]
+        }
+      ]
+    }
+  }
+}

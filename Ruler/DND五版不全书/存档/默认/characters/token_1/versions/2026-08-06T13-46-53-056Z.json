@@ -1,0 +1,448 @@
+{
+  "savedAt": "2026-08-06T13:46:50.520Z",
+  "character": {
+    "id": "token_1",
+    "kind": "character",
+    "name": "米蕾薇尔·阿瓦隆",
+    "displayName": "米蕾薇尔·阿瓦隆",
+    "color": "#c9a84c",
+    "gridX": 8,
+    "gridY": 0,
+    "size": 1,
+    "shape": "circle",
+    "icon": "●",
+    "avatarUrl": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/存档/%E9%BB%98%E8%AE%A4/characters/token_1/icon/avatar-1x1-framed.png",
+    "hp": 36,
+    "maxHp": 36,
+    "ac": 15,
+    "conditions": [],
+    "owner": null,
+    "data": {
+      "name": "米蕾薇尔·阿瓦隆",
+      "ruleVersion": "2024",
+      "assets": {
+        "avatarFramed": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/存档/%E9%BB%98%E8%AE%A4/characters/token_1/icon/avatar-1x1-framed.png",
+        "portrait": "/Ruler/DND%E4%BA%94%E7%89%88%E4%B8%8D%E5%85%A8%E4%B9%A6/存档/%E9%BB%98%E8%AE%A4/characters/token_1/icon/portrait-4x3.jpg"
+      },
+      "race": "龙裔",
+      "raceChoices": {
+        "dragon": "红龙"
+      },
+      "raceFeatures": {
+        "type": "类人",
+        "size": "中型（约5-7尺）",
+        "speed": "30尺",
+        "traits": [
+          {
+            "n": "吐息武器",
+            "d": "攻击动作时将一次攻击替换为释放能量，覆盖15尺锥状或30尺线状区域。区域内生物须通过敏捷豁免（DC=8+体质调整+熟练加值），失败受1d10伤害（5级2d10/11级3d10/17级4d10）。次数=熟练加值，长休后重获。"
+          },
+          {
+            "n": "伤害抗性",
+            "d": "根据所选龙种获得对应伤害类型的抗性（见下方选择）。"
+          },
+          {
+            "n": "黑暗视觉",
+            "d": "你拥有60尺黑暗视觉。"
+          },
+          {
+            "n": "龙族飞翼",
+            "d": "5级后可以附赠动作长出灵体飞翼，持续10分钟，获得等于你速度的飞行速度。长休前不可再次使用。"
+          }
+        ],
+        "choices": [
+          {
+            "n": "龙族血统",
+            "key": "dragon",
+            "kind": "dragon",
+            "options": [
+              {
+                "v": "白龙",
+                "d": "伤害类型：寒冷；获得寒冷抗性"
+              },
+              {
+                "v": "黑龙",
+                "d": "伤害类型：强酸；获得强酸抗性"
+              },
+              {
+                "v": "绿龙",
+                "d": "伤害类型：毒素；获得毒素抗性"
+              },
+              {
+                "v": "蓝龙",
+                "d": "伤害类型：闪电；获得闪电抗性"
+              },
+              {
+                "v": "红龙",
+                "d": "伤害类型：火焰；获得火焰抗性"
+              },
+              {
+                "v": "黄铜龙",
+                "d": "伤害类型：火焰；获得火焰抗性"
+              },
+              {
+                "v": "赤铜龙",
+                "d": "伤害类型：强酸；获得强酸抗性"
+              },
+              {
+                "v": "青铜龙",
+                "d": "伤害类型：闪电；获得闪电抗性"
+              },
+              {
+                "v": "银龙",
+                "d": "伤害类型：寒冷；获得寒冷抗性"
+              },
+              {
+                "v": "金龙",
+                "d": "伤害类型：火焰；获得火焰抗性"
+              }
+            ]
+          }
+        ]
+      },
+      "class": "圣武士",
+      "subclass": "荣耀之誓",
+      "classChoices": {},
+      "classChoiceDetails": {},
+      "classGrowthChoices": {},
+      "classFeatureDetails": {},
+      "subclassChoices": {},
+      "subclassChoiceDetails": {},
+      "subclassFeatureDetails": {},
+      "customClass": "",
+      "background": "天龙神的半身",
+      "bgData": null,
+      "toolProfs": [],
+      "bgApplied": {
+        "mode": "21",
+        "before": {
+          "str": 16,
+          "dex": 15,
+          "con": 15,
+          "int": 15,
+          "wis": 14,
+          "cha": 17
+        },
+        "allocation": {},
+        "after": {},
+        "abilities": []
+      },
+      "bgAttrMode": "21",
+      "bgAttrKeys": [],
+      "contentSources": {
+        "official": true,
+        "thirdParty": false
+      },
+      "bgEquip": "B",
+      "bgGold": 50,
+      "bgEquipData": null,
+      "equipChoice": "B",
+      "equipGold": 150,
+      "alignment": "中立善良",
+      "size": "中型",
+      "languages": "通用语、龙语、矮人语",
+      "level": 4,
+      "speed": 30,
+      "abilityScores": {
+        "str": 18,
+        "dex": 16,
+        "con": 15,
+        "int": 15,
+        "wis": 14,
+        "cha": 17
+      },
+      "abilityMods": {
+        "str": 4,
+        "dex": 3,
+        "con": 2,
+        "int": 2,
+        "wis": 2,
+        "cha": 3
+      },
+      "baseScores": null,
+      "featAsi": {},
+      "HP": {
+        "current": 36,
+        "max": 36,
+        "temp": 0
+      },
+      "proficiency": 2,
+      "AC": 15,
+      "initiative": 3,
+      "attackBonus": 6,
+      "spellDC": 13,
+      "spellAttack": 5,
+      "hitDice": "d10",
+      "hitDiceRemaining": 4,
+      "armor": "链甲衫",
+      "shield": false,
+      "currentLoad": 0,
+      "savingThrows": {
+        "str": false,
+        "dex": false,
+        "con": false,
+        "int": false,
+        "wis": true,
+        "cha": true
+      },
+      "manualSaves": {},
+      "saveSources": {
+        "int": [],
+        "wis": [
+          "职业·圣武士"
+        ],
+        "cha": [
+          "职业·圣武士"
+        ]
+      },
+      "skills": {
+        "运动": {
+          "ability": "力量",
+          "trained": "未熟练"
+        },
+        "特技": {
+          "ability": "敏捷",
+          "trained": "未熟练"
+        },
+        "巧手": {
+          "ability": "敏捷",
+          "trained": "未熟练"
+        },
+        "隐匿": {
+          "ability": "敏捷",
+          "trained": "未熟练"
+        },
+        "奥秘": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "历史": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "调查": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "自然": {
+          "ability": "智力",
+          "trained": "熟练"
+        },
+        "宗教": {
+          "ability": "智力",
+          "trained": "未熟练"
+        },
+        "驯兽": {
+          "ability": "感知",
+          "trained": "熟练"
+        },
+        "洞悉": {
+          "ability": "感知",
+          "trained": "熟练"
+        },
+        "医药": {
+          "ability": "感知",
+          "trained": "未熟练"
+        },
+        "察觉": {
+          "ability": "感知",
+          "trained": "未熟练"
+        },
+        "求生": {
+          "ability": "感知",
+          "trained": "未熟练"
+        },
+        "欺瞒": {
+          "ability": "魅力",
+          "trained": "未熟练"
+        },
+        "威吓": {
+          "ability": "魅力",
+          "trained": "熟练"
+        },
+        "表演": {
+          "ability": "魅力",
+          "trained": "未熟练"
+        },
+        "游说": {
+          "ability": "魅力",
+          "trained": "未熟练"
+        }
+      },
+      "skillSources": {
+        "驯兽": [
+          "背景·自定义"
+        ],
+        "自然": [
+          "背景·自定义"
+        ],
+        "威吓": [
+          "职业·圣武士"
+        ],
+        "洞悉": [
+          "职业·圣武士"
+        ]
+      },
+      "toolSources": {},
+      "customBg": {
+        "name": "天龙神的半身",
+        "skills": [
+          "驯兽",
+          "自然"
+        ],
+        "tool": "",
+        "toolCat": "",
+        "equip": "B",
+        "equipGold": 0,
+        "attr": "111"
+      },
+      "spellSlots": {
+        "1": 3,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0
+      },
+      "spellSlotsUsed": {},
+      "spellList": [
+        {
+          "name": "至圣斩",
+          "fullName": "至圣斩",
+          "level": 1,
+          "school": "",
+          "castingTime": "",
+          "range": "",
+          "components": "",
+          "duration": "",
+          "concentration": false,
+          "ritual": false,
+          "source": "",
+          "classes": [],
+          "prepared": true,
+          "alwaysPrepared": false,
+          "spellbook": false,
+          "granted": false,
+          "grantedBySubclass": "",
+          "grantedBySubclassChoice": "",
+          "selectedForClass": "",
+          "desc": ""
+        },
+        {
+          "name": "祝福术",
+          "fullName": "祝福术",
+          "level": 1,
+          "school": "",
+          "castingTime": "",
+          "range": "",
+          "components": "",
+          "duration": "",
+          "concentration": false,
+          "ritual": false,
+          "source": "",
+          "classes": [],
+          "prepared": true,
+          "alwaysPrepared": false,
+          "spellbook": false,
+          "granted": false,
+          "grantedBySubclass": "",
+          "grantedBySubclassChoice": "",
+          "selectedForClass": "",
+          "desc": ""
+        },
+        {
+          "name": "寻获坐骑",
+          "fullName": "寻获坐骑",
+          "level": 2,
+          "school": "",
+          "castingTime": "",
+          "range": "",
+          "components": "",
+          "duration": "",
+          "concentration": false,
+          "ritual": false,
+          "source": "",
+          "classes": [],
+          "prepared": true,
+          "alwaysPrepared": false,
+          "spellbook": false,
+          "granted": false,
+          "grantedBySubclass": "",
+          "grantedBySubclassChoice": "",
+          "selectedForClass": "",
+          "desc": ""
+        }
+      ],
+      "items": [
+        {
+          "name": "探索套组",
+          "category": "冒险装备",
+          "quantity": 1,
+          "equipped": false,
+          "price": "10",
+          "effect": "",
+          "equipSlot": "",
+          "canEquip": false
+        },
+        {
+          "name": "地城套组",
+          "category": "冒险装备",
+          "quantity": 1,
+          "equipped": false,
+          "price": "12",
+          "effect": "",
+          "equipSlot": "",
+          "canEquip": false
+        },
+        {
+          "name": "链甲衫",
+          "category": "中甲",
+          "quantity": 1,
+          "equipped": true,
+          "price": "50",
+          "effect": "",
+          "equipSlot": "armor",
+          "baseAC": 13,
+          "maxDex": 2,
+          "strReq": 0,
+          "canEquip": true,
+          "desc": "护甲等级 13；敏捷加值上限 +2"
+        }
+      ],
+      "goldStart": 128,
+      "goldSpent": 0,
+      "goldRemain": 128,
+      "features": [
+        "圣疗",
+        "施法",
+        "武器精通",
+        "战斗风格",
+        "引导神力",
+        "圣武士法术",
+        "引导神力（神圣感知）",
+        "荣耀之誓·誓约法术",
+        "荣耀之誓·引导神力：绝伦健将/鼓舞一击"
+      ],
+      "bio": {
+        "appearance": "",
+        "personality": "",
+        "ideals": "",
+        "bonds": "",
+        "flaws": "",
+        "backstory": ""
+      },
+      "deathSaves": {
+        "success": 0,
+        "failure": 0
+      },
+      "inspiration": false,
+      "statuses": [],
+      "effects": [],
+      "rollLog": [],
+      "levelLog": []
+    }
+  }
+}

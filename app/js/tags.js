@@ -1,14 +1,4 @@
-/* ============================================
-   TrpgRecode - 标签系统底层（Tag System）
-   全局统一的"标签化"组件：任何 TRPG 数据（特性/装备/法术/状态/效果/熟练/豁免/资源）
-   都以"标签"为基本展示单元，携带结构化信息，支持：
-   - 类型化色系（种族/职业/背景/武器/护甲/状态/学派/来源…）
-   - 浮动详情（hover 显示描述，绝对定位不改变布局）
-   - 动态数值（@strmod/@pb/@level 表达式实时求值显示）
-   - 来源标注（自动/自定义/职业·战士/背景·工匠…）
-   - 移除/点击交互（removable / onClick）
-   宿主提供本底层；规则插件通过 window.TrpgTag 使用（独立窗口内同源可用）。
-   ============================================ */
+/* TrpgRecode 全局结构化标签。 */
 (function () {
   'use strict';
 
@@ -90,11 +80,12 @@
     if (detailText) attrs += ' data-tg-desc="' + encodeURIComponent(detailText) + '"';
     if (opts.meta) { try { attrs += ' data-tg-meta="' + encodeURIComponent(JSON.stringify(opts.meta)) + '"'; } catch (e) {} }
     if (opts.source) attrs += ' data-tg-source="' + encodeURIComponent(opts.source) + '"';
+    if (opts.system) attrs += ' data-tg-system="' + encodeURIComponent(opts.system) + '"';
     attrs += ' data-tg-name="' + encodeURIComponent(opts.name == null ? '' : opts.name) + '"';
     var nameHtml = '<span class="tg-n">' + esc(opts.name == null ? '' : opts.name) + '</span>';
     var extraHtml = opts.extra != null && opts.extra !== ''
       ? '<span class="tg-x">' + esc(opts.extra) + '</span>' : '';
-    var srcHtml = opts.source
+    var srcHtml = opts.source && !opts.hideSource
       ? '<span class="tg-src">' + esc(opts.source) + '</span>' : '';
     var rmHtml = opts.removable
       ? '<button type="button" class="tg-rm" data-tg-rm="1" title="移除">✕</button>' : '';
@@ -111,16 +102,23 @@
     tipEl = document.createElement('div');
     tipEl.className = 'tg-tip';
     tipEl.style.display = 'none';
+    tipEl.addEventListener('mouseenter', function () { tipEl.__tgHovering = true; });
+    tipEl.addEventListener('mouseleave', function () { tipEl.__tgHovering = false; hideTip(); });
+    tipEl.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    tipEl.addEventListener('click', function (e) { e.stopPropagation(); });
     document.body.appendChild(tipEl);
     return tipEl;
   }
   function showTip(el) {
+    hideTip();
+    if (!el || !document.body || !document.body.contains(el)) return;
     var raw = el.getAttribute('data-tg-desc');
     if (!raw) return;
-    var desc = '', name = '', source = '', meta = null;
+    var desc = '', name = '', source = '', system = '', meta = null;
     try { desc = decodeURIComponent(raw); } catch (e) { desc = raw; }
     try { name = decodeURIComponent(el.getAttribute('data-tg-name') || ''); } catch (e) {}
     try { source = decodeURIComponent(el.getAttribute('data-tg-source') || ''); } catch (e) {}
+    try { system = decodeURIComponent(el.getAttribute('data-tg-system') || ''); } catch (e) {}
     try { meta = JSON.parse(decodeURIComponent(el.getAttribute('data-tg-meta') || '')); } catch (e) {}
     var rows = '';
     if (meta && typeof meta === 'object') Object.keys(meta).forEach(function(k) {
@@ -128,7 +126,18 @@
       rows += '<div class="tg-tip-row"><span>' + esc(k) + '</span><b>' + esc(Array.isArray(meta[k]) ? meta[k].join('、') : meta[k]) + '</b></div>';
     });
     var tip = ensureTip();
-    tip.innerHTML = (name ? '<div class="tg-tip-title">' + esc(name) + (source ? '<small>' + esc(source) + '</small>' : '') + '</div>' : '') + rows + '<div class="tg-tip-b">' + esc(desc) + '</div>';
+    var sourceHtml = '';
+    if (source) {
+      var safeSource = String(source).replace(/\\/g, '/').replace(/^\/+/, '');
+      if (system && safeSource && safeSource.indexOf('..') < 0) {
+        var href = '/view.html?system=' + encodeURIComponent(system) + '&file=' + encodeURIComponent(safeSource);
+        sourceHtml = '<a class="tg-tip-source" href="' + esc(href) + '" target="_blank" rel="noopener" title="' + esc(safeSource) + '">查看规则原文</a>';
+      } else {
+        sourceHtml = '<small title="' + esc(source) + '">来源：' + esc(source) + '</small>';
+      }
+    }
+    tip.innerHTML = (name ? '<div class="tg-tip-title">' + esc(name) + sourceHtml + '</div>' : '') + rows + '<div class="tg-tip-b">' + esc(desc) + '</div>';
+    tip.__tgAnchor = el;
     tip.style.display = 'block';
     var rect = el.getBoundingClientRect();
     var left = Math.max(8, Math.min(window.innerWidth - 388, rect.left));
@@ -139,7 +148,10 @@
   }
 
   function hideTip() {
-    if (tipEl) tipEl.style.display = 'none';
+    if (tipEl && !tipEl.__tgHovering) {
+      tipEl.style.display = 'none';
+      tipEl.__tgAnchor = null;
+    }
   }
 
   // 为容器绑定标签浮动详情（事件委托，幂等）
@@ -154,8 +166,24 @@
     root.addEventListener('mouseout', function (e) {
       var t = e.target;
       while (t && t !== root && !(t.getAttribute && t.getAttribute('data-tg-desc'))) t = t.parentNode;
-      if (t && t !== root) hideTip();
+      if (!t || t === root) return;
+      var next = e.relatedTarget;
+      if (next && t.contains && t.contains(next)) return;
+      if (tipEl && next && tipEl.contains(next)) return;
+      hideTip();
     });
+    // 点击、拖动或滚动都意味着玩家已经离开“阅读浮窗”的操作，立即收起，避免遮住弹窗与角色卡。
+    root.addEventListener('pointerdown', hideTip, true);
+    root.addEventListener('click', hideTip, true);
+    root.addEventListener('scroll', hideTip, true);
+  }
+
+  if (!window.__trpgTagGlobalHideBound) {
+    window.__trpgTagGlobalHideBound = true;
+    window.addEventListener('scroll', hideTip, true);
+    window.addEventListener('blur', hideTip, true);
+    document.addEventListener('visibilitychange', hideTip, true);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideTip(); }, true);
   }
 
   // 渲染一组标签（便捷）
